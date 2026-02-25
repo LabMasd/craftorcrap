@@ -2,31 +2,41 @@
 
 const CRAFTORCRAP_URL = 'https://craftorcrap.cc';
 
-// Create context menu on install
-chrome.runtime.onInstalled.addListener(() => {
-  // Context menu for images
-  chrome.contextMenus.create({
-    id: 'save-to-craftorcrap',
-    title: 'Save to craftorcrap',
-    contexts: ['image']
-  });
+// Create context menus
+function createContextMenus() {
+  // Remove existing menus first
+  chrome.contextMenus.removeAll(() => {
+    // Context menu for images
+    chrome.contextMenus.create({
+      id: 'save-to-craftorcrap',
+      title: 'Save to craftorcrap',
+      contexts: ['image']
+    });
 
-  // Context menu for links (in case it's a link to an image)
-  chrome.contextMenus.create({
-    id: 'save-link-to-craftorcrap',
-    title: 'Save to craftorcrap',
-    contexts: ['link']
-  });
+    // Context menu for links (in case it's a link to an image)
+    chrome.contextMenus.create({
+      id: 'save-link-to-craftorcrap',
+      title: 'Save to craftorcrap',
+      contexts: ['link']
+    });
 
-  // Context menu for page
-  chrome.contextMenus.create({
-    id: 'save-page-to-craftorcrap',
-    title: 'Save page to craftorcrap',
-    contexts: ['page']
-  });
+    // Context menu for page
+    chrome.contextMenus.create({
+      id: 'save-page-to-craftorcrap',
+      title: 'Save page to craftorcrap',
+      contexts: ['page']
+    });
 
-  console.log('craftorcrap context menus created');
-});
+    console.log('craftorcrap context menus created');
+  });
+}
+
+// Create context menus on install and startup
+chrome.runtime.onInstalled.addListener(createContextMenus);
+chrome.runtime.onStartup.addListener(createContextMenus);
+
+// Also create immediately when service worker loads
+createContextMenus();
 
 // Handle context menu clicks
 chrome.contextMenus.onClicked.addListener((info, tab) => {
