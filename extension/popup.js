@@ -12,20 +12,21 @@ const footer = document.getElementById('footer');
 const submitBtn = document.getElementById('submitBtn');
 const status = document.getElementById('status');
 
-// Load queue from storage
-chrome.storage.local.get(['imageQueue'], (result) => {
+// Load queue from storage, then check for new images
+chrome.storage.local.get(['imageQueue', 'selectedImage'], (result) => {
+  // First load existing queue
   if (result.imageQueue && result.imageQueue.length > 0) {
     queue = result.imageQueue;
-    renderQueue();
   }
-});
 
-// Check for newly added image (from context menu or picker)
-chrome.storage.local.get(['selectedImage'], (result) => {
+  // Then add any newly selected image
   if (result.selectedImage) {
     addToQueue(result.selectedImage);
     chrome.storage.local.remove(['selectedImage']);
   }
+
+  // Render the queue
+  renderQueue();
 });
 
 // Pick image button
@@ -48,7 +49,7 @@ function addToQueue(item) {
   const exists = queue.some(q => q.src === item.src && q.pageUrl === item.pageUrl);
   if (!exists) {
     item.id = Date.now();
-    item.category = selectedCategory;
+    item.category = item.category || 'Web';
     queue.push(item);
     saveQueue();
     renderQueue();
