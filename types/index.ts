@@ -21,9 +21,9 @@ export interface Vote {
 
 export type Verdict = 'craft' | 'crap'
 
-export type Category = 'Motion' | 'Branding' | 'Web' | 'Illustration' | 'Photography' | 'Other'
+export type Category = 'Motion' | 'Branding' | 'Web' | 'Illustration' | 'Photography' | '3D' | 'AI' | 'Other'
 
-export const CATEGORIES: Category[] = ['Motion', 'Branding', 'Web', 'Illustration', 'Photography', 'Other']
+export const CATEGORIES: Category[] = ['Motion', 'Branding', 'Web', 'Illustration', 'Photography', '3D', 'AI', 'Other']
 
 export type SortOption = 'most_voted' | 'most_recent' | 'most_craft' | 'most_crap'
 
