@@ -623,7 +623,7 @@ export default function Home() {
                 {['All', ...CATEGORIES].map((cat, i) => (
                   <button
                     key={cat}
-                    onClick={() => { setActiveCategory(cat === 'All' ? 'all' : cat as Category); setShowCategoryFilter(false); }}
+                    onClick={() => setActiveCategory(cat === 'All' ? 'all' : cat as Category)}
                     className={`px-2.5 py-1 text-[10px] font-medium rounded-full whitespace-nowrap will-change-transform ${
                       (cat === 'All' ? 'all' : cat) === activeCategory
                         ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
@@ -678,7 +678,7 @@ export default function Home() {
                   }}
                 >
                   <button
-                    onClick={() => { setActiveColor(null); setShowColorPicker(false); }}
+                    onClick={() => setActiveColor(null)}
                     className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 will-change-transform ${
                       activeColor === null
                         ? darkMode ? 'border-white' : 'border-black'
@@ -698,7 +698,7 @@ export default function Home() {
                   {COLOR_FILTERS.map((color, i) => (
                     <button
                       key={color.hex}
-                      onClick={() => { setActiveColor(color.hex); setShowColorPicker(false); }}
+                      onClick={() => setActiveColor(color.hex)}
                       className={`w-5 h-5 rounded-full border-2 flex-shrink-0 will-change-transform ${
                         activeColor === color.hex
                           ? darkMode ? 'border-white scale-110' : 'border-black scale-110'
