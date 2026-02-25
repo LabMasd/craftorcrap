@@ -9,6 +9,7 @@ import { CATEGORIES } from '@/types'
 
 type Tab = 'all' | 'craft' | 'crap'
 type CardSize = 'compact' | 'normal' | 'large'
+type SortMode = 'newest' | 'random'
 
 const MOCK_SUBMISSIONS: Submission[] = [
   {
@@ -106,6 +107,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<Tab>('all')
   const [activeCategory, setActiveCategory] = useState<Category | 'all'>('all')
+  const [sortMode, setSortMode] = useState<SortMode>('newest')
   const [cardSize, setCardSize] = useState<CardSize>('normal')
   const [darkMode, setDarkMode] = useState(true)
   const [isDemo, setIsDemo] = useState(false)
@@ -146,32 +148,24 @@ export default function Home() {
           filtered = filtered.filter(s => s.category === activeCategory)
         }
 
-        // Filter and sort by tab
+        // Filter by tab
         if (activeTab === 'craft') {
-          // Only show items with >50% craft
           filtered = filtered.filter(s => {
             const total = s.total_craft + s.total_crap
             return total > 0 && (s.total_craft / total) > 0.5
           })
-          filtered.sort((a, b) => {
-            const aRatio = a.total_craft / (a.total_craft + a.total_crap || 1)
-            const bRatio = b.total_craft / (b.total_craft + b.total_crap || 1)
-            return bRatio - aRatio
-          })
         } else if (activeTab === 'crap') {
-          // Only show items with <=50% craft (includes 50/50)
           filtered = filtered.filter(s => {
             const total = s.total_craft + s.total_crap
             return total > 0 && (s.total_craft / total) <= 0.5
           })
-          filtered.sort((a, b) => {
-            const aRatio = a.total_crap / (a.total_craft + a.total_crap || 1)
-            const bRatio = b.total_crap / (b.total_craft + b.total_crap || 1)
-            return bRatio - aRatio
-          })
+        }
+
+        // Sort by mode
+        if (sortMode === 'random') {
+          filtered.sort(() => Math.random() - 0.5)
         } else {
-          // All - sort by most votes
-          filtered.sort((a, b) => (b.total_craft + b.total_crap) - (a.total_craft + a.total_crap))
+          filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         }
 
         setSubmissions(filtered)
@@ -192,31 +186,23 @@ export default function Home() {
       if (!error && data) {
         let filtered = [...data]
 
-        // Filter and sort by tab
+        // Filter by tab
         if (activeTab === 'craft') {
-          // Only show items with >50% craft
           filtered = filtered.filter(s => {
             const total = s.total_craft + s.total_crap
             return total > 0 && (s.total_craft / total) > 0.5
           })
-          filtered.sort((a, b) => {
-            const aRatio = a.total_craft / (a.total_craft + a.total_crap || 1)
-            const bRatio = b.total_craft / (b.total_craft + b.total_crap || 1)
-            return bRatio - aRatio
-          })
         } else if (activeTab === 'crap') {
-          // Only show items with <=50% craft
           filtered = filtered.filter(s => {
             const total = s.total_craft + s.total_crap
             return total > 0 && (s.total_craft / total) <= 0.5
           })
-          filtered.sort((a, b) => {
-            const aRatio = a.total_crap / (a.total_craft + a.total_crap || 1)
-            const bRatio = b.total_crap / (b.total_craft + b.total_crap || 1)
-            return bRatio - aRatio
-          })
+        }
+
+        // Sort by mode
+        if (sortMode === 'random') {
+          filtered.sort(() => Math.random() - 0.5)
         } else {
-          // All - sort by most recent
           filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         }
 
@@ -227,7 +213,7 @@ export default function Home() {
     }
 
     fetchSubmissions()
-  }, [activeTab, activeCategory])
+  }, [activeTab, activeCategory, sortMode])
 
   const gridCols = {
     compact: 'columns-2 sm:columns-3 md:columns-4 lg:columns-5 xl:columns-6 2xl:columns-7',
@@ -533,31 +519,57 @@ export default function Home() {
           )}
         </div>
 
-        {/* Category Filters */}
-        <div className="flex flex-wrap gap-2 mb-6">
-          <button
-            onClick={() => setActiveCategory('all')}
-            className={`px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
-              activeCategory === 'all'
-                ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
-                : darkMode ? 'bg-white/5 text-white/50 hover:text-white/70' : 'bg-black/5 text-black/50 hover:text-black/70'
-            }`}
-          >
-            All
-          </button>
-          {CATEGORIES.map((cat) => (
+        {/* Category Filters + Sort */}
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <div className="flex flex-wrap gap-2">
             <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
+              onClick={() => setActiveCategory('all')}
               className={`px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
-                activeCategory === cat
+                activeCategory === 'all'
                   ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
                   : darkMode ? 'bg-white/5 text-white/50 hover:text-white/70' : 'bg-black/5 text-black/50 hover:text-black/70'
               }`}
             >
-              {cat}
+              All
             </button>
-          ))}
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={`px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
+                  activeCategory === cat
+                    ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
+                    : darkMode ? 'bg-white/5 text-white/50 hover:text-white/70' : 'bg-black/5 text-black/50 hover:text-black/70'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+
+          {/* Sort Toggle */}
+          <div className={`flex gap-0.5 p-0.5 rounded-full ${darkMode ? 'bg-white/5' : 'bg-black/5'}`}>
+            <button
+              onClick={() => setSortMode('newest')}
+              className={`px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
+                sortMode === 'newest'
+                  ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
+                  : darkMode ? 'text-white/50 hover:text-white/70' : 'text-black/50 hover:text-black/70'
+              }`}
+            >
+              Newest
+            </button>
+            <button
+              onClick={() => setSortMode('random')}
+              className={`px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
+                sortMode === 'random'
+                  ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
+                  : darkMode ? 'text-white/50 hover:text-white/70' : 'text-black/50 hover:text-black/70'
+              }`}
+            >
+              Random
+            </button>
+          </div>
         </div>
 
         {loading ? (
