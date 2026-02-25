@@ -141,6 +141,7 @@ export default function Home() {
   const [sortMode, setSortMode] = useState<SortMode>('newest')
   const [activeColor, setActiveColor] = useState<string | null>(null)
   const [showColorPicker, setShowColorPicker] = useState(false)
+  const [showCategoryFilter, setShowCategoryFilter] = useState(false)
   const [cardSize, setCardSize] = useState<CardSize>('normal')
   const [darkMode, setDarkMode] = useState(true)
   const [isDemo, setIsDemo] = useState(false)
@@ -571,30 +572,50 @@ export default function Home() {
 
         {/* Category Filters + Sort */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-          <div className="flex flex-wrap gap-2">
+          {/* Category Filter - slides from left */}
+          <div className="flex items-center">
             <button
-              onClick={() => setActiveCategory('all')}
-              className={`px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
-                activeCategory === 'all'
+              onClick={() => setShowCategoryFilter(!showCategoryFilter)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
+                activeCategory !== 'all' || showCategoryFilter
                   ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
                   : darkMode ? 'bg-white/5 text-white/50 hover:text-white/70' : 'bg-black/5 text-black/50 hover:text-black/70'
               }`}
             >
-              All
+              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+              </svg>
+              {activeCategory !== 'all' ? activeCategory : 'Filter'}
             </button>
-            {CATEGORIES.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
-                className={`px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
-                  activeCategory === cat
-                    ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
-                    : darkMode ? 'bg-white/5 text-white/50 hover:text-white/70' : 'bg-black/5 text-black/50 hover:text-black/70'
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
+            <div className={`flex items-center overflow-hidden transition-all duration-300 ease-out ${
+              showCategoryFilter ? 'max-w-[500px] opacity-100 ml-2' : 'max-w-0 opacity-0'
+            }`}>
+              <div className={`flex items-center gap-1 p-1 rounded-full ${darkMode ? 'bg-white/5' : 'bg-black/5'}`}>
+                <button
+                  onClick={() => { setActiveCategory('all'); setShowCategoryFilter(false); }}
+                  className={`px-2.5 py-1 text-[10px] font-medium rounded-full transition-all whitespace-nowrap ${
+                    activeCategory === 'all'
+                      ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
+                      : darkMode ? 'text-white/50 hover:text-white/70' : 'text-black/50 hover:text-black/70'
+                  }`}
+                >
+                  All
+                </button>
+                {CATEGORIES.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => { setActiveCategory(cat); setShowCategoryFilter(false); }}
+                    className={`px-2.5 py-1 text-[10px] font-medium rounded-full transition-all whitespace-nowrap ${
+                      activeCategory === cat
+                        ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
+                        : darkMode ? 'text-white/50 hover:text-white/70' : 'text-black/50 hover:text-black/70'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* Color + Sort */}
