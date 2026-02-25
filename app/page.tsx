@@ -599,8 +599,38 @@ export default function Home() {
 
           {/* Color + Sort */}
           <div className="flex items-center gap-2">
-            {/* Color Filter */}
-            <div className="relative">
+            {/* Color Filter - slides from right */}
+            <div className="flex items-center">
+              <div className={`flex items-center overflow-hidden transition-all duration-300 ease-out ${
+                showColorPicker ? 'max-w-[280px] opacity-100 mr-2' : 'max-w-0 opacity-0'
+              }`}>
+                <div className={`flex items-center gap-1 p-1 rounded-full ${darkMode ? 'bg-white/5' : 'bg-black/5'}`}>
+                  <button
+                    onClick={() => { setActiveColor(null); setShowColorPicker(false); }}
+                    className={`w-5 h-5 rounded-full border-2 transition-all flex items-center justify-center flex-shrink-0 ${
+                      activeColor === null
+                        ? darkMode ? 'border-white' : 'border-black'
+                        : darkMode ? 'border-white/20 hover:border-white/40' : 'border-black/20 hover:border-black/40'
+                    }`}
+                    title="All colors"
+                  >
+                    <span className={`text-[7px] ${darkMode ? 'text-white/60' : 'text-black/60'}`}>All</span>
+                  </button>
+                  {COLOR_FILTERS.map((color) => (
+                    <button
+                      key={color.hex}
+                      onClick={() => { setActiveColor(color.hex); setShowColorPicker(false); }}
+                      className={`w-5 h-5 rounded-full border-2 transition-all flex-shrink-0 ${
+                        activeColor === color.hex
+                          ? darkMode ? 'border-white scale-110' : 'border-black scale-110'
+                          : darkMode ? 'border-white/20 hover:border-white/40' : 'border-black/20 hover:border-black/40'
+                      }`}
+                      style={{ backgroundColor: color.hex }}
+                      title={color.name}
+                    />
+                  ))}
+                </div>
+              </div>
               <button
                 onClick={() => setShowColorPicker(!showColorPicker)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
@@ -618,35 +648,6 @@ export default function Home() {
                 )}
                 Color
               </button>
-
-              {showColorPicker && (
-                <div className={`absolute top-full left-0 mt-2 p-2 rounded-xl z-10 flex items-center gap-1.5 ${darkMode ? 'bg-neutral-900 border border-white/10' : 'bg-white border border-black/10 shadow-lg'}`}>
-                  <button
-                    onClick={() => { setActiveColor(null); setShowColorPicker(false); }}
-                    className={`w-6 h-6 rounded-full border-2 transition-all flex items-center justify-center ${
-                      activeColor === null
-                        ? darkMode ? 'border-white' : 'border-black'
-                        : darkMode ? 'border-white/20 hover:border-white/40' : 'border-black/20 hover:border-black/40'
-                    }`}
-                    title="All colors"
-                  >
-                    <span className={`text-[8px] ${darkMode ? 'text-white/60' : 'text-black/60'}`}>All</span>
-                  </button>
-                  {COLOR_FILTERS.map((color) => (
-                    <button
-                      key={color.hex}
-                      onClick={() => { setActiveColor(color.hex); setShowColorPicker(false); }}
-                      className={`w-6 h-6 rounded-full border-2 transition-all ${
-                        activeColor === color.hex
-                          ? darkMode ? 'border-white scale-110' : 'border-black scale-110'
-                          : darkMode ? 'border-white/20 hover:border-white/40' : 'border-black/20 hover:border-black/40'
-                      }`}
-                      style={{ backgroundColor: color.hex }}
-                      title={color.name}
-                    />
-                  ))}
-                </div>
-              )}
             </div>
 
             {/* Sort Toggle */}
