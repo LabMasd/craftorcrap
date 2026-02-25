@@ -597,79 +597,82 @@ export default function Home() {
             ))}
           </div>
 
-          {/* Sort Toggle */}
-          <div className={`flex gap-0.5 p-0.5 rounded-full ${darkMode ? 'bg-white/5' : 'bg-black/5'}`}>
-            <button
-              onClick={() => setSortMode('newest')}
-              className={`px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
-                sortMode === 'newest'
-                  ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
-                  : darkMode ? 'text-white/50 hover:text-white/70' : 'text-black/50 hover:text-black/70'
-              }`}
-            >
-              Newest
-            </button>
-            <button
-              onClick={() => setSortMode('random')}
-              className={`px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
-                sortMode === 'random'
-                  ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
-                  : darkMode ? 'text-white/50 hover:text-white/70' : 'text-black/50 hover:text-black/70'
-              }`}
-            >
-              Random
-            </button>
-          </div>
-        </div>
-
-        {/* Color Filter */}
-        <div className="flex items-center gap-2 mb-6">
-          <button
-            onClick={() => setShowColorPicker(!showColorPicker)}
-            className={`flex items-center gap-2 px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
-              activeColor || showColorPicker
-                ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
-                : darkMode ? 'bg-white/5 text-white/50 hover:text-white/70' : 'bg-black/5 text-black/50 hover:text-black/70'
-            }`}
-          >
-            {activeColor ? (
-              <span className="w-3 h-3 rounded-full border border-current" style={{ backgroundColor: activeColor }} />
-            ) : (
-              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-              </svg>
-            )}
-            Color
-          </button>
-
-          {showColorPicker && (
-            <div className="flex items-center gap-1.5">
+          {/* Color + Sort */}
+          <div className="flex items-center gap-2">
+            {/* Color Filter */}
+            <div className="relative">
               <button
-                onClick={() => { setActiveColor(null); setShowColorPicker(false); }}
-                className={`w-6 h-6 rounded-full border-2 transition-all flex items-center justify-center ${
-                  activeColor === null
-                    ? darkMode ? 'border-white' : 'border-black'
-                    : darkMode ? 'border-white/20 hover:border-white/40' : 'border-black/20 hover:border-black/40'
+                onClick={() => setShowColorPicker(!showColorPicker)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
+                  activeColor || showColorPicker
+                    ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
+                    : darkMode ? 'bg-white/5 text-white/50 hover:text-white/70' : 'bg-black/5 text-black/50 hover:text-black/70'
                 }`}
-                title="All colors"
               >
-                <span className={`text-[8px] ${darkMode ? 'text-white/60' : 'text-black/60'}`}>All</span>
+                {activeColor ? (
+                  <span className="w-3 h-3 rounded-full border border-current" style={{ backgroundColor: activeColor }} />
+                ) : (
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                  </svg>
+                )}
+                Color
               </button>
-              {COLOR_FILTERS.map((color) => (
-                <button
-                  key={color.hex}
-                  onClick={() => { setActiveColor(color.hex); setShowColorPicker(false); }}
-                  className={`w-6 h-6 rounded-full border-2 transition-all ${
-                    activeColor === color.hex
-                      ? darkMode ? 'border-white scale-110' : 'border-black scale-110'
-                      : darkMode ? 'border-white/20 hover:border-white/40' : 'border-black/20 hover:border-black/40'
-                  }`}
-                  style={{ backgroundColor: color.hex }}
-                  title={color.name}
-                />
-              ))}
+
+              {showColorPicker && (
+                <div className={`absolute top-full left-0 mt-2 p-2 rounded-xl z-10 flex items-center gap-1.5 ${darkMode ? 'bg-neutral-900 border border-white/10' : 'bg-white border border-black/10 shadow-lg'}`}>
+                  <button
+                    onClick={() => { setActiveColor(null); setShowColorPicker(false); }}
+                    className={`w-6 h-6 rounded-full border-2 transition-all flex items-center justify-center ${
+                      activeColor === null
+                        ? darkMode ? 'border-white' : 'border-black'
+                        : darkMode ? 'border-white/20 hover:border-white/40' : 'border-black/20 hover:border-black/40'
+                    }`}
+                    title="All colors"
+                  >
+                    <span className={`text-[8px] ${darkMode ? 'text-white/60' : 'text-black/60'}`}>All</span>
+                  </button>
+                  {COLOR_FILTERS.map((color) => (
+                    <button
+                      key={color.hex}
+                      onClick={() => { setActiveColor(color.hex); setShowColorPicker(false); }}
+                      className={`w-6 h-6 rounded-full border-2 transition-all ${
+                        activeColor === color.hex
+                          ? darkMode ? 'border-white scale-110' : 'border-black scale-110'
+                          : darkMode ? 'border-white/20 hover:border-white/40' : 'border-black/20 hover:border-black/40'
+                      }`}
+                      style={{ backgroundColor: color.hex }}
+                      title={color.name}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
-          )}
+
+            {/* Sort Toggle */}
+            <div className={`flex gap-0.5 p-0.5 rounded-full ${darkMode ? 'bg-white/5' : 'bg-black/5'}`}>
+              <button
+                onClick={() => setSortMode('newest')}
+                className={`px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
+                  sortMode === 'newest'
+                    ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
+                    : darkMode ? 'text-white/50 hover:text-white/70' : 'text-black/50 hover:text-black/70'
+                }`}
+              >
+                Newest
+              </button>
+              <button
+                onClick={() => setSortMode('random')}
+                className={`px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
+                  sortMode === 'random'
+                    ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
+                    : darkMode ? 'text-white/50 hover:text-white/70' : 'text-black/50 hover:text-black/70'
+                }`}
+              >
+                Random
+              </button>
+            </div>
+          </div>
         </div>
 
         {loading ? (
