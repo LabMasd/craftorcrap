@@ -587,9 +587,14 @@ export default function Home() {
               </svg>
               {activeCategory !== 'all' ? activeCategory : 'Filter'}
             </button>
-            <div className={`flex items-center overflow-hidden transition-all duration-[450ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${
-              showCategoryFilter ? 'max-w-[500px] opacity-100 ml-2' : 'max-w-0 opacity-0 ml-0'
-            }`}>
+            <div
+              className="flex items-center ml-2 origin-left will-change-transform"
+              style={{
+                transform: showCategoryFilter ? 'scaleX(1)' : 'scaleX(0)',
+                opacity: showCategoryFilter ? 1 : 0,
+                transition: 'transform 400ms cubic-bezier(0.16, 1, 0.3, 1), opacity 300ms cubic-bezier(0.16, 1, 0.3, 1)',
+              }}
+            >
               <div className={`flex items-center gap-1 p-1 rounded-full ${darkMode ? 'bg-white/5' : 'bg-black/5'}`}>
                 <button
                   onClick={() => { setActiveCategory('all'); setShowCategoryFilter(false); }}
@@ -622,9 +627,14 @@ export default function Home() {
           <div className="flex items-center gap-2">
             {/* Color Filter - slides from right */}
             <div className="flex items-center">
-              <div className={`flex items-center overflow-hidden transition-all duration-[450ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${
-                showColorPicker ? 'max-w-[280px] opacity-100 mr-2' : 'max-w-0 opacity-0 mr-0'
-              }`}>
+              <div
+                className="flex items-center mr-2 origin-right will-change-transform"
+                style={{
+                  transform: showColorPicker ? 'scaleX(1)' : 'scaleX(0)',
+                  opacity: showColorPicker ? 1 : 0,
+                  transition: 'transform 400ms cubic-bezier(0.16, 1, 0.3, 1), opacity 300ms cubic-bezier(0.16, 1, 0.3, 1)',
+                }}
+              >
                 <div className={`flex items-center gap-1 p-1 rounded-full ${darkMode ? 'bg-white/5' : 'bg-black/5'}`}>
                   <button
                     onClick={() => { setActiveColor(null); setShowColorPicker(false); }}
