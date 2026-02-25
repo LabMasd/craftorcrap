@@ -311,7 +311,11 @@ export default function Home() {
 
       {/* Footer */}
       <footer className={`fixed bottom-0 left-0 right-0 py-3 text-center text-[11px] ${darkMode ? 'text-white/30' : 'text-black/30'}`}>
-        Made with <span className="text-red-500">♥</span> by{' '}
+        <Link href="/about" className={`hover:underline ${darkMode ? 'text-white/50 hover:text-white/70' : 'text-black/50 hover:text-black/70'}`}>
+          About
+        </Link>
+        <span className="mx-2">·</span>
+        Made with 🖤 by{' '}
         <a
           href="https://masd.lab"
           target="_blank"
