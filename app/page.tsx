@@ -587,7 +587,7 @@ export default function Home() {
               </svg>
               {activeCategory !== 'all' ? activeCategory : 'Filter'}
             </button>
-            <div className={`flex items-center overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+            <div className={`flex items-center overflow-hidden transition-all duration-[450ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${
               showCategoryFilter ? 'max-w-[500px] opacity-100 ml-2' : 'max-w-0 opacity-0 ml-0'
             }`}>
               <div className={`flex items-center gap-1 p-1 rounded-full ${darkMode ? 'bg-white/5' : 'bg-black/5'}`}>
@@ -622,7 +622,7 @@ export default function Home() {
           <div className="flex items-center gap-2">
             {/* Color Filter - slides from right */}
             <div className="flex items-center">
-              <div className={`flex items-center overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+              <div className={`flex items-center overflow-hidden transition-all duration-[450ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${
                 showColorPicker ? 'max-w-[280px] opacity-100 mr-2' : 'max-w-0 opacity-0 mr-0'
               }`}>
                 <div className={`flex items-center gap-1 p-1 rounded-full ${darkMode ? 'bg-white/5' : 'bg-black/5'}`}>
