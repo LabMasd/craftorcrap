@@ -839,7 +839,7 @@ export default function Home() {
         </svg>
         <span> by </span>
         <a
-          href="https://masd.studio"
+          href="https://www.instagram.com/masd.lab/"
           target="_blank"
           rel="noopener noreferrer"
           className={`hover:underline ${darkMode ? 'text-white/50 hover:text-white/70' : 'text-black/50 hover:text-black/70'}`}
