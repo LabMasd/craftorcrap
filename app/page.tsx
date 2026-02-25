@@ -146,19 +146,31 @@ export default function Home() {
           filtered = filtered.filter(s => s.category === activeCategory)
         }
 
+        // Filter and sort by tab
         if (activeTab === 'craft') {
+          // Only show items with >50% craft
+          filtered = filtered.filter(s => {
+            const total = s.total_craft + s.total_crap
+            return total > 0 && (s.total_craft / total) > 0.5
+          })
           filtered.sort((a, b) => {
             const aRatio = a.total_craft / (a.total_craft + a.total_crap || 1)
             const bRatio = b.total_craft / (b.total_craft + b.total_crap || 1)
             return bRatio - aRatio
           })
         } else if (activeTab === 'crap') {
+          // Only show items with <=50% craft (includes 50/50)
+          filtered = filtered.filter(s => {
+            const total = s.total_craft + s.total_crap
+            return total > 0 && (s.total_craft / total) <= 0.5
+          })
           filtered.sort((a, b) => {
             const aRatio = a.total_crap / (a.total_craft + a.total_crap || 1)
             const bRatio = b.total_crap / (b.total_craft + b.total_crap || 1)
             return bRatio - aRatio
           })
         } else {
+          // All - sort by most votes
           filtered.sort((a, b) => (b.total_craft + b.total_crap) - (a.total_craft + a.total_crap))
         }
 
@@ -175,18 +187,40 @@ export default function Home() {
         query = query.eq('category', activeCategory)
       }
 
-      if (activeTab === 'craft') {
-        query = query.order('total_craft', { ascending: false })
-      } else if (activeTab === 'crap') {
-        query = query.order('total_crap', { ascending: false })
-      } else {
-        query = query.order('created_at', { ascending: false })
-      }
-
       const { data, error } = await query
 
       if (!error && data) {
-        setSubmissions(data)
+        let filtered = [...data]
+
+        // Filter and sort by tab
+        if (activeTab === 'craft') {
+          // Only show items with >50% craft
+          filtered = filtered.filter(s => {
+            const total = s.total_craft + s.total_crap
+            return total > 0 && (s.total_craft / total) > 0.5
+          })
+          filtered.sort((a, b) => {
+            const aRatio = a.total_craft / (a.total_craft + a.total_crap || 1)
+            const bRatio = b.total_craft / (b.total_craft + b.total_crap || 1)
+            return bRatio - aRatio
+          })
+        } else if (activeTab === 'crap') {
+          // Only show items with <=50% craft
+          filtered = filtered.filter(s => {
+            const total = s.total_craft + s.total_crap
+            return total > 0 && (s.total_craft / total) <= 0.5
+          })
+          filtered.sort((a, b) => {
+            const aRatio = a.total_crap / (a.total_craft + a.total_crap || 1)
+            const bRatio = b.total_crap / (b.total_craft + b.total_crap || 1)
+            return bRatio - aRatio
+          })
+        } else {
+          // All - sort by most recent
+          filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        }
+
+        setSubmissions(filtered)
       }
 
       setLoading(false)
