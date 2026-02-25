@@ -1,17 +1,34 @@
 const CRAFTORCRAP_URL = 'https://craftorcrap.cc';
 
-let selectedImage = null;
+let queue = [];
 let selectedCategory = 'Web';
 
 // Elements
 const pickBtn = document.getElementById('pickBtn');
-const preview = document.getElementById('preview');
-const previewImage = document.getElementById('previewImage');
-const previewUrl = document.getElementById('previewUrl');
+const clearBtn = document.getElementById('clearBtn');
+const queueCount = document.getElementById('queueCount');
+const queueGrid = document.getElementById('queueGrid');
 const emptyState = document.getElementById('emptyState');
+const footer = document.getElementById('footer');
 const submitBtn = document.getElementById('submitBtn');
 const status = document.getElementById('status');
 const categories = document.getElementById('categories');
+
+// Load queue from storage
+chrome.storage.local.get(['imageQueue'], (result) => {
+  if (result.imageQueue && result.imageQueue.length > 0) {
+    queue = result.imageQueue;
+    renderQueue();
+  }
+});
+
+// Check for newly added image (from context menu or picker)
+chrome.storage.local.get(['selectedImage'], (result) => {
+  if (result.selectedImage) {
+    addToQueue(result.selectedImage);
+    chrome.storage.local.remove(['selectedImage']);
+  }
+});
 
 // Category selection
 categories.addEventListener('click', (e) => {
@@ -25,88 +42,141 @@ categories.addEventListener('click', (e) => {
 // Pick image button
 pickBtn.addEventListener('click', async () => {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-
-  // Send message to content script to activate picker
   chrome.tabs.sendMessage(tab.id, { action: 'activatePicker' });
-
-  // Close popup while picking
   window.close();
 });
 
-// Listen for selected image from content script
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action === 'imageSelected') {
-    selectedImage = message.data;
-    showPreview(message.data);
-  }
+// Clear all button
+clearBtn.addEventListener('click', () => {
+  queue = [];
+  saveQueue();
+  renderQueue();
 });
 
-// Check if there's a stored selection
-chrome.storage.local.get(['selectedImage'], (result) => {
-  if (result.selectedImage) {
-    selectedImage = result.selectedImage;
-    showPreview(result.selectedImage);
+// Add item to queue
+function addToQueue(item) {
+  // Check for duplicates
+  const exists = queue.some(q => q.src === item.src && q.pageUrl === item.pageUrl);
+  if (!exists) {
+    item.id = Date.now();
+    item.category = selectedCategory;
+    queue.push(item);
+    saveQueue();
+    renderQueue();
   }
-});
-
-function showPreview(data) {
-  previewImage.src = data.src;
-  previewUrl.textContent = data.pageUrl;
-  preview.classList.add('visible');
-  emptyState.style.display = 'none';
-  submitBtn.disabled = false;
 }
 
-// Submit to craftorcrap
+// Remove item from queue
+function removeFromQueue(id) {
+  queue = queue.filter(item => item.id !== id);
+  saveQueue();
+  renderQueue();
+}
+
+// Save queue to storage
+function saveQueue() {
+  chrome.storage.local.set({ imageQueue: queue });
+}
+
+// Get domain from URL
+function getDomain(url) {
+  try {
+    return new URL(url).hostname.replace('www.', '');
+  } catch {
+    return '';
+  }
+}
+
+// Render queue
+function renderQueue() {
+  queueCount.textContent = `${queue.length} item${queue.length !== 1 ? 's' : ''}`;
+
+  if (queue.length === 0) {
+    emptyState.style.display = 'block';
+    queueGrid.style.display = 'none';
+    footer.style.display = 'none';
+    return;
+  }
+
+  emptyState.style.display = 'none';
+  queueGrid.style.display = 'grid';
+  footer.style.display = 'block';
+
+  queueGrid.innerHTML = queue.map(item => `
+    <div class="queue-item" data-id="${item.id}">
+      ${item.src
+        ? `<img src="${item.src}" alt="" onerror="this.parentElement.classList.add('no-image'); this.style.display='none';">`
+        : '<div class="no-image">Page only</div>'
+      }
+      <div class="queue-item-category">${item.category || 'Web'}</div>
+      <div class="queue-item-domain">${getDomain(item.pageUrl)}</div>
+      <div class="queue-item-overlay"></div>
+      <div class="queue-item-actions">
+        <button class="queue-item-btn remove" onclick="removeFromQueue(${item.id})">Remove</button>
+      </div>
+    </div>
+  `).join('');
+
+  submitBtn.textContent = `Submit ${queue.length} item${queue.length !== 1 ? 's' : ''}`;
+}
+
+// Submit all to craftorcrap
 submitBtn.addEventListener('click', async () => {
-  if (!selectedImage) return;
+  if (queue.length === 0) return;
 
   submitBtn.disabled = true;
   submitBtn.textContent = 'Submitting...';
   status.className = 'status';
   status.style.display = 'none';
 
-  try {
-    // Submit to the API
-    const response = await fetch(`${CRAFTORCRAP_URL}/api/extension/submit`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        url: selectedImage.pageUrl,
-        imageUrl: selectedImage.src,
-        category: selectedCategory,
-      }),
-    });
+  let successCount = 0;
+  let errorCount = 0;
 
-    const result = await response.json();
+  for (const item of queue) {
+    try {
+      const response = await fetch(`${CRAFTORCRAP_URL}/api/extension/submit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url: item.pageUrl,
+          imageUrl: item.src,
+          category: selectedCategory,
+        }),
+      });
 
-    if (response.ok) {
-      status.className = 'status success';
-      status.textContent = 'Submitted successfully!';
-      status.style.display = 'block';
-
-      // Clear selection
-      chrome.storage.local.remove(['selectedImage']);
-      selectedImage = null;
-
-      // Reset UI after delay
-      setTimeout(() => {
-        preview.classList.remove('visible');
-        emptyState.style.display = 'block';
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Submit to craftorcrap';
-        status.style.display = 'none';
-      }, 2000);
-    } else {
-      throw new Error(result.error || 'Failed to submit');
+      if (response.ok) {
+        successCount++;
+      } else {
+        errorCount++;
+      }
+    } catch {
+      errorCount++;
     }
-  } catch (error) {
+  }
+
+  if (successCount > 0) {
+    status.className = 'status success';
+    status.textContent = `${successCount} item${successCount !== 1 ? 's' : ''} submitted!`;
+    status.style.display = 'block';
+
+    // Clear submitted items
+    queue = [];
+    saveQueue();
+
+    setTimeout(() => {
+      renderQueue();
+      status.style.display = 'none';
+    }, 2000);
+  }
+
+  if (errorCount > 0 && successCount === 0) {
     status.className = 'status error';
-    status.textContent = error.message;
+    status.textContent = `Failed to submit ${errorCount} item${errorCount !== 1 ? 's' : ''}`;
     status.style.display = 'block';
     submitBtn.disabled = false;
-    submitBtn.textContent = 'Submit to craftorcrap';
+    submitBtn.textContent = `Submit ${queue.length} item${queue.length !== 1 ? 's' : ''}`;
   }
 });
+
+// Make removeFromQueue available globally for onclick
+window.removeFromQueue = removeFromQueue;

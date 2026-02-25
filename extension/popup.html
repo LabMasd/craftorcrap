@@ -10,18 +10,23 @@
     }
 
     body {
-      width: 320px;
+      width: 360px;
+      max-height: 500px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: #0a0a0a;
       color: #fff;
-      padding: 16px;
     }
 
     .header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 16px;
+      padding: 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      position: sticky;
+      top: 0;
+      background: #0a0a0a;
+      z-index: 10;
     }
 
     .logo {
@@ -34,13 +39,18 @@
       opacity: 0.4;
     }
 
+    .header-actions {
+      display: flex;
+      gap: 8px;
+    }
+
     .pick-btn {
       background: #fff;
       color: #000;
       border: none;
-      padding: 8px 16px;
+      padding: 8px 14px;
       border-radius: 20px;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 500;
       cursor: pointer;
       transition: all 0.2s;
@@ -50,62 +60,176 @@
       transform: scale(1.02);
     }
 
-    .pick-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .section {
-      margin-bottom: 16px;
-    }
-
-    .section-title {
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      opacity: 0.5;
-      margin-bottom: 8px;
-    }
-
-    .preview {
-      background: rgba(255,255,255,0.05);
-      border-radius: 12px;
-      padding: 12px;
-      display: none;
-    }
-
-    .preview.visible {
-      display: block;
-    }
-
-    .preview-image {
-      width: 100%;
-      height: 120px;
-      object-fit: cover;
-      border-radius: 8px;
-      margin-bottom: 8px;
-    }
-
-    .preview-url {
+    .clear-btn {
+      background: rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.6);
+      border: none;
+      padding: 8px 12px;
+      border-radius: 20px;
       font-size: 11px;
-      opacity: 0.5;
-      word-break: break-all;
-      line-height: 1.4;
+      cursor: pointer;
+      transition: all 0.2s;
     }
 
-    .categories {
+    .clear-btn:hover {
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+    }
+
+    .queue-count {
+      background: rgba(255,255,255,0.1);
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.6);
+    }
+
+    .content {
+      padding: 12px;
+      max-height: 380px;
+      overflow-y: auto;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: rgba(255,255,255,0.4);
+    }
+
+    .empty-state svg {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 12px;
+      opacity: 0.3;
+    }
+
+    .empty-state p {
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .queue-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .queue-item {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.05);
+      aspect-ratio: 1;
+    }
+
+    .queue-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .queue-item-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 50%);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .queue-item:hover .queue-item-overlay {
+      opacity: 1;
+    }
+
+    .queue-item-actions {
+      position: absolute;
+      bottom: 8px;
+      left: 8px;
+      right: 8px;
       display: flex;
-      flex-wrap: wrap;
       gap: 6px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .queue-item:hover .queue-item-actions {
+      opacity: 1;
+    }
+
+    .queue-item-btn {
+      flex: 1;
+      background: rgba(255,255,255,0.2);
+      backdrop-filter: blur(8px);
+      border: none;
+      color: #fff;
+      padding: 6px;
+      border-radius: 8px;
+      font-size: 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .queue-item-btn:hover {
+      background: rgba(255,255,255,0.3);
+    }
+
+    .queue-item-btn.remove {
+      background: rgba(239, 68, 68, 0.3);
+    }
+
+    .queue-item-btn.remove:hover {
+      background: rgba(239, 68, 68, 0.5);
+    }
+
+    .queue-item-category {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(8px);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 9px;
+      color: rgba(255,255,255,0.8);
+    }
+
+    .queue-item-domain {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(8px);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 9px;
+      color: rgba(255,255,255,0.5);
+      max-width: 80px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .footer {
+      padding: 12px 16px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      position: sticky;
+      bottom: 0;
+      background: #0a0a0a;
+    }
+
+    .category-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
     }
 
     .category-btn {
       background: rgba(255,255,255,0.05);
       border: none;
       color: rgba(255,255,255,0.5);
-      padding: 6px 12px;
-      border-radius: 16px;
-      font-size: 11px;
+      padding: 6px 10px;
+      border-radius: 14px;
+      font-size: 10px;
       cursor: pointer;
       transition: all 0.2s;
     }
@@ -126,11 +250,10 @@
       border: none;
       padding: 12px;
       border-radius: 12px;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
-      margin-top: 16px;
     }
 
     .submit-btn:hover {
@@ -144,10 +267,10 @@
 
     .status {
       text-align: center;
-      padding: 12px;
+      padding: 10px;
       border-radius: 8px;
-      font-size: 12px;
-      margin-top: 12px;
+      font-size: 11px;
+      margin-top: 10px;
       display: none;
     }
 
@@ -163,48 +286,50 @@
       color: #ef4444;
     }
 
-    .empty-state {
-      text-align: center;
-      padding: 24px;
-      opacity: 0.5;
-      font-size: 12px;
+    .no-image {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.3);
+      font-size: 10px;
     }
   </style>
 </head>
 <body>
   <div class="header">
     <div class="logo">craft<span>or</span>crap</div>
-    <button class="pick-btn" id="pickBtn">Pick Image</button>
+    <div class="header-actions">
+      <span class="queue-count" id="queueCount">0 items</span>
+      <button class="clear-btn" id="clearBtn">Clear</button>
+      <button class="pick-btn" id="pickBtn">+ Pick</button>
+    </div>
   </div>
 
-  <div class="section">
-    <div class="section-title">Preview</div>
-    <div class="preview" id="preview">
-      <img class="preview-image" id="previewImage" src="" alt="">
-      <div class="preview-url" id="previewUrl"></div>
-    </div>
+  <div class="content" id="content">
     <div class="empty-state" id="emptyState">
-      Click "Pick Image" to select an image from this page
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      </svg>
+      <p>No images saved yet.<br>Right-click images or click "+ Pick"</p>
     </div>
+    <div class="queue-grid" id="queueGrid"></div>
   </div>
 
-  <div class="section">
-    <div class="section-title">Category</div>
-    <div class="categories" id="categories">
+  <div class="footer" id="footer" style="display: none;">
+    <div class="category-row" id="categories">
       <button class="category-btn active" data-category="Web">Web</button>
       <button class="category-btn" data-category="Motion">Motion</button>
       <button class="category-btn" data-category="Branding">Branding</button>
       <button class="category-btn" data-category="Illustration">Illustration</button>
-      <button class="category-btn" data-category="Photography">Photography</button>
+      <button class="category-btn" data-category="Photography">Photo</button>
       <button class="category-btn" data-category="3D">3D</button>
       <button class="category-btn" data-category="AI">AI</button>
       <button class="category-btn" data-category="Other">Other</button>
     </div>
+    <button class="submit-btn" id="submitBtn">Submit All</button>
+    <div class="status" id="status"></div>
   </div>
-
-  <button class="submit-btn" id="submitBtn" disabled>Submit to craftorcrap</button>
-
-  <div class="status" id="status"></div>
 
   <script src="popup.js"></script>
 </body>
