@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0a0a0a;
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      position: sticky;
+      top: 0;
+      background: #0a0a0a;
+      z-index: 10;
+    }
+
+    .logo {
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .logo span {
+      opacity: 0.4;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .queue-count {
+      background: rgba(255,255,255,0.1);
+      padding: 6px 12px;
+      border-radius: 14px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.6);
+    }
+
+    .clear-btn {
+      background: rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.6);
+      border: none;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .clear-btn:hover {
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+    }
+
+    .drop-zone {
+      margin: 16px;
+      padding: 32px 20px;
+      border: 2px dashed rgba(255,255,255,0.15);
+      border-radius: 16px;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .drop-zone.drag-over {
+      border-color: #fff;
+      background: rgba(255,255,255,0.05);
+    }
+
+    .drop-zone svg {
+      width: 40px;
+      height: 40px;
+      margin-bottom: 12px;
+      opacity: 0.3;
+    }
+
+    .drop-zone p {
+      font-size: 13px;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.5;
+    }
+
+    .drop-zone.drag-over p {
+      color: #fff;
+    }
+
+    .content {
+      flex: 1;
+      padding: 0 16px 16px;
+      overflow-y: auto;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: rgba(255,255,255,0.4);
+    }
+
+    .empty-state p {
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .queue-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .queue-item {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.05);
+      aspect-ratio: 1;
+    }
+
+    .queue-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .queue-item-domain {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(8px);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 9px;
+      color: rgba(255,255,255,0.5);
+      max-width: 100px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .queue-item-remove {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 24px;
+      height: 24px;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(8px);
+      border: none;
+      border-radius: 6px;
+      color: rgba(255,255,255,0.6);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+
+    .queue-item-remove:hover {
+      background: rgba(239, 68, 68, 0.8);
+      color: #fff;
+    }
+
+    .queue-item-category {
+      position: absolute;
+      bottom: 8px;
+      left: 8px;
+      right: 8px;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(8px);
+      padding: 0;
+      border-radius: 8px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.9);
+      cursor: pointer;
+      overflow: hidden;
+    }
+
+    .queue-item-category select {
+      width: 100%;
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 8px 10px;
+      cursor: pointer;
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='white' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+      padding-right: 24px;
+    }
+
+    .queue-item-category select option {
+      background: #1a1a1a;
+      color: #fff;
+      padding: 8px;
+    }
+
+    .no-image {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.3);
+      font-size: 11px;
+      height: 100%;
+    }
+
+    .footer {
+      padding: 16px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      background: #0a0a0a;
+    }
+
+    .submit-btn {
+      width: 100%;
+      background: #fff;
+      color: #000;
+      border: none;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .submit-btn:hover {
+      opacity: 0.9;
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .status {
+      text-align: center;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      margin-top: 12px;
+      display: none;
+    }
+
+    .status.success {
+      display: block;
+      background: rgba(34, 197, 94, 0.1);
+      color: #22c55e;
+    }
+
+    .status.error {
+      display: block;
+      background: rgba(239, 68, 68, 0.1);
+      color: #ef4444;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">craft<span>or</span>crap</div>
+    <div class="header-actions">
+      <span class="queue-count" id="queueCount">0 items</span>
+      <button class="clear-btn" id="clearBtn">Clear</button>
+    </div>
+  </div>
+
+  <div class="drop-zone" id="dropZone">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    </svg>
+    <p>Drag & drop images here<br>or right-click images on any page</p>
+  </div>
+
+  <div class="content" id="content">
+    <div class="empty-state" id="emptyState">
+      <p>No images yet</p>
+    </div>
+    <div class="queue-grid" id="queueGrid"></div>
+  </div>
+
+  <div class="footer" id="footer" style="display: none;">
+    <button class="submit-btn" id="submitBtn">Submit All</button>
+    <div class="status" id="status"></div>
+  </div>
+
+  <script src="sidepanel.js"></script>
+</body>
+</html>

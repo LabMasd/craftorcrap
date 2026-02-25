@@ -38,6 +38,11 @@ chrome.runtime.onStartup.addListener(createContextMenus);
 // Also create immediately when service worker loads
 createContextMenus();
 
+// Open side panel when extension icon is clicked
+chrome.action.onClicked.addListener((tab) => {
+  chrome.sidePanel.open({ windowId: tab.windowId });
+});
+
 // Handle context menu clicks
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === 'save-to-craftorcrap') {

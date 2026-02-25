@@ -830,21 +830,23 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className={`fixed bottom-0 left-0 right-0 py-3 text-center text-[11px] ${darkMode ? 'text-white/30' : 'text-black/30'}`}>
-        <Link href="/about" className={`hover:underline ${darkMode ? 'text-white/50 hover:text-white/70' : 'text-black/50 hover:text-black/70'}`}>
-          About
-        </Link>
+      <footer className={`fixed bottom-0 left-0 right-0 py-3 text-center text-[11px] backdrop-blur-xl ${darkMode ? 'bg-black/80 text-white/30' : 'bg-white/80 text-black/30'}`}>
+        <span>Curated by the community</span>
         <span className="mx-2">·</span>
-        Made with 🖤 by{' '}
+        <span>Built with </span>
+        <svg className="inline-block w-3 h-3 mx-0.5" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+        </svg>
+        <span> by </span>
         <a
-          href="https://masd.lab"
+          href="https://masd.studio"
           target="_blank"
           rel="noopener noreferrer"
           className={`hover:underline ${darkMode ? 'text-white/50 hover:text-white/70' : 'text-black/50 hover:text-black/70'}`}
         >
           masd.lab
-        </a>{' '}
-        in London
+        </a>
+        <span> in London</span>
       </footer>
     </div>
   )

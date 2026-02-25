@@ -1,9 +1,10 @@
 const CRAFTORCRAP_URL = 'https://craftorcrap.cc';
+const CATEGORIES = ['Web', 'Motion', 'Branding', 'Illustration', 'Photography', '3D', 'AI', 'Other'];
 
 let queue = [];
 
 // Elements
-const pickBtn = document.getElementById('pickBtn');
+const dropZone = document.getElementById('dropZone');
 const clearBtn = document.getElementById('clearBtn');
 const queueCount = document.getElementById('queueCount');
 const queueGrid = document.getElementById('queueGrid');
@@ -12,28 +13,85 @@ const footer = document.getElementById('footer');
 const submitBtn = document.getElementById('submitBtn');
 const status = document.getElementById('status');
 
-// Load queue from storage, then check for new images
+// Load queue from storage
 chrome.storage.local.get(['imageQueue', 'selectedImage'], (result) => {
-  // First load existing queue
   if (result.imageQueue && result.imageQueue.length > 0) {
     queue = result.imageQueue;
   }
-
-  // Then add any newly selected image
   if (result.selectedImage) {
     addToQueue(result.selectedImage);
     chrome.storage.local.remove(['selectedImage']);
   }
-
-  // Render the queue
   renderQueue();
 });
 
-// Pick image button
-pickBtn.addEventListener('click', async () => {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  chrome.tabs.sendMessage(tab.id, { action: 'activatePicker' });
-  window.close();
+// Listen for storage changes (when images are added via context menu)
+chrome.storage.onChanged.addListener((changes, namespace) => {
+  if (namespace === 'local' && changes.selectedImage && changes.selectedImage.newValue) {
+    addToQueue(changes.selectedImage.newValue);
+    chrome.storage.local.remove(['selectedImage']);
+  }
+});
+
+// Drag and drop handling
+dropZone.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  dropZone.classList.add('drag-over');
+});
+
+dropZone.addEventListener('dragleave', (e) => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+});
+
+dropZone.addEventListener('drop', async (e) => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+
+  // Handle dropped files
+  if (e.dataTransfer.files.length > 0) {
+    for (const file of e.dataTransfer.files) {
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          addToQueue({
+            src: event.target.result,
+            pageUrl: 'Local file',
+            pageTitle: file.name
+          });
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+    return;
+  }
+
+  // Handle dropped URLs/images from web
+  const html = e.dataTransfer.getData('text/html');
+  const url = e.dataTransfer.getData('text/uri-list') || e.dataTransfer.getData('text/plain');
+
+  if (html) {
+    // Try to extract image src from HTML
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const img = doc.querySelector('img');
+    if (img && img.src) {
+      addToQueue({
+        src: img.src,
+        pageUrl: url || img.src,
+        pageTitle: img.alt || 'Dropped image'
+      });
+      return;
+    }
+  }
+
+  if (url && (url.match(/\.(jpg|jpeg|png|gif|webp|svg)(\?|$)/i) || url.startsWith('data:image'))) {
+    addToQueue({
+      src: url,
+      pageUrl: url,
+      pageTitle: 'Dropped image'
+    });
+  }
 });
 
 // Clear all button
@@ -51,10 +109,9 @@ function addToQueue(item) {
     // Queue is full
     return;
   }
-  // Check for duplicates
   const exists = queue.some(q => q.src === item.src && q.pageUrl === item.pageUrl);
   if (!exists) {
-    item.id = Date.now();
+    item.id = Date.now() + Math.random();
     item.category = item.category || 'Web';
     queue.push(item);
     saveQueue();
@@ -76,14 +133,13 @@ function saveQueue() {
 
 // Get domain from URL
 function getDomain(url) {
+  if (url === 'Local file') return 'Local';
   try {
     return new URL(url).hostname.replace('www.', '');
   } catch {
     return '';
   }
 }
-
-const CATEGORIES = ['Web', 'Motion', 'Branding', 'Illustration', 'Photography', '3D', 'AI', 'Other'];
 
 // Render queue
 function renderQueue() {
@@ -173,7 +229,6 @@ submitBtn.addEventListener('click', async () => {
     status.textContent = `${successCount} item${successCount !== 1 ? 's' : ''} submitted!`;
     status.style.display = 'block';
 
-    // Clear submitted items
     queue = [];
     saveQueue();
 
@@ -185,13 +240,13 @@ submitBtn.addEventListener('click', async () => {
 
   if (errorCount > 0 && successCount === 0) {
     status.className = 'status error';
-    status.textContent = `Failed to submit ${errorCount} item${errorCount !== 1 ? 's' : ''}`;
+    status.textContent = `Failed to submit`;
     status.style.display = 'block';
     submitBtn.disabled = false;
     submitBtn.textContent = `Submit ${queue.length} item${queue.length !== 1 ? 's' : ''}`;
   }
 });
 
-// Make functions available globally for onclick
+// Make functions available globally
 window.removeFromQueue = removeFromQueue;
 window.updateItemCategory = updateItemCategory;
