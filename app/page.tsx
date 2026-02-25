@@ -110,6 +110,15 @@ export default function Home() {
   const [darkMode, setDarkMode] = useState(true)
   const [isDemo, setIsDemo] = useState(false)
 
+  // Inline submit state
+  const [submitUrl, setSubmitUrl] = useState('')
+  const [submitCategory, setSubmitCategory] = useState<Category>('Web')
+  const [preview, setPreview] = useState<{ title: string | null; thumbnail_url: string | null } | null>(null)
+  const [fetchingPreview, setFetchingPreview] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [submitSuccess, setSubmitSuccess] = useState(false)
+
   useEffect(() => {
     const saved = localStorage.getItem('craftorcrap-theme')
     if (saved) setDarkMode(saved === 'dark')
@@ -192,6 +201,101 @@ export default function Home() {
     large: 'columns-1 sm:columns-2 lg:columns-3 xl:columns-4',
   }
 
+  async function handleFetchPreview() {
+    if (!submitUrl) return
+    setFetchingPreview(true)
+    setSubmitError(null)
+    setPreview(null)
+
+    try {
+      const res = await fetch('/api/preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: submitUrl }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Failed to fetch preview')
+      }
+      const data = await res.json()
+      setPreview(data)
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : 'Failed to fetch preview')
+    } finally {
+      setFetchingPreview(false)
+    }
+  }
+
+  async function handleSubmit() {
+    if (!submitUrl || !preview) return
+
+    if (isDemo) {
+      // Demo mode - just show success and reset
+      setSubmitSuccess(true)
+      setTimeout(() => {
+        setSubmitUrl('')
+        setPreview(null)
+        setSubmitSuccess(false)
+      }, 2000)
+      return
+    }
+
+    if (!supabase) return
+
+    setSubmitting(true)
+    setSubmitError(null)
+
+    try {
+      const { data: existing } = await supabase
+        .from('submissions')
+        .select('id')
+        .eq('url', submitUrl)
+        .single()
+
+      if (existing) {
+        setSubmitError('This URL has already been submitted')
+        setSubmitting(false)
+        return
+      }
+
+      const { error: insertError } = await supabase.from('submissions').insert({
+        url: submitUrl,
+        title: preview.title,
+        thumbnail_url: preview.thumbnail_url,
+        category: submitCategory,
+        submitted_by: null,
+      })
+
+      if (insertError) throw insertError
+
+      setSubmitSuccess(true)
+      setSubmitUrl('')
+      setPreview(null)
+
+      // Refresh submissions
+      const { data } = await supabase
+        .from('submissions')
+        .select('*')
+        .order('created_at', { ascending: false })
+      if (data) setSubmissions(data)
+
+      setTimeout(() => setSubmitSuccess(false), 3000)
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : 'Failed to submit')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  let submitDomain = ''
+  if (submitUrl) {
+    try {
+      submitDomain = new URL(submitUrl).hostname.replace('www.', '')
+    } catch {
+      submitDomain = ''
+    }
+  }
+
   return (
     <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'bg-black text-white' : 'bg-neutral-50 text-black'}`}>
       {/* Fixed Header */}
@@ -272,17 +376,7 @@ export default function Home() {
               ))}
             </div>
 
-            <Link
-              href="/submit"
-              className={`text-xs font-medium px-4 py-2 rounded-full transition-all ${
-                darkMode
-                  ? 'bg-white text-black hover:bg-white/90'
-                  : 'bg-black text-white hover:bg-black/90'
-              }`}
-            >
-              Submit
-            </Link>
-          </div>
+                      </div>
         </div>
 
         {/* Mobile: Tabs below header */}
@@ -312,6 +406,98 @@ export default function Home() {
             Demo mode — Connect Supabase to enable real submissions
           </div>
         )}
+
+        {/* Inline Submit */}
+        <div className={`mb-6 p-4 rounded-2xl ${darkMode ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-black/[0.02] border border-black/[0.06]'}`}>
+          <div className="flex gap-2">
+            <input
+              type="url"
+              value={submitUrl}
+              onChange={(e) => setSubmitUrl(e.target.value)}
+              placeholder="Paste a URL..."
+              className={`flex-1 border-0 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 ${
+                darkMode
+                  ? 'bg-white/5 text-white placeholder-white/30 focus:ring-white/20'
+                  : 'bg-black/5 text-black placeholder-black/30 focus:ring-black/20'
+              }`}
+            />
+            <button
+              onClick={handleFetchPreview}
+              disabled={!submitUrl || fetchingPreview}
+              className={`px-5 py-3 rounded-xl text-sm font-medium disabled:opacity-30 disabled:cursor-not-allowed transition-all ${
+                darkMode
+                  ? 'bg-white/10 text-white/70 hover:bg-white/15'
+                  : 'bg-black/10 text-black/70 hover:bg-black/15'
+              }`}
+            >
+              {fetchingPreview ? '...' : 'Preview'}
+            </button>
+          </div>
+
+          {submitError && (
+            <div className="mt-3 p-3 bg-red-500/10 rounded-xl text-red-400 text-xs">
+              {submitError}
+            </div>
+          )}
+
+          {submitSuccess && (
+            <div className="mt-3 p-3 bg-emerald-500/10 rounded-xl text-emerald-400 text-xs">
+              Submitted successfully!
+            </div>
+          )}
+
+          {preview && (
+            <div className="mt-4">
+              <div className={`flex gap-4 items-start p-3 rounded-xl ${darkMode ? 'bg-white/[0.02]' : 'bg-black/[0.02]'}`}>
+                {preview.thumbnail_url ? (
+                  <img
+                    src={preview.thumbnail_url}
+                    alt=""
+                    className="w-24 h-16 object-cover rounded-lg flex-shrink-0"
+                  />
+                ) : (
+                  <div className={`w-24 h-16 rounded-lg flex-shrink-0 flex items-center justify-center text-[10px] ${darkMode ? 'bg-white/5 text-white/20' : 'bg-black/5 text-black/20'}`}>
+                    No preview
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <h4 className={`font-medium text-sm truncate ${darkMode ? 'text-white/90' : 'text-black/90'}`}>
+                    {preview.title || submitDomain}
+                  </h4>
+                  <p className={`text-xs mt-0.5 ${darkMode ? 'text-white/30' : 'text-black/30'}`}>{submitDomain}</p>
+                </div>
+              </div>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                {CATEGORIES.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setSubmitCategory(cat)}
+                    className={`px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
+                      submitCategory === cat
+                        ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
+                        : darkMode ? 'bg-white/5 text-white/40 hover:text-white/70' : 'bg-black/5 text-black/40 hover:text-black/70'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                onClick={handleSubmit}
+                disabled={submitting}
+                className={`mt-4 w-full py-3 rounded-xl text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all ${
+                  darkMode
+                    ? 'bg-white text-black hover:bg-white/90'
+                    : 'bg-black text-white hover:bg-black/90'
+                }`}
+              >
+                {submitting ? 'Submitting...' : 'Submit'}
+              </button>
+            </div>
+          )}
+        </div>
 
         {/* Category Filters */}
         <div className="flex flex-wrap gap-2 mb-6">
