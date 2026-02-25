@@ -377,20 +377,31 @@ export default function Home() {
           </Link>
 
           {/* Desktop: Center Tabs */}
-          <div className={`hidden sm:flex absolute left-1/2 -translate-x-1/2 gap-0.5 p-1 rounded-full ${darkMode ? 'bg-white/5' : 'bg-black/5'}`}>
-            {(['all', 'craft', 'crap'] as Tab[]).map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-5 py-2 text-xs font-medium rounded-full transition-all duration-200 ${
-                  activeTab === tab
-                    ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
-                    : darkMode ? 'text-white/50 hover:text-white/70' : 'text-black/50 hover:text-black/70'
-                }`}
-              >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
-              </button>
-            ))}
+          <div className={`hidden sm:flex absolute left-1/2 -translate-x-1/2 p-1 rounded-full ${darkMode ? 'bg-white/5' : 'bg-black/5'}`}>
+            <div className="relative flex">
+              {/* Sliding indicator */}
+              <div
+                className={`absolute top-0 bottom-0 rounded-full will-change-transform ${darkMode ? 'bg-white' : 'bg-black'}`}
+                style={{
+                  width: 'calc(100% / 3)',
+                  transform: `translateX(${(['all', 'craft', 'crap'] as Tab[]).indexOf(activeTab) * 100}%)`,
+                  transition: 'transform 500ms cubic-bezier(0.16, 1, 0.3, 1)',
+                }}
+              />
+              {(['all', 'craft', 'crap'] as Tab[]).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`relative z-10 px-5 py-2 text-xs font-medium rounded-full transition-colors duration-300 ${
+                    activeTab === tab
+                      ? darkMode ? 'text-black' : 'text-white'
+                      : darkMode ? 'text-white/50 hover:text-white/70' : 'text-black/50 hover:text-black/70'
+                  }`}
+                >
+                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="flex items-center gap-2">
@@ -452,20 +463,31 @@ export default function Home() {
 
         {/* Mobile: Tabs below header */}
         <div className={`sm:hidden flex justify-center pb-3 ${darkMode ? 'border-white/0' : 'border-black/0'}`}>
-          <div className={`flex gap-0.5 p-1 rounded-full ${darkMode ? 'bg-white/5' : 'bg-black/5'}`}>
-            {(['all', 'craft', 'crap'] as Tab[]).map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-5 py-2 text-xs font-medium rounded-full transition-all duration-200 ${
-                  activeTab === tab
-                    ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
-                    : darkMode ? 'text-white/50 hover:text-white/70' : 'text-black/50 hover:text-black/70'
-                }`}
-              >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
-              </button>
-            ))}
+          <div className={`p-1 rounded-full ${darkMode ? 'bg-white/5' : 'bg-black/5'}`}>
+            <div className="relative flex">
+              {/* Sliding indicator */}
+              <div
+                className={`absolute top-0 bottom-0 rounded-full will-change-transform ${darkMode ? 'bg-white' : 'bg-black'}`}
+                style={{
+                  width: 'calc(100% / 3)',
+                  transform: `translateX(${(['all', 'craft', 'crap'] as Tab[]).indexOf(activeTab) * 100}%)`,
+                  transition: 'transform 500ms cubic-bezier(0.16, 1, 0.3, 1)',
+                }}
+              />
+              {(['all', 'craft', 'crap'] as Tab[]).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`relative z-10 px-5 py-2 text-xs font-medium rounded-full transition-colors duration-300 ${
+                    activeTab === tab
+                      ? darkMode ? 'text-black' : 'text-white'
+                      : darkMode ? 'text-white/50 hover:text-white/70' : 'text-black/50 hover:text-black/70'
+                  }`}
+                >
+                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </header>
