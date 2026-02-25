@@ -640,6 +640,24 @@ export default function Home() {
                     {cat}
                   </button>
                 ))}
+                {/* Back arrow */}
+                <button
+                  onClick={() => setShowCategoryFilter(false)}
+                  className={`w-6 h-6 rounded-full flex items-center justify-center will-change-transform ${
+                    darkMode ? 'hover:bg-white/10 text-white/50 hover:text-white' : 'hover:bg-black/10 text-black/50 hover:text-black'
+                  }`}
+                  style={{
+                    transform: showCategoryFilter ? 'translateX(0)' : 'translateX(-20px)',
+                    opacity: showCategoryFilter ? 1 : 0,
+                    transition: showCategoryFilter
+                      ? `transform 500ms cubic-bezier(0.16, 1, 0.3, 1) ${9 * 30}ms, opacity 400ms cubic-bezier(0.16, 1, 0.3, 1) ${9 * 30}ms`
+                      : `transform 600ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, opacity 500ms cubic-bezier(0.4, 0, 0.2, 1) 0ms`,
+                  }}
+                >
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
               </div>
             </div>
           </div>
@@ -697,6 +715,24 @@ export default function Home() {
                       title={color.name}
                     />
                   ))}
+                  {/* Back arrow */}
+                  <button
+                    onClick={() => setShowColorPicker(false)}
+                    className={`w-6 h-6 rounded-full flex items-center justify-center will-change-transform ${
+                      darkMode ? 'hover:bg-white/10 text-white/50 hover:text-white' : 'hover:bg-black/10 text-black/50 hover:text-black'
+                    }`}
+                    style={{
+                      transform: showColorPicker ? 'translateX(0)' : 'translateX(20px)',
+                      opacity: showColorPicker ? 1 : 0,
+                      transition: showColorPicker
+                        ? `transform 500ms cubic-bezier(0.16, 1, 0.3, 1) ${0 * 25}ms, opacity 400ms cubic-bezier(0.16, 1, 0.3, 1) ${0 * 25}ms`
+                        : `transform 600ms cubic-bezier(0.4, 0, 0.2, 1) ${10 * 20}ms, opacity 500ms cubic-bezier(0.4, 0, 0.2, 1) ${10 * 20}ms`,
+                    }}
+                  >
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
                 </div>
               </div>
               <button
@@ -719,27 +755,38 @@ export default function Home() {
             </div>
 
             {/* Sort Toggle */}
-            <div className={`flex gap-0.5 p-0.5 rounded-full ${darkMode ? 'bg-white/5' : 'bg-black/5'}`}>
-              <button
-                onClick={() => setSortMode('newest')}
-                className={`px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
-                  sortMode === 'newest'
-                    ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
-                    : darkMode ? 'text-white/50 hover:text-white/70' : 'text-black/50 hover:text-black/70'
-                }`}
-              >
-                Newest
-              </button>
-              <button
-                onClick={() => setSortMode('random')}
-                className={`px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
-                  sortMode === 'random'
-                    ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
-                    : darkMode ? 'text-white/50 hover:text-white/70' : 'text-black/50 hover:text-black/70'
-                }`}
-              >
-                Random
-              </button>
+            <div className={`p-1 rounded-full ${darkMode ? 'bg-white/5' : 'bg-black/5'}`}>
+              <div className="relative flex">
+                {/* Sliding indicator */}
+                <div
+                  className={`absolute top-0 bottom-0 rounded-full will-change-transform ${darkMode ? 'bg-white' : 'bg-black'}`}
+                  style={{
+                    width: '56px',
+                    transform: `translateX(${sortMode === 'newest' ? 0 : 56}px)`,
+                    transition: 'transform 500ms cubic-bezier(0.16, 1, 0.3, 1)',
+                  }}
+                />
+                <button
+                  onClick={() => setSortMode('newest')}
+                  className={`relative z-10 w-14 py-1.5 text-[11px] font-medium rounded-full transition-colors duration-300 text-center ${
+                    sortMode === 'newest'
+                      ? darkMode ? 'text-black' : 'text-white'
+                      : darkMode ? 'text-white/50 hover:text-white/70' : 'text-black/50 hover:text-black/70'
+                  }`}
+                >
+                  Newest
+                </button>
+                <button
+                  onClick={() => setSortMode('random')}
+                  className={`relative z-10 w-14 py-1.5 text-[11px] font-medium rounded-full transition-colors duration-300 text-center ${
+                    sortMode === 'random'
+                      ? darkMode ? 'text-black' : 'text-white'
+                      : darkMode ? 'text-white/50 hover:text-white/70' : 'text-black/50 hover:text-black/70'
+                  }`}
+                >
+                  Random
+                </button>
+              </div>
             </div>
           </div>
         </div>
