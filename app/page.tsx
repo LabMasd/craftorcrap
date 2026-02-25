@@ -184,13 +184,13 @@ export default function Home() {
     <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'bg-black text-white' : 'bg-neutral-50 text-black'}`}>
       {/* Fixed Header */}
       <header className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-xl ${darkMode ? 'bg-black/80 border-b border-white/10' : 'bg-white/80 border-b border-black/5'}`}>
-        <div className="px-4 sm:px-6 py-4 flex items-center justify-between">
+        <div className="px-4 sm:px-6 py-3 flex items-center justify-between">
           <Link href="/" className="text-lg font-semibold tracking-tight">
             craft<span className={darkMode ? 'text-white/40' : 'text-black/40'}>or</span>crap
           </Link>
 
-          {/* Center Tabs */}
-          <div className={`absolute left-1/2 -translate-x-1/2 flex gap-0.5 p-1 rounded-full ${darkMode ? 'bg-white/5' : 'bg-black/5'}`}>
+          {/* Desktop: Center Tabs */}
+          <div className={`hidden sm:flex absolute left-1/2 -translate-x-1/2 gap-0.5 p-1 rounded-full ${darkMode ? 'bg-white/5' : 'bg-black/5'}`}>
             {(['all', 'craft', 'crap'] as Tab[]).map((tab) => (
               <button
                 key={tab}
@@ -224,8 +224,8 @@ export default function Home() {
               )}
             </button>
 
-            {/* Card size toggle */}
-            <div className={`flex rounded-full p-0.5 ${darkMode ? 'bg-white/5' : 'bg-black/5'}`}>
+            {/* Card size toggle - hidden on mobile */}
+            <div className={`hidden sm:flex rounded-full p-0.5 ${darkMode ? 'bg-white/5' : 'bg-black/5'}`}>
               {(['compact', 'normal', 'large'] as CardSize[]).map((size) => (
                 <button
                   key={size}
@@ -272,10 +272,29 @@ export default function Home() {
             </Link>
           </div>
         </div>
+
+        {/* Mobile: Tabs below header */}
+        <div className={`sm:hidden flex justify-center pb-3 ${darkMode ? 'border-white/0' : 'border-black/0'}`}>
+          <div className={`flex gap-0.5 p-1 rounded-full ${darkMode ? 'bg-white/5' : 'bg-black/5'}`}>
+            {(['all', 'craft', 'crap'] as Tab[]).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-5 py-2 text-xs font-medium rounded-full transition-all duration-200 ${
+                  activeTab === tab
+                    ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
+                    : darkMode ? 'text-white/50 hover:text-white/70' : 'text-black/50 hover:text-black/70'
+                }`}
+              >
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </button>
+            ))}
+          </div>
+        </div>
       </header>
 
       {/* Main Content */}
-      <main className="pt-20 px-3 sm:px-4 pb-20">
+      <main className="pt-28 sm:pt-20 px-3 sm:px-4 pb-20">
         {isDemo && (
           <div className={`mb-4 py-2 px-3 rounded-lg text-[11px] text-center ${darkMode ? 'bg-white/5 text-white/40' : 'bg-black/5 text-black/40'}`}>
             Demo mode — Connect Supabase to enable real submissions
