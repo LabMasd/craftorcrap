@@ -593,7 +593,9 @@ export default function Home() {
                 style={{
                   transform: showCategoryFilter ? 'translateX(0)' : 'translateX(-105%)',
                   opacity: showCategoryFilter ? 1 : 0,
-                  transition: 'transform 500ms cubic-bezier(0.16, 1, 0.3, 1), opacity 400ms cubic-bezier(0.16, 1, 0.3, 1)',
+                  transition: showCategoryFilter
+                    ? 'transform 500ms cubic-bezier(0.16, 1, 0.3, 1), opacity 400ms cubic-bezier(0.16, 1, 0.3, 1)'
+                    : 'transform 700ms cubic-bezier(0.4, 0, 0.2, 1), opacity 600ms cubic-bezier(0.4, 0, 0.2, 1)',
                 }}
               >
                 {['All', ...CATEGORIES].map((cat, i) => (
@@ -608,7 +610,9 @@ export default function Home() {
                     style={{
                       transform: showCategoryFilter ? 'translateX(0)' : 'translateX(-20px)',
                       opacity: showCategoryFilter ? 1 : 0,
-                      transition: `transform 500ms cubic-bezier(0.16, 1, 0.3, 1) ${i * 30}ms, opacity 400ms cubic-bezier(0.16, 1, 0.3, 1) ${i * 30}ms`,
+                      transition: showCategoryFilter
+                        ? `transform 500ms cubic-bezier(0.16, 1, 0.3, 1) ${i * 30}ms, opacity 400ms cubic-bezier(0.16, 1, 0.3, 1) ${i * 30}ms`
+                        : `transform 600ms cubic-bezier(0.4, 0, 0.2, 1) ${(8 - i) * 20}ms, opacity 500ms cubic-bezier(0.4, 0, 0.2, 1) ${(8 - i) * 20}ms`,
                     }}
                   >
                     {cat}
@@ -628,7 +632,9 @@ export default function Home() {
                   style={{
                     transform: showColorPicker ? 'translateX(0)' : 'translateX(105%)',
                     opacity: showColorPicker ? 1 : 0,
-                    transition: 'transform 500ms cubic-bezier(0.16, 1, 0.3, 1), opacity 400ms cubic-bezier(0.16, 1, 0.3, 1)',
+                    transition: showColorPicker
+                      ? 'transform 500ms cubic-bezier(0.16, 1, 0.3, 1), opacity 400ms cubic-bezier(0.16, 1, 0.3, 1)'
+                      : 'transform 700ms cubic-bezier(0.4, 0, 0.2, 1), opacity 600ms cubic-bezier(0.4, 0, 0.2, 1)',
                   }}
                 >
                   <button
@@ -641,7 +647,9 @@ export default function Home() {
                     style={{
                       transform: showColorPicker ? 'translateX(0)' : 'translateX(20px)',
                       opacity: showColorPicker ? 1 : 0,
-                      transition: `transform 500ms cubic-bezier(0.16, 1, 0.3, 1) ${9 * 25}ms, opacity 400ms cubic-bezier(0.16, 1, 0.3, 1) ${9 * 25}ms`,
+                      transition: showColorPicker
+                        ? `transform 500ms cubic-bezier(0.16, 1, 0.3, 1) ${9 * 25}ms, opacity 400ms cubic-bezier(0.16, 1, 0.3, 1) ${9 * 25}ms`
+                        : `transform 600ms cubic-bezier(0.4, 0, 0.2, 1) ${0 * 20}ms, opacity 500ms cubic-bezier(0.4, 0, 0.2, 1) ${0 * 20}ms`,
                     }}
                     title="All colors"
                   >
@@ -660,7 +668,9 @@ export default function Home() {
                         backgroundColor: color.hex,
                         transform: showColorPicker ? 'translateX(0)' : 'translateX(20px)',
                         opacity: showColorPicker ? 1 : 0,
-                        transition: `transform 500ms cubic-bezier(0.16, 1, 0.3, 1) ${(8 - i) * 25}ms, opacity 400ms cubic-bezier(0.16, 1, 0.3, 1) ${(8 - i) * 25}ms`,
+                        transition: showColorPicker
+                          ? `transform 500ms cubic-bezier(0.16, 1, 0.3, 1) ${(8 - i) * 25}ms, opacity 400ms cubic-bezier(0.16, 1, 0.3, 1) ${(8 - i) * 25}ms`
+                          : `transform 600ms cubic-bezier(0.4, 0, 0.2, 1) ${(i + 1) * 20}ms, opacity 500ms cubic-bezier(0.4, 0, 0.2, 1) ${(i + 1) * 20}ms`,
                       }}
                       title={color.name}
                     />
