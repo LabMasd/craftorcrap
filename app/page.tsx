@@ -383,8 +383,8 @@ export default function Home() {
               <div
                 className={`absolute top-0 bottom-0 rounded-full will-change-transform ${darkMode ? 'bg-white' : 'bg-black'}`}
                 style={{
-                  width: 'calc(100% / 3)',
-                  transform: `translateX(${(['all', 'craft', 'crap'] as Tab[]).indexOf(activeTab) * 100}%)`,
+                  width: '64px',
+                  transform: `translateX(${(['all', 'craft', 'crap'] as Tab[]).indexOf(activeTab) * 64}px)`,
                   transition: 'transform 500ms cubic-bezier(0.16, 1, 0.3, 1)',
                 }}
               />
@@ -392,7 +392,7 @@ export default function Home() {
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`relative z-10 px-5 py-2 text-xs font-medium rounded-full transition-colors duration-300 ${
+                  className={`relative z-10 w-16 py-2 text-xs font-medium rounded-full transition-colors duration-300 text-center ${
                     activeTab === tab
                       ? darkMode ? 'text-black' : 'text-white'
                       : darkMode ? 'text-white/50 hover:text-white/70' : 'text-black/50 hover:text-black/70'
@@ -469,8 +469,8 @@ export default function Home() {
               <div
                 className={`absolute top-0 bottom-0 rounded-full will-change-transform ${darkMode ? 'bg-white' : 'bg-black'}`}
                 style={{
-                  width: 'calc(100% / 3)',
-                  transform: `translateX(${(['all', 'craft', 'crap'] as Tab[]).indexOf(activeTab) * 100}%)`,
+                  width: '64px',
+                  transform: `translateX(${(['all', 'craft', 'crap'] as Tab[]).indexOf(activeTab) * 64}px)`,
                   transition: 'transform 500ms cubic-bezier(0.16, 1, 0.3, 1)',
                 }}
               />
@@ -478,7 +478,7 @@ export default function Home() {
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`relative z-10 px-5 py-2 text-xs font-medium rounded-full transition-colors duration-300 ${
+                  className={`relative z-10 w-16 py-2 text-xs font-medium rounded-full transition-colors duration-300 text-center ${
                     activeTab === tab
                       ? darkMode ? 'text-black' : 'text-white'
                       : darkMode ? 'text-white/50 hover:text-white/70' : 'text-black/50 hover:text-black/70'
