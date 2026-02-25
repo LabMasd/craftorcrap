@@ -184,12 +184,31 @@
       position: absolute;
       top: 8px;
       left: 8px;
-      background: rgba(0,0,0,0.6);
+      background: rgba(0,0,0,0.7);
       backdrop-filter: blur(8px);
-      padding: 4px 8px;
-      border-radius: 6px;
+      padding: 0;
+      border-radius: 8px;
       font-size: 9px;
       color: rgba(255,255,255,0.8);
+      cursor: pointer;
+      overflow: hidden;
+    }
+
+    .queue-item-category select {
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 9px;
+      padding: 5px 8px;
+      cursor: pointer;
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .queue-item-category select option {
+      background: #1a1a1a;
+      color: #fff;
     }
 
     .queue-item-domain {
@@ -216,31 +235,11 @@
       background: #0a0a0a;
     }
 
-    .category-row {
-      display: flex;
-      gap: 6px;
-      margin-bottom: 12px;
-      flex-wrap: wrap;
-    }
-
-    .category-btn {
-      background: rgba(255,255,255,0.05);
-      border: none;
-      color: rgba(255,255,255,0.5);
-      padding: 6px 10px;
-      border-radius: 14px;
+    .footer-hint {
       font-size: 10px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .category-btn:hover {
-      color: rgba(255,255,255,0.7);
-    }
-
-    .category-btn.active {
-      background: #fff;
-      color: #000;
+      color: rgba(255,255,255,0.4);
+      text-align: center;
+      margin-bottom: 10px;
     }
 
     .submit-btn {
@@ -317,16 +316,7 @@
   </div>
 
   <div class="footer" id="footer" style="display: none;">
-    <div class="category-row" id="categories">
-      <button class="category-btn active" data-category="Web">Web</button>
-      <button class="category-btn" data-category="Motion">Motion</button>
-      <button class="category-btn" data-category="Branding">Branding</button>
-      <button class="category-btn" data-category="Illustration">Illustration</button>
-      <button class="category-btn" data-category="Photography">Photo</button>
-      <button class="category-btn" data-category="3D">3D</button>
-      <button class="category-btn" data-category="AI">AI</button>
-      <button class="category-btn" data-category="Other">Other</button>
-    </div>
+    <p class="footer-hint">Tap category on each image to change</p>
     <button class="submit-btn" id="submitBtn">Submit All</button>
     <div class="status" id="status"></div>
   </div>

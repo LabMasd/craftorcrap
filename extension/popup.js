@@ -1,7 +1,6 @@
 const CRAFTORCRAP_URL = 'https://craftorcrap.cc';
 
 let queue = [];
-let selectedCategory = 'Web';
 
 // Elements
 const pickBtn = document.getElementById('pickBtn');
@@ -12,7 +11,6 @@ const emptyState = document.getElementById('emptyState');
 const footer = document.getElementById('footer');
 const submitBtn = document.getElementById('submitBtn');
 const status = document.getElementById('status');
-const categories = document.getElementById('categories');
 
 // Load queue from storage
 chrome.storage.local.get(['imageQueue'], (result) => {
@@ -27,15 +25,6 @@ chrome.storage.local.get(['selectedImage'], (result) => {
   if (result.selectedImage) {
     addToQueue(result.selectedImage);
     chrome.storage.local.remove(['selectedImage']);
-  }
-});
-
-// Category selection
-categories.addEventListener('click', (e) => {
-  if (e.target.classList.contains('category-btn')) {
-    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
-    e.target.classList.add('active');
-    selectedCategory = e.target.dataset.category;
   }
 });
 
@@ -87,6 +76,8 @@ function getDomain(url) {
   }
 }
 
+const CATEGORIES = ['Web', 'Motion', 'Branding', 'Illustration', 'Photography', '3D', 'AI', 'Other'];
+
 // Render queue
 function renderQueue() {
   queueCount.textContent = `${queue.length} item${queue.length !== 1 ? 's' : ''}`;
@@ -108,7 +99,13 @@ function renderQueue() {
         ? `<img src="${item.src}" alt="" onerror="this.parentElement.classList.add('no-image'); this.style.display='none';">`
         : '<div class="no-image">Page only</div>'
       }
-      <div class="queue-item-category">${item.category || 'Web'}</div>
+      <div class="queue-item-category">
+        <select onchange="updateItemCategory(${item.id}, this.value)">
+          ${CATEGORIES.map(cat => `
+            <option value="${cat}" ${item.category === cat ? 'selected' : ''}>${cat}</option>
+          `).join('')}
+        </select>
+      </div>
       <div class="queue-item-domain">${getDomain(item.pageUrl)}</div>
       <div class="queue-item-overlay"></div>
       <div class="queue-item-actions">
@@ -118,6 +115,15 @@ function renderQueue() {
   `).join('');
 
   submitBtn.textContent = `Submit ${queue.length} item${queue.length !== 1 ? 's' : ''}`;
+}
+
+// Update category for a single item
+function updateItemCategory(id, category) {
+  const item = queue.find(q => q.id === id);
+  if (item) {
+    item.category = category;
+    saveQueue();
+  }
 }
 
 // Submit all to craftorcrap
@@ -140,7 +146,7 @@ submitBtn.addEventListener('click', async () => {
         body: JSON.stringify({
           url: item.pageUrl,
           imageUrl: item.src,
-          category: selectedCategory,
+          category: item.category || 'Web',
         }),
       });
 
@@ -178,5 +184,6 @@ submitBtn.addEventListener('click', async () => {
   }
 });
 
-// Make removeFromQueue available globally for onclick
+// Make functions available globally for onclick
 window.removeFromQueue = removeFromQueue;
+window.updateItemCategory = updateItemCategory;
