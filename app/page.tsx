@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import SubmissionCard from '@/components/SubmissionCard'
 import { supabase } from '@/lib/supabase'
-import type { Submission } from '@/types'
+import type { Submission, Category } from '@/types'
+import { CATEGORIES } from '@/types'
 
 type Tab = 'all' | 'craft' | 'crap'
 type CardSize = 'compact' | 'normal' | 'large'
@@ -104,6 +105,7 @@ export default function Home() {
   const [submissions, setSubmissions] = useState<Submission[]>([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<Tab>('all')
+  const [activeCategory, setActiveCategory] = useState<Category | 'all'>('all')
   const [cardSize, setCardSize] = useState<CardSize>('normal')
   const [darkMode, setDarkMode] = useState(true)
   const [isDemo, setIsDemo] = useState(false)
@@ -130,6 +132,11 @@ export default function Home() {
       if (!supabase) {
         let filtered = [...MOCK_SUBMISSIONS]
 
+        // Filter by category
+        if (activeCategory !== 'all') {
+          filtered = filtered.filter(s => s.category === activeCategory)
+        }
+
         if (activeTab === 'craft') {
           filtered.sort((a, b) => {
             const aRatio = a.total_craft / (a.total_craft + a.total_crap || 1)
@@ -154,6 +161,11 @@ export default function Home() {
 
       let query = supabase.from('submissions').select('*')
 
+      // Filter by category
+      if (activeCategory !== 'all') {
+        query = query.eq('category', activeCategory)
+      }
+
       if (activeTab === 'craft') {
         query = query.order('total_craft', { ascending: false })
       } else if (activeTab === 'crap') {
@@ -172,7 +184,7 @@ export default function Home() {
     }
 
     fetchSubmissions()
-  }, [activeTab])
+  }, [activeTab, activeCategory])
 
   const gridCols = {
     compact: 'columns-2 sm:columns-3 md:columns-4 lg:columns-5 xl:columns-6 2xl:columns-7',
@@ -301,17 +313,55 @@ export default function Home() {
           </div>
         )}
 
+        {/* Category Filters */}
+        <div className="flex flex-wrap gap-2 mb-6">
+          <button
+            onClick={() => setActiveCategory('all')}
+            className={`px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
+              activeCategory === 'all'
+                ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
+                : darkMode ? 'bg-white/5 text-white/50 hover:text-white/70' : 'bg-black/5 text-black/50 hover:text-black/70'
+            }`}
+          >
+            All
+          </button>
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className={`px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
+                activeCategory === cat
+                  ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
+                  : darkMode ? 'bg-white/5 text-white/50 hover:text-white/70' : 'bg-black/5 text-black/50 hover:text-black/70'
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
         {loading ? (
           <div className={`text-center py-32 ${darkMode ? 'text-white/30' : 'text-black/30'}`}>Loading...</div>
         ) : submissions.length === 0 ? (
           <div className="text-center py-32">
-            <p className={`mb-4 ${darkMode ? 'text-white/40' : 'text-black/40'}`}>No submissions yet</p>
-            <Link
-              href="/submit"
-              className={`underline underline-offset-4 transition-colors ${darkMode ? 'text-white/70 hover:text-white' : 'text-black/70 hover:text-black'}`}
-            >
-              Be the first
-            </Link>
+            <p className={`mb-4 ${darkMode ? 'text-white/40' : 'text-black/40'}`}>
+              {activeCategory !== 'all' ? `No ${activeCategory} submissions yet` : 'No submissions yet'}
+            </p>
+            {activeCategory !== 'all' ? (
+              <button
+                onClick={() => setActiveCategory('all')}
+                className={`underline underline-offset-4 transition-colors ${darkMode ? 'text-white/70 hover:text-white' : 'text-black/70 hover:text-black'}`}
+              >
+                View all
+              </button>
+            ) : (
+              <Link
+                href="/submit"
+                className={`underline underline-offset-4 transition-colors ${darkMode ? 'text-white/70 hover:text-white' : 'text-black/70 hover:text-black'}`}
+              >
+                Be the first
+              </Link>
+            )}
           </div>
         ) : (
           <div className={`${gridCols[cardSize]} gap-3`}>
