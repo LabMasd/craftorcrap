@@ -140,3 +140,14 @@
   color: rgba(255,255,255,0.5);
   font-size: 11px;
 }
+
+.craftorcrap-confirm-icon {
+  width: 48px;
+  height: 48px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #22c55e;
+}

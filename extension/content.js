@@ -4,10 +4,14 @@ let pickerActive = false;
 let overlay = null;
 let highlightedElement = null;
 
-// Listen for messages from popup
+// Listen for messages from popup/background
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'activatePicker') {
     activatePicker();
+  }
+
+  if (message.action === 'showSaveConfirmation') {
+    showSaveConfirmation(message.imageUrl);
   }
 });
 
@@ -155,21 +159,47 @@ function getImageSrc(element) {
 }
 
 function showConfirmation(imageSrc) {
+  showSaveConfirmation(imageSrc);
+}
+
+function showSaveConfirmation(imageSrc) {
+  // Remove any existing confirmation
+  const existing = document.getElementById('craftorcrap-confirmation');
+  if (existing) existing.remove();
+
   const confirmation = document.createElement('div');
   confirmation.id = 'craftorcrap-confirmation';
-  confirmation.innerHTML = `
-    <div class="craftorcrap-confirm-content">
-      <img src="${imageSrc}" alt="Selected">
-      <div class="craftorcrap-confirm-text">
-        <strong>Image selected!</strong>
-        <span>Click the extension icon to submit</span>
+
+  if (imageSrc) {
+    confirmation.innerHTML = `
+      <div class="craftorcrap-confirm-content">
+        <img src="${imageSrc}" alt="Selected" onerror="this.style.display='none'">
+        <div class="craftorcrap-confirm-text">
+          <strong>Image saved!</strong>
+          <span>Click the extension icon to select category & submit</span>
+        </div>
       </div>
-    </div>
-  `;
+    `;
+  } else {
+    confirmation.innerHTML = `
+      <div class="craftorcrap-confirm-content">
+        <div class="craftorcrap-confirm-icon">
+          <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <div class="craftorcrap-confirm-text">
+          <strong>Page saved!</strong>
+          <span>Click the extension icon to select category & submit</span>
+        </div>
+      </div>
+    `;
+  }
+
   document.body.appendChild(confirmation);
 
   setTimeout(() => {
     confirmation.classList.add('craftorcrap-fade-out');
     setTimeout(() => confirmation.remove(), 300);
-  }, 2500);
+  }, 3000);
 }
