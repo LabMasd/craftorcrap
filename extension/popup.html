@@ -128,103 +128,83 @@
       object-fit: cover;
     }
 
-    .queue-item-overlay {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 50%);
-      opacity: 0;
-      transition: opacity 0.2s;
-    }
 
-    .queue-item:hover .queue-item-overlay {
-      opacity: 1;
-    }
-
-    .queue-item-actions {
+    .queue-item-category {
       position: absolute;
       bottom: 8px;
       left: 8px;
       right: 8px;
-      display: flex;
-      gap: 6px;
-      opacity: 0;
-      transition: opacity 0.2s;
-    }
-
-    .queue-item:hover .queue-item-actions {
-      opacity: 1;
-    }
-
-    .queue-item-btn {
-      flex: 1;
-      background: rgba(255,255,255,0.2);
-      backdrop-filter: blur(8px);
-      border: none;
-      color: #fff;
-      padding: 6px;
-      border-radius: 8px;
-      font-size: 10px;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-
-    .queue-item-btn:hover {
-      background: rgba(255,255,255,0.3);
-    }
-
-    .queue-item-btn.remove {
-      background: rgba(239, 68, 68, 0.3);
-    }
-
-    .queue-item-btn.remove:hover {
-      background: rgba(239, 68, 68, 0.5);
-    }
-
-    .queue-item-category {
-      position: absolute;
-      top: 8px;
-      left: 8px;
-      background: rgba(0,0,0,0.7);
+      background: rgba(0,0,0,0.85);
       backdrop-filter: blur(8px);
       padding: 0;
       border-radius: 8px;
-      font-size: 9px;
-      color: rgba(255,255,255,0.8);
+      font-size: 10px;
+      color: rgba(255,255,255,0.9);
       cursor: pointer;
       overflow: hidden;
     }
 
     .queue-item-category select {
+      width: 100%;
       background: transparent;
       border: none;
       color: #fff;
-      font-size: 9px;
-      padding: 5px 8px;
+      font-size: 10px;
+      font-weight: 500;
+      padding: 8px 10px;
       cursor: pointer;
       outline: none;
       -webkit-appearance: none;
       appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='white' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+      padding-right: 24px;
     }
 
     .queue-item-category select option {
       background: #1a1a1a;
       color: #fff;
+      padding: 8px;
     }
 
     .queue-item-domain {
       position: absolute;
       top: 8px;
-      right: 8px;
+      left: 8px;
       background: rgba(0,0,0,0.6);
       backdrop-filter: blur(8px);
       padding: 4px 8px;
       border-radius: 6px;
       font-size: 9px;
       color: rgba(255,255,255,0.5);
-      max-width: 80px;
+      max-width: 100px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+
+    .queue-item-remove {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 24px;
+      height: 24px;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(8px);
+      border: none;
+      border-radius: 6px;
+      color: rgba(255,255,255,0.6);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+
+    .queue-item-remove:hover {
+      background: rgba(239, 68, 68, 0.8);
+      color: #fff;
     }
 
     .footer {

@@ -100,17 +100,18 @@ function renderQueue() {
         ? `<img src="${item.src}" alt="" onerror="this.parentElement.classList.add('no-image'); this.style.display='none';">`
         : '<div class="no-image">Page only</div>'
       }
+      <div class="queue-item-domain">${getDomain(item.pageUrl)}</div>
+      <button class="queue-item-remove" onclick="removeFromQueue(${item.id})" title="Remove">
+        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
       <div class="queue-item-category">
         <select onchange="updateItemCategory(${item.id}, this.value)">
           ${CATEGORIES.map(cat => `
             <option value="${cat}" ${item.category === cat ? 'selected' : ''}>${cat}</option>
           `).join('')}
         </select>
-      </div>
-      <div class="queue-item-domain">${getDomain(item.pageUrl)}</div>
-      <div class="queue-item-overlay"></div>
-      <div class="queue-item-actions">
-        <button class="queue-item-btn remove" onclick="removeFromQueue(${item.id})">Remove</button>
       </div>
     </div>
   `).join('');
