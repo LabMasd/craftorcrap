@@ -11,6 +11,29 @@ type Tab = 'all' | 'craft' | 'crap'
 type CardSize = 'compact' | 'normal' | 'large'
 type SortMode = 'newest' | 'random'
 
+const COLOR_FILTERS = [
+  { name: 'Red', hex: '#ef4444' },
+  { name: 'Orange', hex: '#f97316' },
+  { name: 'Yellow', hex: '#eab308' },
+  { name: 'Green', hex: '#22c55e' },
+  { name: 'Blue', hex: '#3b82f6' },
+  { name: 'Purple', hex: '#a855f7' },
+  { name: 'Pink', hex: '#ec4899' },
+  { name: 'Black', hex: '#171717' },
+  { name: 'White', hex: '#f5f5f5' },
+]
+
+// Calculate color distance (simple RGB distance)
+function colorDistance(hex1: string, hex2: string): number {
+  const r1 = parseInt(hex1.slice(1, 3), 16)
+  const g1 = parseInt(hex1.slice(3, 5), 16)
+  const b1 = parseInt(hex1.slice(5, 7), 16)
+  const r2 = parseInt(hex2.slice(1, 3), 16)
+  const g2 = parseInt(hex2.slice(3, 5), 16)
+  const b2 = parseInt(hex2.slice(5, 7), 16)
+  return Math.sqrt((r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2)
+}
+
 const MOCK_SUBMISSIONS: Submission[] = [
   {
     id: '1',
@@ -18,6 +41,7 @@ const MOCK_SUBMISSIONS: Submission[] = [
     title: 'Linear – Plan, build, ship',
     thumbnail_url: 'https://linear.app/static/og-image.png',
     category: 'Web',
+    dominant_color: '#5E6AD2',
     submitted_by: null,
     total_craft: 847,
     total_crap: 52,
@@ -29,6 +53,7 @@ const MOCK_SUBMISSIONS: Submission[] = [
     title: 'Apple Vision Pro',
     thumbnail_url: 'https://www.apple.com/newsroom/images/2024/01/apple-vision-pro-available-in-the-us-on-february-2/article/Apple-Vision-Pro-availability-hero_big.jpg.large.jpg',
     category: 'Branding',
+    dominant_color: '#f5f5f5',
     submitted_by: null,
     total_craft: 623,
     total_crap: 198,
@@ -40,6 +65,7 @@ const MOCK_SUBMISSIONS: Submission[] = [
     title: 'Stripe – Financial Infrastructure',
     thumbnail_url: 'https://images.ctfassets.net/fzn2n1nzq965/HTTOloNPhisV9P4hlMPNA/cacf1bb88b9fc492dfad34378d844280/Stripe_logo_-_revised_2016.png',
     category: 'Web',
+    dominant_color: '#635BFF',
     submitted_by: null,
     total_craft: 912,
     total_crap: 31,
@@ -51,6 +77,7 @@ const MOCK_SUBMISSIONS: Submission[] = [
     title: 'Midjourney',
     thumbnail_url: 'https://upload.wikimedia.org/wikipedia/commons/e/e6/Midjourney_Emblem.png',
     category: 'Illustration',
+    dominant_color: '#171717',
     submitted_by: null,
     total_craft: 445,
     total_crap: 267,
@@ -62,6 +89,7 @@ const MOCK_SUBMISSIONS: Submission[] = [
     title: 'Vercel – Ship with confidence',
     thumbnail_url: 'https://assets.vercel.com/image/upload/front/vercel/dps.png',
     category: 'Web',
+    dominant_color: '#171717',
     submitted_by: null,
     total_craft: 734,
     total_crap: 89,
@@ -73,6 +101,7 @@ const MOCK_SUBMISSIONS: Submission[] = [
     title: 'Notion – Your wiki, docs & projects',
     thumbnail_url: 'https://www.notion.so/images/meta/default.png',
     category: 'Web',
+    dominant_color: '#f5f5f5',
     submitted_by: null,
     total_craft: 567,
     total_crap: 156,
@@ -84,6 +113,7 @@ const MOCK_SUBMISSIONS: Submission[] = [
     title: 'Figma – Design tool for teams',
     thumbnail_url: 'https://cdn.sanity.io/images/599r6htc/localized/46a76c802176eb17b04e12108de7e7e0f3736dc6-1024x1024.png',
     category: 'Web',
+    dominant_color: '#F24E1E',
     submitted_by: null,
     total_craft: 891,
     total_crap: 45,
@@ -95,6 +125,7 @@ const MOCK_SUBMISSIONS: Submission[] = [
     title: 'Raycast – Supercharged productivity',
     thumbnail_url: 'https://www.raycast.com/og-image.png',
     category: 'Web',
+    dominant_color: '#FF6363',
     submitted_by: null,
     total_craft: 678,
     total_crap: 123,
@@ -108,6 +139,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<Tab>('all')
   const [activeCategory, setActiveCategory] = useState<Category | 'all'>('all')
   const [sortMode, setSortMode] = useState<SortMode>('newest')
+  const [activeColor, setActiveColor] = useState<string | null>(null)
   const [cardSize, setCardSize] = useState<CardSize>('normal')
   const [darkMode, setDarkMode] = useState(true)
   const [isDemo, setIsDemo] = useState(false)
@@ -115,7 +147,7 @@ export default function Home() {
   // Inline submit state
   const [submitUrl, setSubmitUrl] = useState('')
   const [submitCategory, setSubmitCategory] = useState<Category>('Web')
-  const [preview, setPreview] = useState<{ title: string | null; thumbnail_url: string | null } | null>(null)
+  const [preview, setPreview] = useState<{ title: string | null; thumbnail_url: string | null; dominant_color: string | null } | null>(null)
   const [fetchingPreview, setFetchingPreview] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -161,6 +193,14 @@ export default function Home() {
           })
         }
 
+        // Filter by color
+        if (activeColor) {
+          filtered = filtered.filter(s => {
+            if (!s.dominant_color) return false
+            return colorDistance(s.dominant_color, activeColor) < 100
+          })
+        }
+
         // Sort by mode
         if (sortMode === 'random') {
           filtered.sort(() => Math.random() - 0.5)
@@ -199,6 +239,14 @@ export default function Home() {
           })
         }
 
+        // Filter by color
+        if (activeColor) {
+          filtered = filtered.filter(s => {
+            if (!s.dominant_color) return false
+            return colorDistance(s.dominant_color, activeColor) < 100
+          })
+        }
+
         // Sort by mode
         if (sortMode === 'random') {
           filtered.sort(() => Math.random() - 0.5)
@@ -213,7 +261,7 @@ export default function Home() {
     }
 
     fetchSubmissions()
-  }, [activeTab, activeCategory, sortMode])
+  }, [activeTab, activeCategory, sortMode, activeColor])
 
   const gridCols = {
     compact: 'columns-2 sm:columns-3 md:columns-4 lg:columns-5 xl:columns-6 2xl:columns-7',
@@ -282,6 +330,7 @@ export default function Home() {
         url: submitUrl,
         title: preview.title,
         thumbnail_url: preview.thumbnail_url,
+        dominant_color: preview.dominant_color,
         category: submitCategory,
         submitted_by: null,
       })
@@ -570,6 +619,35 @@ export default function Home() {
               Random
             </button>
           </div>
+        </div>
+
+        {/* Color Filter */}
+        <div className="flex items-center gap-2 mb-6">
+          <span className={`text-[11px] ${darkMode ? 'text-white/40' : 'text-black/40'}`}>Color:</span>
+          <button
+            onClick={() => setActiveColor(null)}
+            className={`w-6 h-6 rounded-full border-2 transition-all flex items-center justify-center ${
+              activeColor === null
+                ? darkMode ? 'border-white' : 'border-black'
+                : darkMode ? 'border-white/20' : 'border-black/20'
+            }`}
+            title="All colors"
+          >
+            <span className={`text-[8px] ${darkMode ? 'text-white/60' : 'text-black/60'}`}>All</span>
+          </button>
+          {COLOR_FILTERS.map((color) => (
+            <button
+              key={color.hex}
+              onClick={() => setActiveColor(activeColor === color.hex ? null : color.hex)}
+              className={`w-6 h-6 rounded-full border-2 transition-all ${
+                activeColor === color.hex
+                  ? darkMode ? 'border-white scale-110' : 'border-black scale-110'
+                  : darkMode ? 'border-white/20 hover:border-white/40' : 'border-black/20 hover:border-black/40'
+              }`}
+              style={{ backgroundColor: color.hex }}
+              title={color.name}
+            />
+          ))}
         </div>
 
         {loading ? (

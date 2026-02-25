@@ -4,6 +4,7 @@ export interface Submission {
   title: string | null
   thumbnail_url: string | null
   category: string | null
+  dominant_color: string | null
   submitted_by: string | null
   total_craft: number
   total_crap: number
