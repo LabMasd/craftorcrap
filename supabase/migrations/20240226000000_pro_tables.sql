@@ -1,6 +1,9 @@
 -- craftorcrap Pro Database Schema
 -- Run this in Supabase SQL Editor
 
+-- Enable required extensions
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 -- Users table (linked to Clerk)
 CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -46,7 +49,7 @@ CREATE TABLE IF NOT EXISTS boards (
   created_by UUID NOT NULL REFERENCES users(id),
   title TEXT NOT NULL,
   description TEXT,
-  share_token TEXT UNIQUE DEFAULT encode(gen_random_bytes(16), 'hex'),
+  share_token TEXT UNIQUE DEFAULT replace(gen_random_uuid()::text, '-', ''),
   password_hash TEXT, -- Optional password protection
   visibility TEXT DEFAULT 'private' CHECK (visibility IN ('private', 'link', 'public')),
   allow_anonymous_votes BOOLEAN DEFAULT true,
