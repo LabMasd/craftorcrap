@@ -1,83 +1,145 @@
 /* craftorcrap Extension Styles */
 
-#craftorcrap-overlay {
+/* Pinterest-style Save Bar */
+#craftorcrap-savebar {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: #fff;
+  padding: 6px 6px 6px 12px;
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05);
   z-index: 2147483647;
+  opacity: 0;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
   pointer-events: none;
 }
 
-.craftorcrap-toolbar {
-  position: fixed;
-  top: 16px;
-  left: 50%;
-  transform: translateX(-50%);
+#craftorcrap-savebar.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.craftorcrap-savebar-logo {
+  width: 32px;
+  height: 32px;
   background: #0a0a0a;
-  padding: 12px 20px;
-  border-radius: 50px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
-  gap: 16px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.3);
-  pointer-events: auto;
-  animation: craftorcrap-slide-down 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes craftorcrap-slide-down {
-  from {
-    opacity: 0;
-    transform: translateX(-50%) translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-}
-
-.craftorcrap-logo {
+  justify-content: center;
   color: #fff;
+  flex-shrink: 0;
+}
+
+.craftorcrap-savebar-logo svg {
+  width: 20px;
+  height: 20px;
+}
+
+.craftorcrap-savebar-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 100px;
+}
+
+.craftorcrap-savebar-label {
+  font-size: 11px;
+  color: #666;
+  font-weight: 400;
+}
+
+.craftorcrap-savebar-dropdown {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  position: relative;
+}
+
+.craftorcrap-savebar-category {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0a0a0a;
+}
+
+.craftorcrap-savebar-dropdown svg {
+  color: #0a0a0a;
+}
+
+.craftorcrap-savebar-menu {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+  padding: 8px 0;
+  min-width: 140px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: all 0.2s ease;
+}
+
+.craftorcrap-savebar-menu.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.craftorcrap-savebar-option {
+  padding: 10px 16px;
+  font-size: 14px;
+  color: #0a0a0a;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.craftorcrap-savebar-option:hover {
+  background: #f5f5f5;
+}
+
+.craftorcrap-savebar-option.selected {
+  font-weight: 600;
+  background: #f0f0f0;
+}
+
+.craftorcrap-savebar-btn {
+  background: #e60023;
+  color: #fff;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 20px;
   font-size: 14px;
   font-weight: 600;
-  letter-spacing: -0.02em;
-}
-
-.craftorcrap-logo span {
-  opacity: 0.4;
-}
-
-.craftorcrap-hint {
-  color: rgba(255,255,255,0.5);
-  font-size: 12px;
-}
-
-.craftorcrap-cancel {
-  background: rgba(255,255,255,0.1);
-  border: none;
-  color: rgba(255,255,255,0.7);
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 12px;
   cursor: pointer;
   transition: all 0.2s;
+  min-width: 70px;
 }
 
-.craftorcrap-cancel:hover {
-  background: rgba(255,255,255,0.2);
-  color: #fff;
+.craftorcrap-savebar-btn:hover {
+  background: #ad081b;
 }
 
-/* Image highlight */
-.craftorcrap-highlight {
-  outline: 3px solid #fff !important;
-  outline-offset: 2px !important;
-  cursor: pointer !important;
-  box-shadow: 0 0 0 9999px rgba(0,0,0,0.5) !important;
-  position: relative !important;
-  z-index: 2147483646 !important;
+.craftorcrap-savebar-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.craftorcrap-savebar-btn.success {
+  background: #22c55e;
+}
+
+.craftorcrap-savebar-btn.error {
+  background: #666;
 }
 
 /* Confirmation toast */

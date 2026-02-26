@@ -1,200 +1,227 @@
-// craftorcrap Image Picker
+// craftorcrap Image Saver - Pinterest-style bottom bar
 
-let pickerActive = false;
-let overlay = null;
-let highlightedElement = null;
+const CATEGORIES = ['Web', 'Motion', 'Branding', 'Illustration', 'Photography', '3D', 'AI', 'Other'];
+const CRAFTORCRAP_URL = 'https://craftorcrap.cc';
+
+let saveBar = null;
+let currentImage = null;
+let selectedCategory = 'Web';
+let hideTimeout = null;
+
+// Create the save bar
+function createSaveBar() {
+  if (saveBar) return;
+
+  saveBar = document.createElement('div');
+  saveBar.id = 'craftorcrap-savebar';
+  saveBar.innerHTML = `
+    <div class="craftorcrap-savebar-logo">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+        <circle cx="12" cy="12" r="10"/>
+        <text x="12" y="16" text-anchor="middle" fill="#0a0a0a" font-size="10" font-weight="bold">C</text>
+      </svg>
+    </div>
+    <div class="craftorcrap-savebar-selector">
+      <span class="craftorcrap-savebar-label">Save to</span>
+      <div class="craftorcrap-savebar-dropdown">
+        <span class="craftorcrap-savebar-category">${selectedCategory}</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M6 9l6 6 6-6"/>
+        </svg>
+        <div class="craftorcrap-savebar-menu">
+          ${CATEGORIES.map(cat => `
+            <div class="craftorcrap-savebar-option ${cat === selectedCategory ? 'selected' : ''}" data-category="${cat}">${cat}</div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+    <button class="craftorcrap-savebar-btn">Save</button>
+  `;
+
+  document.body.appendChild(saveBar);
+
+  // Event listeners
+  const dropdown = saveBar.querySelector('.craftorcrap-savebar-dropdown');
+  const menu = saveBar.querySelector('.craftorcrap-savebar-menu');
+  const saveBtn = saveBar.querySelector('.craftorcrap-savebar-btn');
+
+  dropdown.addEventListener('click', (e) => {
+    e.stopPropagation();
+    menu.classList.toggle('show');
+  });
+
+  menu.querySelectorAll('.craftorcrap-savebar-option').forEach(option => {
+    option.addEventListener('click', (e) => {
+      e.stopPropagation();
+      selectedCategory = option.dataset.category;
+      saveBar.querySelector('.craftorcrap-savebar-category').textContent = selectedCategory;
+      menu.querySelectorAll('.craftorcrap-savebar-option').forEach(o => o.classList.remove('selected'));
+      option.classList.add('selected');
+      menu.classList.remove('show');
+    });
+  });
+
+  saveBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    saveCurrentImage();
+  });
+
+  // Close menu when clicking outside
+  document.addEventListener('click', () => {
+    menu.classList.remove('show');
+  });
+
+  // Keep bar visible when hovering over it
+  saveBar.addEventListener('mouseenter', () => {
+    if (hideTimeout) {
+      clearTimeout(hideTimeout);
+      hideTimeout = null;
+    }
+  });
+
+  saveBar.addEventListener('mouseleave', () => {
+    hideSaveBar();
+  });
+}
+
+// Show save bar for an image
+function showSaveBar(imageSrc) {
+  if (!saveBar) createSaveBar();
+
+  if (hideTimeout) {
+    clearTimeout(hideTimeout);
+    hideTimeout = null;
+  }
+
+  currentImage = imageSrc;
+  saveBar.classList.add('show');
+}
+
+// Hide save bar
+function hideSaveBar() {
+  if (hideTimeout) clearTimeout(hideTimeout);
+
+  hideTimeout = setTimeout(() => {
+    if (saveBar) {
+      saveBar.classList.remove('show');
+      saveBar.querySelector('.craftorcrap-savebar-menu').classList.remove('show');
+    }
+    currentImage = null;
+  }, 300);
+}
+
+// Save current image
+async function saveCurrentImage() {
+  if (!currentImage) return;
+
+  const saveBtn = saveBar.querySelector('.craftorcrap-savebar-btn');
+  saveBtn.textContent = '...';
+  saveBtn.disabled = true;
+
+  try {
+    const response = await fetch(`${CRAFTORCRAP_URL}/api/extension/submit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        url: window.location.href,
+        imageUrl: currentImage,
+        category: selectedCategory,
+      }),
+    });
+
+    if (response.ok) {
+      saveBtn.textContent = 'Saved!';
+      saveBtn.classList.add('success');
+      setTimeout(() => {
+        saveBtn.textContent = 'Save';
+        saveBtn.classList.remove('success');
+        saveBtn.disabled = false;
+        hideSaveBar();
+      }, 1500);
+    } else {
+      const data = await response.json();
+      saveBtn.textContent = data.error?.includes('already') ? 'Already saved' : 'Error';
+      saveBtn.classList.add('error');
+      setTimeout(() => {
+        saveBtn.textContent = 'Save';
+        saveBtn.classList.remove('error');
+        saveBtn.disabled = false;
+      }, 2000);
+    }
+  } catch (err) {
+    saveBtn.textContent = 'Error';
+    saveBtn.classList.add('error');
+    setTimeout(() => {
+      saveBtn.textContent = 'Save';
+      saveBtn.classList.remove('error');
+      saveBtn.disabled = false;
+    }, 2000);
+  }
+}
+
+// Check if element is an image
+function getImageSrc(element) {
+  if (element.tagName === 'IMG' && element.src) {
+    // Skip tiny images (likely icons)
+    if (element.naturalWidth > 100 && element.naturalHeight > 100) {
+      return element.src;
+    }
+  }
+
+  // Check for background image on larger elements
+  const rect = element.getBoundingClientRect();
+  if (rect.width > 100 && rect.height > 100) {
+    const bg = window.getComputedStyle(element).backgroundImage;
+    if (bg && bg !== 'none' && bg.startsWith('url(')) {
+      const match = bg.match(/url\(["']?(.+?)["']?\)/);
+      if (match) return match[1];
+    }
+  }
+
+  return null;
+}
+
+// Mouse event handlers
+document.addEventListener('mouseover', (e) => {
+  const src = getImageSrc(e.target);
+  if (src) {
+    showSaveBar(src);
+  }
+}, true);
+
+document.addEventListener('mouseout', (e) => {
+  const src = getImageSrc(e.target);
+  if (src) {
+    hideSaveBar();
+  }
+}, true);
 
 // Listen for messages from popup/background
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action === 'activatePicker') {
-    activatePicker();
-  }
-
   if (message.action === 'showSaveConfirmation') {
     showSaveConfirmation(message.imageUrl);
   }
 });
 
-function activatePicker() {
-  if (pickerActive) return;
-  pickerActive = true;
-
-  // Create overlay
-  overlay = document.createElement('div');
-  overlay.id = 'craftorcrap-overlay';
-  overlay.innerHTML = `
-    <div class="craftorcrap-toolbar">
-      <span class="craftorcrap-logo">craft<span>or</span>crap</span>
-      <span class="craftorcrap-hint">Click on an image to select it</span>
-      <button class="craftorcrap-cancel">Cancel (Esc)</button>
-    </div>
-  `;
-  document.body.appendChild(overlay);
-
-  // Add event listeners
-  document.addEventListener('mouseover', handleMouseOver, true);
-  document.addEventListener('mouseout', handleMouseOut, true);
-  document.addEventListener('click', handleClick, true);
-  document.addEventListener('keydown', handleKeyDown, true);
-
-  // Cancel button
-  overlay.querySelector('.craftorcrap-cancel').addEventListener('click', deactivatePicker);
-}
-
-function deactivatePicker() {
-  if (!pickerActive) return;
-  pickerActive = false;
-
-  // Remove overlay
-  if (overlay) {
-    overlay.remove();
-    overlay = null;
-  }
-
-  // Remove highlight
-  if (highlightedElement) {
-    highlightedElement.classList.remove('craftorcrap-highlight');
-    highlightedElement = null;
-  }
-
-  // Remove event listeners
-  document.removeEventListener('mouseover', handleMouseOver, true);
-  document.removeEventListener('mouseout', handleMouseOut, true);
-  document.removeEventListener('click', handleClick, true);
-  document.removeEventListener('keydown', handleKeyDown, true);
-}
-
-function handleMouseOver(e) {
-  if (!pickerActive) return;
-
-  const target = getImageElement(e.target);
-  if (target && target !== highlightedElement) {
-    if (highlightedElement) {
-      highlightedElement.classList.remove('craftorcrap-highlight');
-    }
-    highlightedElement = target;
-    highlightedElement.classList.add('craftorcrap-highlight');
-  }
-}
-
-function handleMouseOut(e) {
-  if (!pickerActive) return;
-
-  const target = getImageElement(e.target);
-  if (target && target === highlightedElement) {
-    highlightedElement.classList.remove('craftorcrap-highlight');
-    highlightedElement = null;
-  }
-}
-
-function handleClick(e) {
-  if (!pickerActive) return;
-
-  const target = getImageElement(e.target);
-  if (target) {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const imageSrc = getImageSrc(target);
-    if (imageSrc) {
-      // Store selection
-      const data = {
-        src: imageSrc,
-        pageUrl: window.location.href,
-        pageTitle: document.title,
-      };
-
-      chrome.storage.local.set({ selectedImage: data });
-
-      // Show confirmation
-      showConfirmation(imageSrc);
-
-      deactivatePicker();
-    }
-  }
-}
-
-function handleKeyDown(e) {
-  if (e.key === 'Escape') {
-    deactivatePicker();
-  }
-}
-
-function getImageElement(element) {
-  // Check if element is an image
-  if (element.tagName === 'IMG') return element;
-
-  // Check if element has background image
-  const bg = window.getComputedStyle(element).backgroundImage;
-  if (bg && bg !== 'none' && bg.startsWith('url(')) return element;
-
-  // Check for video/canvas
-  if (element.tagName === 'VIDEO' || element.tagName === 'CANVAS') return element;
-
-  // Check for SVG
-  if (element.tagName === 'SVG' || element.closest('svg')) return element.closest('svg') || element;
-
-  // Check parent for picture element
-  if (element.closest('picture')) return element.closest('picture').querySelector('img');
-
-  return null;
-}
-
-function getImageSrc(element) {
-  if (element.tagName === 'IMG') {
-    return element.src || element.currentSrc;
-  }
-
-  if (element.tagName === 'VIDEO') {
-    return element.poster || element.src;
-  }
-
-  const bg = window.getComputedStyle(element).backgroundImage;
-  if (bg && bg !== 'none') {
-    const match = bg.match(/url\(["']?(.+?)["']?\)/);
-    if (match) return match[1];
-  }
-
-  return null;
-}
-
-function showConfirmation(imageSrc) {
-  showSaveConfirmation(imageSrc);
-}
-
 function showSaveConfirmation(imageSrc) {
-  // Remove any existing confirmation
   const existing = document.getElementById('craftorcrap-confirmation');
   if (existing) existing.remove();
 
   const confirmation = document.createElement('div');
   confirmation.id = 'craftorcrap-confirmation';
-
-  if (imageSrc) {
-    confirmation.innerHTML = `
-      <div class="craftorcrap-confirm-content">
-        <img src="${imageSrc}" alt="Selected" onerror="this.style.display='none'">
-        <div class="craftorcrap-confirm-text">
-          <strong>Image saved!</strong>
-          <span>Click the extension icon to select category & submit</span>
-        </div>
+  confirmation.innerHTML = `
+    <div class="craftorcrap-confirm-content">
+      <div class="craftorcrap-confirm-icon">
+        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
       </div>
-    `;
-  } else {
-    confirmation.innerHTML = `
-      <div class="craftorcrap-confirm-content">
-        <div class="craftorcrap-confirm-icon">
-          <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-          </svg>
-        </div>
-        <div class="craftorcrap-confirm-text">
-          <strong>Page saved!</strong>
-          <span>Click the extension icon to select category & submit</span>
-        </div>
+      <div class="craftorcrap-confirm-text">
+        <strong>Saved to queue!</strong>
+        <span>Open extension to review & submit</span>
       </div>
-    `;
-  }
+    </div>
+  `;
 
   document.body.appendChild(confirmation);
 
