@@ -462,7 +462,7 @@ export default function Home() {
         </div>
 
         {/* Mobile: Tabs below header */}
-        <div className={`sm:hidden flex justify-center pb-3 ${darkMode ? 'border-white/0' : 'border-black/0'}`}>
+        <div className={`sm:hidden flex justify-start px-4 pb-3 ${darkMode ? 'border-white/0' : 'border-black/0'}`}>
           <div className={`p-1 rounded-full ${darkMode ? 'bg-white/5' : 'bg-black/5'}`}>
             <div className="relative flex">
               {/* Sliding indicator */}
