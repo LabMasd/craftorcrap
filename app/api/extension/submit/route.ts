@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
         title,
         thumbnail_url: thumbnailUrl,
         dominant_color: dominantColor,
-        category: category || 'Other',
+        category: category || null,
         submitted_by: 'extension',
       })
       .select()
