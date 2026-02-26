@@ -830,7 +830,7 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className={`fixed bottom-0 left-0 right-0 py-3 text-center text-[11px] backdrop-blur-xl ${darkMode ? 'bg-black/80 text-white/30' : 'bg-white/80 text-black/30'}`}>
+      <footer className={`fixed bottom-0 left-0 right-0 py-3 text-center text-[11px] backdrop-blur-sm ${darkMode ? 'bg-black/60 text-white/30' : 'bg-white/60 text-black/30'}`}>
         <span>Curated by the community</span>
         <span className="mx-2">·</span>
         <span>Built with </span>
