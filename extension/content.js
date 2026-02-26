@@ -5,7 +5,7 @@ if (window.location.hostname === 'craftorcrap.cc' || window.location.hostname ==
   // Exit early - don't initialize the extension on our own site
 } else {
 
-const CATEGORIES = ['All', 'Web', 'Motion', 'Branding', 'Illustration', 'Photography', '3D', 'AI', 'Other'];
+const CATEGORIES = ['All', 'Web', 'Apps', 'Branding', 'Graphic Design', 'Motion', 'Illustration', 'Photography', 'Product', '3D', 'AI', 'Other'];
 const CRAFTORCRAP_URL = 'https://craftorcrap.cc';
 
 let hoverEnabled = true;

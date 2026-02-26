@@ -1,5 +1,5 @@
 const CRAFTORCRAP_URL = 'https://craftorcrap.cc';
-const CATEGORIES = ['Web', 'Motion', 'Branding', 'Illustration', 'Photography', '3D', 'AI', 'Other'];
+const CATEGORIES = ['Web', 'Apps', 'Branding', 'Graphic Design', 'Motion', 'Illustration', 'Photography', 'Product', '3D', 'AI', 'Other'];
 
 let queue = [];
 let hoverEnabled = true;
