@@ -2,6 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServiceClient } from '@/lib/supabase'
 import type { Verdict } from '@/types'
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+}
+
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders })
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { submission_id, verdict, fingerprint } = await request.json()
@@ -9,14 +19,14 @@ export async function POST(request: NextRequest) {
     if (!submission_id || !verdict || !fingerprint) {
       return NextResponse.json(
         { error: 'Missing required fields' },
-        { status: 400 }
+        { status: 400, headers: corsHeaders }
       )
     }
 
     if (verdict !== 'craft' && verdict !== 'crap') {
       return NextResponse.json(
         { error: 'Invalid verdict' },
-        { status: 400 }
+        { status: 400, headers: corsHeaders }
       )
     }
 
@@ -38,7 +48,7 @@ export async function POST(request: NextRequest) {
     if (existingVote) {
       return NextResponse.json(
         { error: 'Already voted' },
-        { status: 409 }
+        { status: 409, headers: corsHeaders }
       )
     }
 
@@ -52,7 +62,7 @@ export async function POST(request: NextRequest) {
     if (ipVotes && ipVotes.length >= 3) {
       return NextResponse.json(
         { error: 'Too many votes from this location' },
-        { status: 429 }
+        { status: 429, headers: corsHeaders }
       )
     }
 
@@ -68,7 +78,7 @@ export async function POST(request: NextRequest) {
       if (voteError.code === '23505') {
         return NextResponse.json(
           { error: 'Already voted' },
-          { status: 409 }
+          { status: 409, headers: corsHeaders }
         )
       }
       throw voteError
@@ -101,12 +111,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       total_craft: column === 'total_craft' ? newCount : submission.total_craft,
       total_crap: column === 'total_crap' ? newCount : submission.total_crap,
-    })
+    }, { headers: corsHeaders })
   } catch (error) {
     console.error('Vote error:', error)
     return NextResponse.json(
       { error: 'Failed to record vote' },
-      { status: 500 }
+      { status: 500, headers: corsHeaders }
     )
   }
 }

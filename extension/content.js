@@ -8,6 +8,23 @@ if (window.location.hostname === 'craftorcrap.cc' || window.location.hostname ==
 const CATEGORIES = ['Web', 'Motion', 'Branding', 'Illustration', 'Photography', '3D', 'AI', 'Other'];
 const CRAFTORCRAP_URL = 'https://craftorcrap.cc';
 
+let hoverEnabled = true;
+
+// Load hover setting
+chrome.storage.local.get(['hoverEnabled'], (result) => {
+  hoverEnabled = result.hoverEnabled !== false; // Default to true
+});
+
+// Listen for setting changes
+chrome.storage.onChanged.addListener((changes, namespace) => {
+  if (namespace === 'local' && changes.hoverEnabled !== undefined) {
+    hoverEnabled = changes.hoverEnabled.newValue !== false;
+    if (!hoverEnabled && saveBar) {
+      saveBar.classList.remove('show');
+    }
+  }
+});
+
 let saveBar = null;
 let currentImage = null;
 let currentElement = null;
@@ -108,6 +125,7 @@ function positionSaveBar(element) {
 
 // Show save bar for an image
 function showSaveBar(imageSrc, element) {
+  if (!hoverEnabled) return;
   if (!saveBar) createSaveBar();
 
   if (hideTimeout) {
@@ -135,7 +153,7 @@ function hideSaveBar() {
   }, 300);
 }
 
-// Save current image
+// Save current image and auto-vote as craft
 async function saveCurrentImage() {
   if (!currentImage) return;
 
@@ -155,7 +173,28 @@ async function saveCurrentImage() {
     });
 
     if (response.ok) {
-      saveBtn.textContent = 'Saved!';
+      const data = await response.json();
+
+      // Auto-vote as craft
+      if (data.id) {
+        try {
+          // Generate a simple fingerprint for the extension
+          const fingerprint = 'ext-' + navigator.userAgent.slice(0, 50).replace(/[^a-zA-Z0-9]/g, '') + '-' + Date.now();
+          await fetch(`${CRAFTORCRAP_URL}/api/vote`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              submission_id: data.id,
+              verdict: 'craft',
+              fingerprint: fingerprint,
+            }),
+          });
+        } catch (e) {
+          // Vote failed, but save succeeded - that's ok
+        }
+      }
+
+      saveBtn.textContent = 'Craft!';
       saveBtn.classList.add('success');
       setTimeout(() => {
         saveBtn.textContent = 'Save';

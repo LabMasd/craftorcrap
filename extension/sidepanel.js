@@ -2,6 +2,30 @@ const CRAFTORCRAP_URL = 'https://craftorcrap.cc';
 const CATEGORIES = ['Web', 'Motion', 'Branding', 'Illustration', 'Photography', '3D', 'AI', 'Other'];
 
 let queue = [];
+let hoverEnabled = true;
+
+// Hover toggle
+const hoverToggle = document.getElementById('hoverToggle');
+
+// Load hover setting
+chrome.storage.local.get(['hoverEnabled'], (result) => {
+  hoverEnabled = result.hoverEnabled !== false; // Default to true
+  updateToggleUI();
+});
+
+hoverToggle.addEventListener('click', () => {
+  hoverEnabled = !hoverEnabled;
+  chrome.storage.local.set({ hoverEnabled });
+  updateToggleUI();
+});
+
+function updateToggleUI() {
+  if (hoverEnabled) {
+    hoverToggle.classList.add('active');
+  } else {
+    hoverToggle.classList.remove('active');
+  }
+}
 
 // Elements
 const dropZone = document.getElementById('dropZone');
