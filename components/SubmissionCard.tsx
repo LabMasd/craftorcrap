@@ -220,7 +220,46 @@ export default function SubmissionCard({
             )}
           </div>
         </a>
-        {/* Star button */}
+
+        {/* Category tag - top left for uncategorized */}
+        {needsCategory && (
+          <div className="absolute top-2 left-2">
+            {showCategoryPicker ? (
+              <div className="flex flex-wrap gap-1 max-w-[200px] bg-black/80 backdrop-blur-sm p-2 rounded-lg">
+                {CATEGORIES.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => handleSetCategory(cat)}
+                    disabled={isSettingCategory}
+                    className={`px-2 py-1 text-[9px] font-medium rounded transition-all bg-white/20 text-white hover:bg-white/30 ${
+                      isSettingCategory ? 'opacity-50' : ''
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setShowCategoryPicker(false)}
+                  className="px-2 py-1 text-[9px] text-white/50 hover:text-white"
+                >
+                  ×
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowCategoryPicker(true)}
+                className="flex items-center gap-1 px-2 py-1.5 text-[10px] font-medium rounded-md bg-amber-500 text-white hover:bg-amber-600 transition-all shadow-lg"
+              >
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                </svg>
+                Add tag
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Star button - top right */}
         <button
           onClick={toggleStar}
           className={`absolute top-2 right-2 p-1.5 rounded-full transition-all ${
@@ -259,52 +298,6 @@ export default function SubmissionCard({
             </p>
           )}
         </div>
-
-        {/* Category picker for uncategorized submissions */}
-        {needsCategory && !isCompact && (
-          <div className={`mb-3 ${showCategoryPicker ? '' : ''}`}>
-            {showCategoryPicker ? (
-              <div className="flex flex-wrap gap-1">
-                {CATEGORIES.map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => handleSetCategory(cat)}
-                    disabled={isSettingCategory}
-                    className={`px-2 py-1 text-[9px] font-medium rounded-md transition-all ${
-                      darkMode
-                        ? 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
-                        : 'bg-black/10 text-black/70 hover:bg-black/20 hover:text-black'
-                    } ${isSettingCategory ? 'opacity-50' : ''}`}
-                  >
-                    {cat}
-                  </button>
-                ))}
-                <button
-                  onClick={() => setShowCategoryPicker(false)}
-                  className={`px-2 py-1 text-[9px] rounded-md ${
-                    darkMode ? 'text-white/30 hover:text-white/50' : 'text-black/30 hover:text-black/50'
-                  }`}
-                >
-                  ×
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => setShowCategoryPicker(true)}
-                className={`flex items-center gap-1 px-2 py-1 text-[9px] font-medium rounded-md transition-all ${
-                  darkMode
-                    ? 'bg-amber-500/10 text-amber-400/80 hover:bg-amber-500/20 hover:text-amber-400'
-                    : 'bg-amber-500/10 text-amber-600/80 hover:bg-amber-500/20 hover:text-amber-600'
-                }`}
-              >
-                <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                </svg>
-                Add category
-              </button>
-            )}
-          </div>
-        )}
 
         <div className={`flex gap-1 ${isCompact ? 'mb-1.5' : 'mb-3'}`}>
           <button
