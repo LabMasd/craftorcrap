@@ -26,6 +26,7 @@ export default function SubmissionCard({
   const [isDemo, setIsDemo] = useState(false)
   const [showCategoryPicker, setShowCategoryPicker] = useState(false)
   const [isSettingCategory, setIsSettingCategory] = useState(false)
+  const [isStarred, setIsStarred] = useState(false)
 
   const totalVotes = submission.total_craft + submission.total_crap
   const craftPercent = totalVotes > 0 ? Math.round((submission.total_craft / totalVotes) * 100) : 50
@@ -44,6 +45,27 @@ export default function SubmissionCard({
     }
     getFingerprint().then(setFingerprint)
   }, [])
+
+  // Check if submission is starred
+  useEffect(() => {
+    const starred = JSON.parse(localStorage.getItem('craftorcrap-starred') || '[]')
+    setIsStarred(starred.includes(submission.id))
+  }, [submission.id])
+
+  function toggleStar() {
+    const starred = JSON.parse(localStorage.getItem('craftorcrap-starred') || '[]')
+    let newStarred: string[]
+    if (starred.includes(submission.id)) {
+      newStarred = starred.filter((id: string) => id !== submission.id)
+      setIsStarred(false)
+    } else {
+      newStarred = [...starred, submission.id]
+      setIsStarred(true)
+    }
+    localStorage.setItem('craftorcrap-starred', JSON.stringify(newStarred))
+    // Dispatch event so other components can react
+    window.dispatchEvent(new CustomEvent('starred-change', { detail: newStarred }))
+  }
 
   useEffect(() => {
     if (!fingerprint || !supabase) return
@@ -172,31 +194,55 @@ export default function SubmissionCard({
           : 'bg-white hover:shadow-lg'
       }`}
     >
-      <a
-        href={submission.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="block"
-      >
-        <div className={`relative overflow-hidden ${darkMode ? 'bg-white/[0.02]' : 'bg-neutral-100'}`}>
-          {submission.thumbnail_url ? (
-            <img
-              src={submission.thumbnail_url}
-              alt={submission.title || 'Submission thumbnail'}
-              className="w-full h-auto object-cover group-hover:scale-[1.02] transition-transform duration-500"
-              loading="lazy"
-            />
-          ) : (
-            <div
-              className={`w-full aspect-video flex items-center justify-center text-sm ${
-                darkMode ? 'text-white/20' : 'text-black/20'
-              }`}
-            >
-              No preview
-            </div>
-          )}
-        </div>
-      </a>
+      <div className="relative">
+        <a
+          href={submission.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block"
+        >
+          <div className={`relative overflow-hidden ${darkMode ? 'bg-white/[0.02]' : 'bg-neutral-100'}`}>
+            {submission.thumbnail_url ? (
+              <img
+                src={submission.thumbnail_url}
+                alt={submission.title || 'Submission thumbnail'}
+                className="w-full h-auto object-cover group-hover:scale-[1.02] transition-transform duration-500"
+                loading="lazy"
+              />
+            ) : (
+              <div
+                className={`w-full aspect-video flex items-center justify-center text-sm ${
+                  darkMode ? 'text-white/20' : 'text-black/20'
+                }`}
+              >
+                No preview
+              </div>
+            )}
+          </div>
+        </a>
+        {/* Star button */}
+        <button
+          onClick={toggleStar}
+          className={`absolute top-2 right-2 p-1.5 rounded-full transition-all ${
+            isStarred
+              ? 'bg-amber-500 text-white'
+              : darkMode
+              ? 'bg-black/50 text-white/60 opacity-0 group-hover:opacity-100 hover:bg-black/70 hover:text-white'
+              : 'bg-white/50 text-black/60 opacity-0 group-hover:opacity-100 hover:bg-white/70 hover:text-black'
+          }`}
+          title={isStarred ? 'Remove from saved' : 'Save'}
+        >
+          <svg
+            className={isCompact ? 'w-3 h-3' : 'w-4 h-4'}
+            fill={isStarred ? 'currentColor' : 'none'}
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+          </svg>
+        </button>
+      </div>
 
       <div className={isCompact ? 'p-2.5' : 'p-4'}>
         <div className={isCompact ? 'mb-2' : 'mb-3'}>
