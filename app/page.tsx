@@ -147,6 +147,7 @@ export default function Home() {
   const [isDemo, setIsDemo] = useState(false)
   const [showStarredOnly, setShowStarredOnly] = useState(false)
   const [starredIds, setStarredIds] = useState<string[]>([])
+  const [isTransitioning, setIsTransitioning] = useState(false)
 
   // Inline submit state
   const [submitUrl, setSubmitUrl] = useState('')
@@ -184,7 +185,10 @@ export default function Home() {
 
   useEffect(() => {
     async function fetchSubmissions() {
-      setLoading(true)
+      setIsTransitioning(true)
+
+      // Small delay to let fade out complete
+      await new Promise(resolve => setTimeout(resolve, 150))
 
       if (!supabase) {
         let filtered = [...MOCK_SUBMISSIONS]
@@ -225,6 +229,7 @@ export default function Home() {
         setSubmissions(filtered)
         setIsDemo(true)
         setLoading(false)
+        setTimeout(() => setIsTransitioning(false), 50)
         return
       }
 
@@ -272,6 +277,7 @@ export default function Home() {
       }
 
       setLoading(false)
+      setTimeout(() => setIsTransitioning(false), 50)
     }
 
     fetchSubmissions()
@@ -783,7 +789,9 @@ export default function Home() {
             )}
           </div>
         ) : (
-          <div className={`${gridCols[cardSize]} gap-3`}>
+          <div
+            className={`${gridCols[cardSize]} gap-3 transition-opacity duration-200 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}
+          >
             {(showStarredOnly ? submissions.filter(s => starredIds.includes(s.id)) : submissions).map((submission) => (
               <div key={submission.id} className="break-inside-avoid mb-3">
                 <SubmissionCard
