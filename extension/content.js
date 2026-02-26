@@ -1,5 +1,10 @@
 // craftorcrap Image Saver - Pinterest-style overlay on images
 
+// Don't run on craftorcrap website
+if (window.location.hostname === 'craftorcrap.cc' || window.location.hostname === 'www.craftorcrap.cc') {
+  // Exit early - don't initialize the extension on our own site
+} else {
+
 const CATEGORIES = ['Web', 'Motion', 'Branding', 'Illustration', 'Photography', '3D', 'AI', 'Other'];
 const CRAFTORCRAP_URL = 'https://craftorcrap.cc';
 
@@ -250,3 +255,5 @@ function showSaveConfirmation(imageSrc) {
     setTimeout(() => confirmation.remove(), 300);
   }, 3000);
 }
+
+} // End of else block - don't run on craftorcrap.cc
