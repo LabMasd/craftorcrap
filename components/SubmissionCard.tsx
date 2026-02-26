@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import type { Submission, Verdict } from '@/types'
+import type { Submission, Verdict, Category } from '@/types'
+import { CATEGORIES } from '@/types'
 import { getFingerprint } from '@/lib/fingerprint'
 import { supabase } from '@/lib/supabase'
 
@@ -23,6 +24,8 @@ export default function SubmissionCard({
   const [isVoting, setIsVoting] = useState(false)
   const [fingerprint, setFingerprint] = useState<string>('')
   const [isDemo, setIsDemo] = useState(false)
+  const [showCategoryPicker, setShowCategoryPicker] = useState(false)
+  const [isSettingCategory, setIsSettingCategory] = useState(false)
 
   const totalVotes = submission.total_craft + submission.total_crap
   const craftPercent = totalVotes > 0 ? Math.round((submission.total_craft / totalVotes) * 100) : 50
@@ -128,7 +131,38 @@ export default function SubmissionCard({
     }
   }
 
+  async function handleSetCategory(category: Category) {
+    if (isSettingCategory || submission.category) return
+
+    if (isDemo) {
+      setSubmission((prev) => ({ ...prev, category }))
+      setShowCategoryPicker(false)
+      return
+    }
+
+    setIsSettingCategory(true)
+
+    try {
+      const response = await fetch('/api/category', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          submission_id: submission.id,
+          category,
+        }),
+      })
+
+      if (response.ok) {
+        setSubmission((prev) => ({ ...prev, category }))
+        setShowCategoryPicker(false)
+      }
+    } finally {
+      setIsSettingCategory(false)
+    }
+  }
+
   const isCompact = size === 'compact'
+  const needsCategory = !submission.category
 
   return (
     <div
@@ -179,6 +213,52 @@ export default function SubmissionCard({
             </p>
           )}
         </div>
+
+        {/* Category picker for uncategorized submissions */}
+        {needsCategory && !isCompact && (
+          <div className={`mb-3 ${showCategoryPicker ? '' : ''}`}>
+            {showCategoryPicker ? (
+              <div className="flex flex-wrap gap-1">
+                {CATEGORIES.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => handleSetCategory(cat)}
+                    disabled={isSettingCategory}
+                    className={`px-2 py-1 text-[9px] font-medium rounded-md transition-all ${
+                      darkMode
+                        ? 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
+                        : 'bg-black/10 text-black/70 hover:bg-black/20 hover:text-black'
+                    } ${isSettingCategory ? 'opacity-50' : ''}`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setShowCategoryPicker(false)}
+                  className={`px-2 py-1 text-[9px] rounded-md ${
+                    darkMode ? 'text-white/30 hover:text-white/50' : 'text-black/30 hover:text-black/50'
+                  }`}
+                >
+                  ×
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowCategoryPicker(true)}
+                className={`flex items-center gap-1 px-2 py-1 text-[9px] font-medium rounded-md transition-all ${
+                  darkMode
+                    ? 'bg-amber-500/10 text-amber-400/80 hover:bg-amber-500/20 hover:text-amber-400'
+                    : 'bg-amber-500/10 text-amber-600/80 hover:bg-amber-500/20 hover:text-amber-600'
+                }`}
+              >
+                <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                </svg>
+                Add category
+              </button>
+            )}
+          </div>
+        )}
 
         <div className={`flex gap-1 ${isCompact ? 'mb-1.5' : 'mb-3'}`}>
           <button

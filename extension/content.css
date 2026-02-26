@@ -1,19 +1,15 @@
 /* craftorcrap Extension Styles */
 
-/* Pinterest-style Save Bar */
+/* Minimal Save Widget */
 #craftorcrap-savebar {
   position: absolute;
-  background: #fff;
-  padding: 6px 6px 6px 12px;
-  border-radius: 24px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05);
   z-index: 2147483647;
   opacity: 0;
-  transform: translateY(10px);
+  transform: translateY(8px);
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
   pointer-events: none;
 }
@@ -24,9 +20,9 @@
   pointer-events: auto;
 }
 
-.craftorcrap-savebar-logo {
-  width: 32px;
-  height: 32px;
+.craftorcrap-savebar-btn {
+  width: 36px;
+  height: 36px;
   background: #0a0a0a;
   border-radius: 50%;
   display: flex;
@@ -34,56 +30,79 @@
   justify-content: center;
   color: #fff;
   flex-shrink: 0;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+  transition: all 0.15s;
 }
 
-.craftorcrap-savebar-logo svg {
-  width: 20px;
-  height: 20px;
+.craftorcrap-savebar-btn:hover {
+  transform: scale(1.1);
+  background: #222;
 }
 
-.craftorcrap-savebar-selector {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  min-width: 100px;
+.craftorcrap-savebar-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
 }
 
-.craftorcrap-savebar-label {
-  font-size: 11px;
-  color: #666;
-  font-weight: 400;
+.craftorcrap-savebar-btn.success {
+  background: #22c55e;
+}
+
+.craftorcrap-savebar-btn.error {
+  background: #ef4444;
+}
+
+.craftorcrap-savebar-btn svg {
+  width: 18px;
+  height: 18px;
 }
 
 .craftorcrap-savebar-dropdown {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  cursor: pointer;
   position: relative;
 }
 
 .craftorcrap-savebar-category {
-  font-size: 15px;
-  font-weight: 600;
-  color: #0a0a0a;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 18px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+  transition: all 0.15s;
 }
 
-.craftorcrap-savebar-dropdown svg {
-  color: #0a0a0a;
+.craftorcrap-savebar-category:hover {
+  background: rgba(0,0,0,0.85);
+}
+
+.craftorcrap-savebar-category svg {
+  width: 10px;
+  height: 10px;
+  opacity: 0.6;
 }
 
 .craftorcrap-savebar-menu {
   position: absolute;
-  bottom: calc(100% + 8px);
+  bottom: calc(100% + 6px);
   left: 0;
-  background: #fff;
+  background: rgba(0,0,0,0.9);
+  backdrop-filter: blur(12px);
   border-radius: 12px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.15);
-  padding: 8px 0;
-  min-width: 140px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  padding: 6px 0;
+  min-width: 120px;
   opacity: 0;
   visibility: hidden;
-  transform: translateY(10px);
+  transform: translateY(8px);
   transition: all 0.2s ease;
 }
 
@@ -94,50 +113,21 @@
 }
 
 .craftorcrap-savebar-option {
-  padding: 10px 16px;
-  font-size: 14px;
-  color: #0a0a0a;
+  padding: 8px 14px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.8);
   cursor: pointer;
-  transition: background 0.15s;
+  transition: all 0.15s;
 }
 
 .craftorcrap-savebar-option:hover {
-  background: #f5f5f5;
+  background: rgba(255,255,255,0.1);
+  color: #fff;
 }
 
 .craftorcrap-savebar-option.selected {
-  font-weight: 600;
-  background: #f0f0f0;
-}
-
-.craftorcrap-savebar-btn {
-  background: #0a0a0a;
   color: #fff;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 20px;
-  font-size: 14px;
   font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  min-width: 70px;
-}
-
-.craftorcrap-savebar-btn:hover {
-  background: #333;
-}
-
-.craftorcrap-savebar-btn:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-.craftorcrap-savebar-btn.success {
-  background: #22c55e;
-}
-
-.craftorcrap-savebar-btn.error {
-  background: #666;
 }
 
 /* Confirmation toast */

@@ -5,7 +5,7 @@ if (window.location.hostname === 'craftorcrap.cc' || window.location.hostname ==
   // Exit early - don't initialize the extension on our own site
 } else {
 
-const CATEGORIES = ['Web', 'Motion', 'Branding', 'Illustration', 'Photography', '3D', 'AI', 'Other'];
+const CATEGORIES = ['All', 'Web', 'Motion', 'Branding', 'Illustration', 'Photography', '3D', 'AI', 'Other'];
 const CRAFTORCRAP_URL = 'https://craftorcrap.cc';
 
 let hoverEnabled = true;
@@ -28,7 +28,7 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
 let saveBar = null;
 let currentImage = null;
 let currentElement = null;
-let selectedCategory = 'Web';
+let selectedCategory = 'All';
 let hideTimeout = null;
 
 // Create the save bar
@@ -38,37 +38,35 @@ function createSaveBar() {
   saveBar = document.createElement('div');
   saveBar.id = 'craftorcrap-savebar';
   saveBar.innerHTML = `
-    <div class="craftorcrap-savebar-logo">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+    <button class="craftorcrap-savebar-btn" title="Save to craftorcrap">
+      <svg viewBox="0 0 24 24" fill="currentColor">
         <circle cx="12" cy="12" r="10"/>
         <text x="12" y="16" text-anchor="middle" fill="#0a0a0a" font-size="10" font-weight="bold">C</text>
       </svg>
-    </div>
-    <div class="craftorcrap-savebar-selector">
-      <span class="craftorcrap-savebar-label">Save to</span>
-      <div class="craftorcrap-savebar-dropdown">
-        <span class="craftorcrap-savebar-category">${selectedCategory}</span>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    </button>
+    <div class="craftorcrap-savebar-dropdown">
+      <div class="craftorcrap-savebar-category">
+        <span>${selectedCategory}</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M6 9l6 6 6-6"/>
         </svg>
-        <div class="craftorcrap-savebar-menu">
-          ${CATEGORIES.map(cat => `
-            <div class="craftorcrap-savebar-option ${cat === selectedCategory ? 'selected' : ''}" data-category="${cat}">${cat}</div>
-          `).join('')}
-        </div>
+      </div>
+      <div class="craftorcrap-savebar-menu">
+        ${CATEGORIES.map(cat => `
+          <div class="craftorcrap-savebar-option ${cat === selectedCategory ? 'selected' : ''}" data-category="${cat}">${cat}</div>
+        `).join('')}
       </div>
     </div>
-    <button class="craftorcrap-savebar-btn">Save</button>
   `;
 
   document.body.appendChild(saveBar);
 
   // Event listeners
-  const dropdown = saveBar.querySelector('.craftorcrap-savebar-dropdown');
+  const categoryBtn = saveBar.querySelector('.craftorcrap-savebar-category');
   const menu = saveBar.querySelector('.craftorcrap-savebar-menu');
   const saveBtn = saveBar.querySelector('.craftorcrap-savebar-btn');
 
-  dropdown.addEventListener('click', (e) => {
+  categoryBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     menu.classList.toggle('show');
   });
@@ -77,7 +75,7 @@ function createSaveBar() {
     option.addEventListener('click', (e) => {
       e.stopPropagation();
       selectedCategory = option.dataset.category;
-      saveBar.querySelector('.craftorcrap-savebar-category').textContent = selectedCategory;
+      saveBar.querySelector('.craftorcrap-savebar-category span').textContent = selectedCategory;
       menu.querySelectorAll('.craftorcrap-savebar-option').forEach(o => o.classList.remove('selected'));
       option.classList.add('selected');
       menu.classList.remove('show');
@@ -144,13 +142,23 @@ function hideSaveBar() {
   if (hideTimeout) clearTimeout(hideTimeout);
 
   hideTimeout = setTimeout(() => {
+    // Double-check we're not hovering over the image or save bar
+    if (saveBar && currentElement) {
+      const hoverElements = document.querySelectorAll(':hover');
+      for (const el of hoverElements) {
+        if (saveBar.contains(el) || currentElement.contains(el) || el === currentElement) {
+          return; // Still hovering, don't hide
+        }
+      }
+    }
+
     if (saveBar) {
       saveBar.classList.remove('show');
       saveBar.querySelector('.craftorcrap-savebar-menu').classList.remove('show');
     }
     currentImage = null;
     currentElement = null;
-  }, 300);
+  }, 500);
 }
 
 // Save current image and auto-vote as craft
@@ -158,7 +166,8 @@ async function saveCurrentImage() {
   if (!currentImage) return;
 
   const saveBtn = saveBar.querySelector('.craftorcrap-savebar-btn');
-  saveBtn.textContent = '...';
+  const originalHTML = saveBtn.innerHTML;
+  saveBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" opacity="0.3"/></svg>';
   saveBtn.disabled = true;
 
   try {
@@ -168,7 +177,7 @@ async function saveCurrentImage() {
       body: JSON.stringify({
         url: window.location.href,
         imageUrl: currentImage,
-        category: selectedCategory,
+        category: selectedCategory === 'All' ? null : selectedCategory,
       }),
     });
 
@@ -194,32 +203,31 @@ async function saveCurrentImage() {
         }
       }
 
-      saveBtn.textContent = 'Craft!';
+      saveBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>';
       saveBtn.classList.add('success');
       setTimeout(() => {
-        saveBtn.textContent = 'Save';
+        saveBtn.innerHTML = originalHTML;
         saveBtn.classList.remove('success');
         saveBtn.disabled = false;
         hideSaveBar();
-      }, 1500);
+      }, 1200);
     } else {
-      const data = await response.json();
-      saveBtn.textContent = data.error?.includes('already') ? 'Already saved' : 'Error';
+      saveBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg>';
       saveBtn.classList.add('error');
       setTimeout(() => {
-        saveBtn.textContent = 'Save';
+        saveBtn.innerHTML = originalHTML;
         saveBtn.classList.remove('error');
         saveBtn.disabled = false;
-      }, 2000);
+      }, 1500);
     }
   } catch (err) {
-    saveBtn.textContent = 'Error';
+    saveBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg>';
     saveBtn.classList.add('error');
     setTimeout(() => {
-      saveBtn.textContent = 'Save';
+      saveBtn.innerHTML = originalHTML;
       saveBtn.classList.remove('error');
       saveBtn.disabled = false;
-    }, 2000);
+    }, 1500);
   }
 }
 
@@ -247,6 +255,15 @@ function getImageSrc(element) {
 
 // Mouse event handlers
 document.addEventListener('mouseover', (e) => {
+  // Check if we're hovering over the save bar itself
+  if (saveBar && saveBar.contains(e.target)) {
+    if (hideTimeout) {
+      clearTimeout(hideTimeout);
+      hideTimeout = null;
+    }
+    return;
+  }
+
   const result = getImageSrc(e.target);
   if (result) {
     showSaveBar(result.src, result.element);
@@ -254,6 +271,16 @@ document.addEventListener('mouseover', (e) => {
 }, true);
 
 document.addEventListener('mouseout', (e) => {
+  // Don't hide if moving to the save bar
+  if (saveBar && e.relatedTarget && saveBar.contains(e.relatedTarget)) {
+    return;
+  }
+
+  // Don't hide if still within the current image element
+  if (currentElement && e.relatedTarget && currentElement.contains(e.relatedTarget)) {
+    return;
+  }
+
   const result = getImageSrc(e.target);
   if (result) {
     hideSaveBar();
