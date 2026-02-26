@@ -1,0 +1,5 @@
+<svg width="80" height="28" viewBox="0 0 80 28" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="80" height="28" rx="6" fill="#f59e0b"/>
+  <path d="M16 10h.01M16 6h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 0112 15v-5a4 4 0 014-4z" transform="translate(4, 4) scale(0.7)" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="32" y="18" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="500" fill="#ffffff">Add tag</text>
+</svg>

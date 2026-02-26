@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs'
 import SubmissionCard from '@/components/SubmissionCard'
 import { supabase } from '@/lib/supabase'
 import type { Submission, Category } from '@/types'
@@ -476,7 +477,40 @@ export default function Home() {
               ))}
             </div>
 
-                      </div>
+            {/* Auth buttons */}
+            <SignedOut>
+              <Link
+                href="/sign-in"
+                className={`px-4 py-2 text-xs font-medium rounded-full transition-all ${
+                  darkMode
+                    ? 'bg-white text-black hover:bg-white/90'
+                    : 'bg-black text-white hover:bg-black/90'
+                }`}
+              >
+                Sign in
+              </Link>
+            </SignedOut>
+            <SignedIn>
+              <Link
+                href="/pro"
+                className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all ${
+                  darkMode
+                    ? 'bg-white/10 text-white/70 hover:bg-white/20'
+                    : 'bg-black/10 text-black/70 hover:bg-black/20'
+                }`}
+              >
+                Pro
+              </Link>
+              <UserButton
+                afterSignOutUrl="/"
+                appearance={{
+                  elements: {
+                    avatarBox: "w-8 h-8",
+                  },
+                }}
+              />
+            </SignedIn>
+          </div>
         </div>
 
         {/* Mobile: Tabs below header */}

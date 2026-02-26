@@ -9,6 +9,8 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@clerk/nextjs": "^6.38.2",
+    "@clerk/themes": "^2.4.55",
     "@fingerprintjs/fingerprintjs": "^5.0.1",
     "@supabase/supabase-js": "^2.97.0",
     "next": "16.1.6",
