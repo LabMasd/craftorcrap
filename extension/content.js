@@ -1,10 +1,11 @@
-// craftorcrap Image Saver - Pinterest-style bottom bar
+// craftorcrap Image Saver - Pinterest-style overlay on images
 
 const CATEGORIES = ['Web', 'Motion', 'Branding', 'Illustration', 'Photography', '3D', 'AI', 'Other'];
 const CRAFTORCRAP_URL = 'https://craftorcrap.cc';
 
 let saveBar = null;
 let currentImage = null;
+let currentElement = null;
 let selectedCategory = 'Web';
 let hideTimeout = null;
 
@@ -63,6 +64,7 @@ function createSaveBar() {
 
   saveBtn.addEventListener('click', (e) => {
     e.stopPropagation();
+    e.preventDefault();
     saveCurrentImage();
   });
 
@@ -84,8 +86,23 @@ function createSaveBar() {
   });
 }
 
+// Position save bar over the image
+function positionSaveBar(element) {
+  if (!saveBar) return;
+
+  const rect = element.getBoundingClientRect();
+  const scrollX = window.scrollX;
+  const scrollY = window.scrollY;
+
+  // Position at bottom of image
+  saveBar.style.position = 'absolute';
+  saveBar.style.left = `${rect.left + scrollX + 12}px`;
+  saveBar.style.bottom = 'auto';
+  saveBar.style.top = `${rect.bottom + scrollY - 12 - 44}px`; // 44 is approx bar height
+}
+
 // Show save bar for an image
-function showSaveBar(imageSrc) {
+function showSaveBar(imageSrc, element) {
   if (!saveBar) createSaveBar();
 
   if (hideTimeout) {
@@ -94,6 +111,8 @@ function showSaveBar(imageSrc) {
   }
 
   currentImage = imageSrc;
+  currentElement = element;
+  positionSaveBar(element);
   saveBar.classList.add('show');
 }
 
@@ -107,6 +126,7 @@ function hideSaveBar() {
       saveBar.querySelector('.craftorcrap-savebar-menu').classList.remove('show');
     }
     currentImage = null;
+    currentElement = null;
   }, 300);
 }
 
@@ -159,12 +179,12 @@ async function saveCurrentImage() {
   }
 }
 
-// Check if element is an image
+// Check if element is an image - returns { src, element } or null
 function getImageSrc(element) {
   if (element.tagName === 'IMG' && element.src) {
     // Skip tiny images (likely icons)
     if (element.naturalWidth > 100 && element.naturalHeight > 100) {
-      return element.src;
+      return { src: element.src, element };
     }
   }
 
@@ -174,7 +194,7 @@ function getImageSrc(element) {
     const bg = window.getComputedStyle(element).backgroundImage;
     if (bg && bg !== 'none' && bg.startsWith('url(')) {
       const match = bg.match(/url\(["']?(.+?)["']?\)/);
-      if (match) return match[1];
+      if (match) return { src: match[1], element };
     }
   }
 
@@ -183,15 +203,15 @@ function getImageSrc(element) {
 
 // Mouse event handlers
 document.addEventListener('mouseover', (e) => {
-  const src = getImageSrc(e.target);
-  if (src) {
-    showSaveBar(src);
+  const result = getImageSrc(e.target);
+  if (result) {
+    showSaveBar(result.src, result.element);
   }
 }, true);
 
 document.addEventListener('mouseout', (e) => {
-  const src = getImageSrc(e.target);
-  if (src) {
+  const result = getImageSrc(e.target);
+  if (result) {
     hideSaveBar();
   }
 }, true);
