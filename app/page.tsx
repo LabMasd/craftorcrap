@@ -593,150 +593,29 @@ export default function Home() {
         </div>
 
         {/* Category Filters + Sort */}
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-          {/* Category Filter - slides from left */}
-          <div className="flex items-center">
-            <button
-              onClick={() => setShowCategoryFilter(!showCategoryFilter)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium rounded-full transition-all z-10 ${
-                activeCategory !== 'all' || showCategoryFilter
-                  ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
-                  : darkMode ? 'bg-white/5 text-white/50 hover:text-white/70' : 'bg-black/5 text-black/50 hover:text-black/70'
-              }`}
-            >
-              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-              </svg>
-              {activeCategory !== 'all' ? activeCategory : 'Filter'}
-            </button>
-            <div className="overflow-hidden ml-2">
-              <div
-                className={`flex items-center gap-1 p-1 rounded-full will-change-transform ${darkMode ? 'bg-white/5' : 'bg-black/5'}`}
-                style={{
-                  transform: showCategoryFilter ? 'translateX(0)' : 'translateX(-105%)',
-                  opacity: showCategoryFilter ? 1 : 0,
-                  transition: showCategoryFilter
-                    ? 'transform 500ms cubic-bezier(0.16, 1, 0.3, 1), opacity 400ms cubic-bezier(0.16, 1, 0.3, 1)'
-                    : 'transform 700ms cubic-bezier(0.4, 0, 0.2, 1), opacity 600ms cubic-bezier(0.4, 0, 0.2, 1)',
-                }}
-              >
-                {['All', ...CATEGORIES].map((cat, i) => (
-                  <button
-                    key={cat}
-                    onClick={() => setActiveCategory(cat === 'All' ? 'all' : cat as Category)}
-                    className={`px-2.5 py-1 text-[10px] font-medium rounded-full whitespace-nowrap will-change-transform ${
-                      (cat === 'All' ? 'all' : cat) === activeCategory
-                        ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
-                        : darkMode ? 'text-white/50 hover:text-white/70' : 'text-black/50 hover:text-black/70'
-                    }`}
-                    style={{
-                      transform: showCategoryFilter ? 'translateX(0)' : 'translateX(-20px)',
-                      opacity: showCategoryFilter ? 1 : 0,
-                      transition: showCategoryFilter
-                        ? `transform 500ms cubic-bezier(0.16, 1, 0.3, 1) ${i * 30}ms, opacity 400ms cubic-bezier(0.16, 1, 0.3, 1) ${i * 30}ms`
-                        : `transform 600ms cubic-bezier(0.4, 0, 0.2, 1) ${(8 - i) * 20}ms, opacity 500ms cubic-bezier(0.4, 0, 0.2, 1) ${(8 - i) * 20}ms`,
-                    }}
-                  >
-                    {cat}
-                  </button>
-                ))}
-                {/* Back arrow */}
-                <button
-                  onClick={() => setShowCategoryFilter(false)}
-                  className={`w-6 h-6 rounded-full flex items-center justify-center will-change-transform ${
-                    darkMode ? 'hover:bg-white/10 text-white/50 hover:text-white' : 'hover:bg-black/10 text-black/50 hover:text-black'
-                  }`}
-                  style={{
-                    transform: showCategoryFilter ? 'translateX(0)' : 'translateX(-20px)',
-                    opacity: showCategoryFilter ? 1 : 0,
-                    transition: showCategoryFilter
-                      ? `transform 500ms cubic-bezier(0.16, 1, 0.3, 1) ${9 * 30}ms, opacity 400ms cubic-bezier(0.16, 1, 0.3, 1) ${9 * 30}ms`
-                      : `transform 600ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, opacity 500ms cubic-bezier(0.4, 0, 0.2, 1) 0ms`,
-                  }}
-                >
-                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Color + Sort */}
-          <div className="flex items-center gap-2">
-            {/* Color Filter - slides from right */}
-            <div className="flex items-center">
-              <div className="overflow-hidden mr-2">
-                <div
-                  className={`flex items-center gap-1 p-1 rounded-full will-change-transform ${darkMode ? 'bg-white/5' : 'bg-black/5'}`}
-                  style={{
-                    transform: showColorPicker ? 'translateX(0)' : 'translateX(105%)',
-                    opacity: showColorPicker ? 1 : 0,
-                    transition: showColorPicker
-                      ? 'transform 500ms cubic-bezier(0.16, 1, 0.3, 1), opacity 400ms cubic-bezier(0.16, 1, 0.3, 1)'
-                      : 'transform 700ms cubic-bezier(0.4, 0, 0.2, 1), opacity 600ms cubic-bezier(0.4, 0, 0.2, 1)',
-                  }}
-                >
-                  <button
-                    onClick={() => setActiveColor(null)}
-                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 will-change-transform ${
-                      activeColor === null
-                        ? darkMode ? 'border-white' : 'border-black'
-                        : darkMode ? 'border-white/20 hover:border-white/40' : 'border-black/20 hover:border-black/40'
-                    }`}
-                    style={{
-                      transform: showColorPicker ? 'translateX(0)' : 'translateX(20px)',
-                      opacity: showColorPicker ? 1 : 0,
-                      transition: showColorPicker
-                        ? `transform 500ms cubic-bezier(0.16, 1, 0.3, 1) ${9 * 25}ms, opacity 400ms cubic-bezier(0.16, 1, 0.3, 1) ${9 * 25}ms`
-                        : `transform 600ms cubic-bezier(0.4, 0, 0.2, 1) ${0 * 20}ms, opacity 500ms cubic-bezier(0.4, 0, 0.2, 1) ${0 * 20}ms`,
-                    }}
-                    title="All colors"
-                  >
-                    <span className={`text-[7px] ${darkMode ? 'text-white/60' : 'text-black/60'}`}>All</span>
-                  </button>
-                  {COLOR_FILTERS.map((color, i) => (
-                    <button
-                      key={color.hex}
-                      onClick={() => setActiveColor(color.hex)}
-                      className={`w-5 h-5 rounded-full border-2 flex-shrink-0 will-change-transform ${
-                        activeColor === color.hex
-                          ? darkMode ? 'border-white scale-110' : 'border-black scale-110'
-                          : darkMode ? 'border-white/20 hover:border-white/40' : 'border-black/20 hover:border-black/40'
-                      }`}
-                      style={{
-                        backgroundColor: color.hex,
-                        transform: showColorPicker ? 'translateX(0)' : 'translateX(20px)',
-                        opacity: showColorPicker ? 1 : 0,
-                        transition: showColorPicker
-                          ? `transform 500ms cubic-bezier(0.16, 1, 0.3, 1) ${(8 - i) * 25}ms, opacity 400ms cubic-bezier(0.16, 1, 0.3, 1) ${(8 - i) * 25}ms`
-                          : `transform 600ms cubic-bezier(0.4, 0, 0.2, 1) ${(i + 1) * 20}ms, opacity 500ms cubic-bezier(0.4, 0, 0.2, 1) ${(i + 1) * 20}ms`,
-                      }}
-                      title={color.name}
-                    />
-                  ))}
-                  {/* Back arrow */}
-                  <button
-                    onClick={() => setShowColorPicker(false)}
-                    className={`w-6 h-6 rounded-full flex items-center justify-center will-change-transform ${
-                      darkMode ? 'hover:bg-white/10 text-white/50 hover:text-white' : 'hover:bg-black/10 text-black/50 hover:text-black'
-                    }`}
-                    style={{
-                      transform: showColorPicker ? 'translateX(0)' : 'translateX(20px)',
-                      opacity: showColorPicker ? 1 : 0,
-                      transition: showColorPicker
-                        ? `transform 500ms cubic-bezier(0.16, 1, 0.3, 1) ${0 * 25}ms, opacity 400ms cubic-bezier(0.16, 1, 0.3, 1) ${0 * 25}ms`
-                        : `transform 600ms cubic-bezier(0.4, 0, 0.2, 1) ${10 * 20}ms, opacity 500ms cubic-bezier(0.4, 0, 0.2, 1) ${10 * 20}ms`,
-                    }}
-                  >
-                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
+        <div className="mb-6">
+          {/* Filter buttons row */}
+          <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-4">
+            {/* Left side: Filter + Color buttons */}
+            <div className="flex items-center gap-2">
+              {/* Category Filter button */}
               <button
-                onClick={() => setShowColorPicker(!showColorPicker)}
+                onClick={() => { setShowCategoryFilter(!showCategoryFilter); setShowColorPicker(false); }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
+                  activeCategory !== 'all' || showCategoryFilter
+                    ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
+                    : darkMode ? 'bg-white/5 text-white/50 hover:text-white/70' : 'bg-black/5 text-black/50 hover:text-black/70'
+                }`}
+              >
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                </svg>
+                {activeCategory !== 'all' ? activeCategory : 'Filter'}
+              </button>
+
+              {/* Color Filter button */}
+              <button
+                onClick={() => { setShowColorPicker(!showColorPicker); setShowCategoryFilter(false); }}
                 className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
                   activeColor || showColorPicker
                     ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
@@ -754,10 +633,9 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Sort Toggle */}
+            {/* Right side: Sort Toggle */}
             <div className={`p-1 rounded-full ${darkMode ? 'bg-white/5' : 'bg-black/5'}`}>
               <div className="relative flex">
-                {/* Sliding indicator */}
                 <div
                   className={`absolute top-0 bottom-0 rounded-full will-change-transform ${darkMode ? 'bg-white' : 'bg-black'}`}
                   style={{
@@ -787,6 +665,69 @@ export default function Home() {
                   Random
                 </button>
               </div>
+            </div>
+          </div>
+
+          {/* Category dropdown - slides down */}
+          <div
+            className="overflow-hidden"
+            style={{
+              maxHeight: showCategoryFilter ? '200px' : '0',
+              opacity: showCategoryFilter ? 1 : 0,
+              transition: 'max-height 400ms cubic-bezier(0.16, 1, 0.3, 1), opacity 300ms ease',
+            }}
+          >
+            <div className={`flex flex-wrap gap-2 mt-3 p-3 rounded-2xl ${darkMode ? 'bg-white/5' : 'bg-black/5'}`}>
+              {['All', ...CATEGORIES].map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => { setActiveCategory(cat === 'All' ? 'all' : cat as Category); setShowCategoryFilter(false); }}
+                  className={`px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
+                    (cat === 'All' ? 'all' : cat) === activeCategory
+                      ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
+                      : darkMode ? 'bg-white/10 text-white/60 hover:text-white' : 'bg-black/10 text-black/60 hover:text-black'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Color dropdown - slides down */}
+          <div
+            className="overflow-hidden"
+            style={{
+              maxHeight: showColorPicker ? '200px' : '0',
+              opacity: showColorPicker ? 1 : 0,
+              transition: 'max-height 400ms cubic-bezier(0.16, 1, 0.3, 1), opacity 300ms ease',
+            }}
+          >
+            <div className={`flex flex-wrap gap-2 mt-3 p-3 rounded-2xl ${darkMode ? 'bg-white/5' : 'bg-black/5'}`}>
+              <button
+                onClick={() => { setActiveColor(null); setShowColorPicker(false); }}
+                className={`w-8 h-8 rounded-full border-2 flex items-center justify-center ${
+                  activeColor === null
+                    ? darkMode ? 'border-white' : 'border-black'
+                    : darkMode ? 'border-white/20 hover:border-white/40' : 'border-black/20 hover:border-black/40'
+                }`}
+                title="All colors"
+              >
+                <span className={`text-[8px] font-medium ${darkMode ? 'text-white/60' : 'text-black/60'}`}>All</span>
+              </button>
+              {COLOR_FILTERS.map((color) => (
+                <button
+                  key={color.hex}
+                  onClick={() => { setActiveColor(color.hex); setShowColorPicker(false); }}
+                  className={`w-8 h-8 rounded-full border-2 transition-transform ${
+                    activeColor === color.hex
+                      ? darkMode ? 'border-white scale-110' : 'border-black scale-110'
+                      : darkMode ? 'border-white/20 hover:border-white/40' : 'border-black/20 hover:border-black/40'
+                  }`}
+                  style={{ backgroundColor: color.hex }}
+                  title={color.name}
+                />
+              ))}
             </div>
           </div>
         </div>
