@@ -111,7 +111,7 @@
 }
 
 .craftorcrap-savebar-btn {
-  background: #e60023;
+  background: #0a0a0a;
   color: #fff;
   border: none;
   padding: 12px 20px;
@@ -124,7 +124,7 @@
 }
 
 .craftorcrap-savebar-btn:hover {
-  background: #ad081b;
+  background: #333;
 }
 
 .craftorcrap-savebar-btn:disabled {
