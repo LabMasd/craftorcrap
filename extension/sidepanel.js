@@ -111,7 +111,7 @@ function addToQueue(item) {
   }
   const exists = queue.some(q => q.src === item.src && q.pageUrl === item.pageUrl);
   if (!exists) {
-    item.id = Date.now() + Math.random();
+    item.id = 'item-' + Date.now() + '-' + Math.floor(Math.random() * 10000);
     item.category = item.category || 'Web';
     queue.push(item);
     saveQueue();
@@ -163,13 +163,13 @@ function renderQueue() {
         : '<div class="no-image">Page only</div>'
       }
       <div class="queue-item-domain">${getDomain(item.pageUrl)}</div>
-      <button class="queue-item-remove" onclick="removeFromQueue(${item.id})" title="Remove">
+      <button class="queue-item-remove" data-remove-id="${item.id}" title="Remove">
         <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
         </svg>
       </button>
       <div class="queue-item-category">
-        <select onchange="updateItemCategory(${item.id}, this.value)">
+        <select data-category-id="${item.id}">
           ${CATEGORIES.map(cat => `
             <option value="${cat}" ${item.category === cat ? 'selected' : ''}>${cat}</option>
           `).join('')}
@@ -177,6 +177,21 @@ function renderQueue() {
       </div>
     </div>
   `).join('');
+
+  // Add event listeners using delegation
+  queueGrid.querySelectorAll('[data-remove-id]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      removeFromQueue(btn.dataset.removeId);
+    });
+  });
+
+  queueGrid.querySelectorAll('[data-category-id]').forEach(select => {
+    select.addEventListener('change', (e) => {
+      e.stopPropagation();
+      updateItemCategory(select.dataset.categoryId, select.value);
+    });
+  });
 
   submitBtn.textContent = `Submit ${queue.length} item${queue.length !== 1 ? 's' : ''}`;
 }
@@ -247,6 +262,3 @@ submitBtn.addEventListener('click', async () => {
   }
 });
 
-// Make functions available globally
-window.removeFromQueue = removeFromQueue;
-window.updateItemCategory = updateItemCategory;
