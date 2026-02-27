@@ -35,7 +35,9 @@ export default function RootLayout({
           colorInputText: "#fff",
         },
         elements: {
-          footer: "hidden",
+          footer: "!hidden",
+          footerAction: "!hidden",
+          badge: "!hidden",
         },
       }}
     >
