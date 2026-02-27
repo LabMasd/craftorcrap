@@ -693,23 +693,26 @@ export default function Home() {
         )}
 
         {/* Inline Submit */}
-        <div className={`mb-6 p-4 rounded-2xl ${darkMode ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-black/[0.02] border border-black/[0.06]'}`}>
-          <div className="flex gap-2">
+        <div className={`mb-4 px-3 py-2 rounded-xl ${darkMode ? 'bg-white/[0.02]' : 'bg-black/[0.02]'}`}>
+          <div className="flex gap-2 items-center">
+            <svg className={`w-4 h-4 flex-shrink-0 ${darkMode ? 'text-white/20' : 'text-black/20'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
             <input
               type="url"
               value={submitUrl}
               onChange={(e) => setSubmitUrl(e.target.value)}
-              placeholder="Paste a URL..."
-              className={`flex-1 border-0 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 ${
+              placeholder="Drop image or paste URL..."
+              className={`flex-1 bg-transparent border-0 py-1.5 text-[13px] focus:outline-none ${
                 darkMode
-                  ? 'bg-white/5 text-white placeholder-white/30 focus:ring-white/20'
-                  : 'bg-black/5 text-black placeholder-black/30 focus:ring-black/20'
+                  ? 'text-white placeholder-white/30'
+                  : 'text-black placeholder-black/30'
               }`}
             />
             <button
               onClick={handleFetchPreview}
               disabled={!submitUrl || fetchingPreview}
-              className={`px-5 py-3 rounded-xl text-sm font-medium disabled:opacity-30 disabled:cursor-not-allowed transition-all ${
+              className={`px-3 py-1.5 rounded-lg text-[11px] font-medium disabled:opacity-30 disabled:cursor-not-allowed transition-all ${
                 darkMode
                   ? 'bg-white/10 text-white/70 hover:bg-white/15'
                   : 'bg-black/10 text-black/70 hover:bg-black/15'
@@ -720,45 +723,45 @@ export default function Home() {
           </div>
 
           {submitError && (
-            <div className="mt-3 p-3 bg-red-500/10 rounded-xl text-red-400 text-xs">
+            <div className="mt-2 px-3 py-2 bg-red-500/10 rounded-lg text-red-400 text-[11px]">
               {submitError}
             </div>
           )}
 
           {submitSuccess && (
-            <div className="mt-3 p-3 bg-emerald-500/10 rounded-xl text-emerald-400 text-xs">
+            <div className="mt-2 px-3 py-2 bg-emerald-500/10 rounded-lg text-emerald-400 text-[11px]">
               Submitted successfully!
             </div>
           )}
 
           {preview && (
-            <div className="mt-4">
-              <div className={`flex gap-4 items-start p-3 rounded-xl ${darkMode ? 'bg-white/[0.02]' : 'bg-black/[0.02]'}`}>
+            <div className="mt-3 pt-3 border-t border-white/5">
+              <div className="flex gap-3 items-center">
                 {preview.thumbnail_url ? (
                   <img
                     src={preview.thumbnail_url}
                     alt=""
-                    className="w-24 h-16 object-cover rounded-lg flex-shrink-0"
+                    className="w-16 h-12 object-cover rounded-lg flex-shrink-0"
                   />
                 ) : (
-                  <div className={`w-24 h-16 rounded-lg flex-shrink-0 flex items-center justify-center text-[10px] ${darkMode ? 'bg-white/5 text-white/20' : 'bg-black/5 text-black/20'}`}>
+                  <div className={`w-16 h-12 rounded-lg flex-shrink-0 flex items-center justify-center text-[9px] ${darkMode ? 'bg-white/5 text-white/20' : 'bg-black/5 text-black/20'}`}>
                     No preview
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <h4 className={`font-medium text-sm truncate ${darkMode ? 'text-white/90' : 'text-black/90'}`}>
+                  <h4 className={`font-medium text-[13px] truncate ${darkMode ? 'text-white/90' : 'text-black/90'}`}>
                     {preview.title || submitDomain}
                   </h4>
-                  <p className={`text-xs mt-0.5 ${darkMode ? 'text-white/30' : 'text-black/30'}`}>{submitDomain}</p>
+                  <p className={`text-[11px] ${darkMode ? 'text-white/30' : 'text-black/30'}`}>{submitDomain}</p>
                 </div>
               </div>
 
-              <div className="mt-4 flex flex-wrap gap-2">
+              <div className="mt-3 flex flex-wrap items-center gap-1.5">
                 {CATEGORIES.map((cat) => (
                   <button
                     key={cat}
                     onClick={() => setSubmitCategory(cat)}
-                    className={`px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
+                    className={`px-2 py-1 text-[10px] font-medium rounded-full transition-all ${
                       submitCategory === cat
                         ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
                         : darkMode ? 'bg-white/5 text-white/40 hover:text-white/70' : 'bg-black/5 text-black/40 hover:text-black/70'
@@ -767,19 +770,18 @@ export default function Home() {
                     {cat}
                   </button>
                 ))}
+                <button
+                  onClick={handleSubmit}
+                  disabled={submitting}
+                  className={`ml-auto px-4 py-1.5 rounded-full text-[11px] font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all ${
+                    darkMode
+                      ? 'bg-white text-black hover:bg-white/90'
+                      : 'bg-black text-white hover:bg-black/90'
+                  }`}
+                >
+                  {submitting ? '...' : 'Submit'}
+                </button>
               </div>
-
-              <button
-                onClick={handleSubmit}
-                disabled={submitting}
-                className={`mt-4 w-full py-3 rounded-xl text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all ${
-                  darkMode
-                    ? 'bg-white text-black hover:bg-white/90'
-                    : 'bg-black text-white hover:bg-black/90'
-                }`}
-              >
-                {submitting ? 'Submitting...' : 'Submit'}
-              </button>
             </div>
           )}
         </div>
