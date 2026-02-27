@@ -152,6 +152,7 @@ export default function Home() {
     const [isTransitioning, setIsTransitioning] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [showFloatingToolbar, setShowFloatingToolbar] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
   const filtersRef = useRef<HTMLDivElement>(null)
 
   // Inline submit state
@@ -230,6 +231,20 @@ export default function Home() {
           })
         }
 
+        // Filter by search query
+        if (searchQuery.trim()) {
+          const query = searchQuery.toLowerCase().trim()
+          filtered = filtered.filter(s => {
+            const title = (s.title || '').toLowerCase()
+            const category = (s.category || '').toLowerCase()
+            let domain = ''
+            try {
+              domain = new URL(s.url).hostname.replace('www.', '').toLowerCase()
+            } catch {}
+            return title.includes(query) || category.includes(query) || domain.includes(query)
+          })
+        }
+
         // Sort by mode
         if (sortMode === 'random') {
           filtered.sort(() => Math.random() - 0.5)
@@ -277,6 +292,20 @@ export default function Home() {
           })
         }
 
+        // Filter by search query
+        if (searchQuery.trim()) {
+          const query = searchQuery.toLowerCase().trim()
+          filtered = filtered.filter(s => {
+            const title = (s.title || '').toLowerCase()
+            const category = (s.category || '').toLowerCase()
+            let domain = ''
+            try {
+              domain = new URL(s.url).hostname.replace('www.', '').toLowerCase()
+            } catch {}
+            return title.includes(query) || category.includes(query) || domain.includes(query)
+          })
+        }
+
         // Sort by mode
         if (sortMode === 'random') {
           filtered.sort(() => Math.random() - 0.5)
@@ -292,7 +321,7 @@ export default function Home() {
     }
 
     fetchSubmissions()
-  }, [activeTab, activeCategory, sortMode, activeColor])
+  }, [activeTab, activeCategory, sortMode, activeColor, searchQuery])
 
   const gridCols = {
     compact: 'columns-2 sm:columns-3 md:columns-4 lg:columns-5 xl:columns-6 2xl:columns-7',
@@ -799,6 +828,34 @@ export default function Home() {
               <SignedIn>
                 <ActiveBoardButton darkMode={darkMode} />
               </SignedIn>
+
+              {/* Search input */}
+              <div className="relative">
+                <svg className={`absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 ${darkMode ? 'text-white/40' : 'text-black/40'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search..."
+                  className={`w-24 sm:w-32 pl-7 pr-2 py-1.5 text-[11px] rounded-full outline-none transition-all focus:w-40 sm:focus:w-48 ${
+                    darkMode
+                      ? 'bg-white/5 text-white placeholder:text-white/30 focus:bg-white/10'
+                      : 'bg-black/5 text-black placeholder:text-black/30 focus:bg-black/10'
+                  }`}
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className={`absolute right-2 top-1/2 -translate-y-1/2 ${darkMode ? 'text-white/40 hover:text-white/70' : 'text-black/40 hover:text-black/70'}`}
+                  >
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Right side: Sort Toggle */}
@@ -946,8 +1003,10 @@ export default function Home() {
         show={showFloatingToolbar}
         activeCategory={activeCategory}
         activeColor={activeColor}
+        searchQuery={searchQuery}
         onCategoryChange={setActiveCategory}
         onColorChange={setActiveColor}
+        onSearchChange={setSearchQuery}
       />
 
       {/* Footer */}

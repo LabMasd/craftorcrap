@@ -23,8 +23,10 @@ interface FloatingToolbarProps {
   show: boolean
   activeCategory: string
   activeColor: string | null
+  searchQuery: string
   onCategoryChange: (category: Category | 'all') => void
   onColorChange: (color: string | null) => void
+  onSearchChange: (query: string) => void
 }
 
 export default function FloatingToolbar({
@@ -32,12 +34,15 @@ export default function FloatingToolbar({
   show,
   activeCategory,
   activeColor,
+  searchQuery,
   onCategoryChange,
   onColorChange,
+  onSearchChange,
 }: FloatingToolbarProps) {
   const [isVisible, setIsVisible] = useState(false)
   const [showCategoryPicker, setShowCategoryPicker] = useState(false)
   const [showColorPicker, setShowColorPicker] = useState(false)
+  const [showSearch, setShowSearch] = useState(false)
   const toolbarRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -190,6 +195,60 @@ export default function FloatingToolbar({
         <SignedIn>
           <ActiveBoardButton darkMode={darkMode} openUp />
         </SignedIn>
+
+        {/* Search button/input */}
+        {showSearch ? (
+          <div className="relative flex items-center">
+            <svg className={`absolute left-2.5 w-3 h-3 ${darkMode ? 'text-white/40' : 'text-black/40'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+              placeholder="Search..."
+              autoFocus
+              className={`w-32 pl-7 pr-7 py-1.5 text-[11px] rounded-full outline-none ${
+                darkMode
+                  ? 'bg-white/10 text-white placeholder:text-white/30'
+                  : 'bg-black/10 text-black placeholder:text-black/30'
+              }`}
+              onBlur={() => {
+                if (!searchQuery) setShowSearch(false)
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') {
+                  onSearchChange('')
+                  setShowSearch(false)
+                }
+              }}
+            />
+            {searchQuery && (
+              <button
+                onClick={() => { onSearchChange(''); setShowSearch(false); }}
+                className={`absolute right-2 ${darkMode ? 'text-white/40 hover:text-white/70' : 'text-black/40 hover:text-black/70'}`}
+              >
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+        ) : (
+          <button
+            onClick={() => { setShowSearch(true); setShowCategoryPicker(false); setShowColorPicker(false); }}
+            className={`p-2 rounded-full transition-all ${
+              searchQuery
+                ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
+                : darkMode ? 'bg-white/10 text-white/70 hover:bg-white/20' : 'bg-black/10 text-black/70 hover:bg-black/20'
+            }`}
+            title="Search"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </button>
+        )}
 
         {/* Scroll to top button */}
         <button
