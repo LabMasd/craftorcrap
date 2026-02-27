@@ -21,7 +21,11 @@ interface SubmissionStats {
   avg_craft_percent: number
 }
 
-export default function MySubmissions() {
+interface MySubmissionsProps {
+  darkMode?: boolean
+}
+
+export default function MySubmissions({ darkMode = true }: MySubmissionsProps) {
   const [submissions, setSubmissions] = useState<SubmissionItem[]>([])
   const [stats, setStats] = useState<SubmissionStats>({
     total_submissions: 0,
@@ -53,20 +57,20 @@ export default function MySubmissions() {
       <div className="space-y-4">
         <div className="grid grid-cols-3 gap-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-white/[0.03] rounded-xl p-4 animate-pulse">
-              <div className="h-3 w-16 bg-white/10 rounded mb-2" />
-              <div className="h-7 w-12 bg-white/10 rounded" />
+            <div key={i} className={`rounded-xl p-4 animate-pulse ${darkMode ? 'bg-white/[0.03]' : 'bg-black/[0.03]'}`}>
+              <div className={`h-3 w-16 rounded mb-2 ${darkMode ? 'bg-white/10' : 'bg-black/10'}`} />
+              <div className={`h-7 w-12 rounded ${darkMode ? 'bg-white/10' : 'bg-black/10'}`} />
             </div>
           ))}
         </div>
         <div className="space-y-2">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-white/[0.03] rounded-xl p-4 animate-pulse">
+            <div key={i} className={`rounded-xl p-4 animate-pulse ${darkMode ? 'bg-white/[0.03]' : 'bg-black/[0.03]'}`}>
               <div className="flex gap-4">
-                <div className="w-20 h-20 bg-white/10 rounded-lg" />
+                <div className={`w-20 h-20 rounded-lg ${darkMode ? 'bg-white/10' : 'bg-black/10'}`} />
                 <div className="flex-1 space-y-2">
-                  <div className="h-4 w-3/4 bg-white/10 rounded" />
-                  <div className="h-3 w-1/2 bg-white/10 rounded" />
+                  <div className={`h-4 w-3/4 rounded ${darkMode ? 'bg-white/10' : 'bg-black/10'}`} />
+                  <div className={`h-3 w-1/2 rounded ${darkMode ? 'bg-white/10' : 'bg-black/10'}`} />
                 </div>
               </div>
             </div>
@@ -80,20 +84,21 @@ export default function MySubmissions() {
     <div className="space-y-6">
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
-        <StatCard label="Submissions" value={stats.total_submissions} />
-        <StatCard label="Total Votes" value={stats.total_votes_received} />
+        <StatCard label="Submissions" value={stats.total_submissions} darkMode={darkMode} />
+        <StatCard label="Total Votes" value={stats.total_votes_received} darkMode={darkMode} />
         <StatCard
           label="Avg Craft %"
           value={`${stats.avg_craft_percent}%`}
           color={stats.avg_craft_percent >= 70 ? 'green' : stats.avg_craft_percent <= 30 ? 'red' : 'default'}
+          darkMode={darkMode}
         />
       </div>
 
       {/* Submissions List */}
       {submissions.length === 0 ? (
-        <div className="text-center py-12 text-white/40">
+        <div className={`text-center py-12 ${darkMode ? 'text-white/40' : 'text-black/40'}`}>
           <svg
-            className="w-12 h-12 mx-auto mb-4 text-white/20"
+            className={`w-12 h-12 mx-auto mb-4 ${darkMode ? 'text-white/20' : 'text-black/20'}`}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -109,7 +114,9 @@ export default function MySubmissions() {
           <p className="text-sm">Submit your work to see how the community rates it</p>
           <a
             href="/submit"
-            className="inline-block mt-4 px-4 py-2 bg-white text-black text-sm font-medium rounded-lg hover:bg-white/90 transition-all"
+            className={`inline-block mt-4 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
+              darkMode ? 'bg-white text-black hover:bg-white/90' : 'bg-black text-white hover:bg-black/90'
+            }`}
           >
             Submit Work
           </a>
@@ -122,10 +129,12 @@ export default function MySubmissions() {
               href={sub.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-4 p-4 bg-white/[0.03] hover:bg-white/[0.05] rounded-xl transition-all group"
+              className={`flex items-center gap-4 p-4 rounded-xl transition-all group ${
+                darkMode ? 'bg-white/[0.03] hover:bg-white/[0.05]' : 'bg-black/[0.03] hover:bg-black/[0.05]'
+              }`}
             >
               {/* Thumbnail */}
-              <div className="w-20 h-20 rounded-lg overflow-hidden bg-white/[0.02] flex-shrink-0">
+              <div className={`w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 ${darkMode ? 'bg-white/[0.02]' : 'bg-black/[0.02]'}`}>
                 {sub.thumbnail_url ? (
                   <img
                     src={sub.thumbnail_url}
@@ -133,7 +142,7 @@ export default function MySubmissions() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-white/20 text-xs">
+                  <div className={`w-full h-full flex items-center justify-center text-xs ${darkMode ? 'text-white/20' : 'text-black/20'}`}>
                     No preview
                   </div>
                 )}
@@ -141,23 +150,23 @@ export default function MySubmissions() {
 
               {/* Info */}
               <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-medium text-white/90 truncate group-hover:text-white">
+                <h3 className={`text-sm font-medium truncate ${darkMode ? 'text-white/90 group-hover:text-white' : 'text-black/90 group-hover:text-black'}`}>
                   {sub.title || new URL(sub.url).hostname}
                 </h3>
                 <div className="flex items-center gap-4 mt-2">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xs text-white/40">Votes:</span>
-                    <span className="text-sm font-semibold text-white/80">{sub.total_votes}</span>
+                    <span className={`text-xs ${darkMode ? 'text-white/40' : 'text-black/40'}`}>Votes:</span>
+                    <span className={`text-sm font-semibold ${darkMode ? 'text-white/80' : 'text-black/80'}`}>{sub.total_votes}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xs text-white/40">Craft:</span>
+                    <span className={`text-xs ${darkMode ? 'text-white/40' : 'text-black/40'}`}>Craft:</span>
                     <span
                       className={`text-sm font-semibold ${
                         sub.craft_percent >= 70
-                          ? 'text-emerald-400'
+                          ? 'text-emerald-500'
                           : sub.craft_percent <= 30
-                          ? 'text-red-400'
-                          : 'text-white/80'
+                          ? 'text-red-500'
+                          : darkMode ? 'text-white/80' : 'text-black/80'
                       }`}
                     >
                       {sub.craft_percent}%
@@ -166,14 +175,14 @@ export default function MySubmissions() {
                 </div>
                 {/* Progress bar */}
                 <div className="flex items-center gap-2 mt-2">
-                  <div className="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                  <div className={`flex-1 h-1.5 rounded-full overflow-hidden ${darkMode ? 'bg-white/10' : 'bg-black/10'}`}>
                     <div
                       className={`h-full rounded-full transition-all ${
                         sub.craft_percent >= 70
                           ? 'bg-emerald-500'
                           : sub.craft_percent <= 30
                           ? 'bg-red-500'
-                          : 'bg-white/50'
+                          : darkMode ? 'bg-white/50' : 'bg-black/50'
                       }`}
                       style={{ width: `${sub.craft_percent}%` }}
                     />
@@ -183,7 +192,7 @@ export default function MySubmissions() {
 
               {/* Arrow */}
               <svg
-                className="w-4 h-4 text-white/20 group-hover:text-white/40 flex-shrink-0"
+                className={`w-4 h-4 flex-shrink-0 ${darkMode ? 'text-white/20 group-hover:text-white/40' : 'text-black/20 group-hover:text-black/40'}`}
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"

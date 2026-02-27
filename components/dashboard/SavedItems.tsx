@@ -15,7 +15,11 @@ interface SavedItem {
   }
 }
 
-export default function SavedItems() {
+interface SavedItemsProps {
+  darkMode?: boolean
+}
+
+export default function SavedItems({ darkMode = true }: SavedItemsProps) {
   const [items, setItems] = useState<SavedItem[]>([])
   const [loading, setLoading] = useState(true)
   const [removingId, setRemovingId] = useState<string | null>(null)
@@ -59,11 +63,11 @@ export default function SavedItems() {
     return (
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div key={i} className="bg-white/[0.03] rounded-xl overflow-hidden animate-pulse">
-            <div className="aspect-video bg-white/10" />
+          <div key={i} className={`rounded-xl overflow-hidden animate-pulse ${darkMode ? 'bg-white/[0.03]' : 'bg-black/[0.03]'}`}>
+            <div className={`aspect-video ${darkMode ? 'bg-white/10' : 'bg-black/10'}`} />
             <div className="p-3 space-y-2">
-              <div className="h-4 w-3/4 bg-white/10 rounded" />
-              <div className="h-3 w-1/2 bg-white/10 rounded" />
+              <div className={`h-4 w-3/4 rounded ${darkMode ? 'bg-white/10' : 'bg-black/10'}`} />
+              <div className={`h-3 w-1/2 rounded ${darkMode ? 'bg-white/10' : 'bg-black/10'}`} />
             </div>
           </div>
         ))}
@@ -73,9 +77,9 @@ export default function SavedItems() {
 
   if (items.length === 0) {
     return (
-      <div className="text-center py-12 text-white/40">
+      <div className={`text-center py-12 ${darkMode ? 'text-white/40' : 'text-black/40'}`}>
         <svg
-          className="w-12 h-12 mx-auto mb-4 text-white/20"
+          className={`w-12 h-12 mx-auto mb-4 ${darkMode ? 'text-white/20' : 'text-black/20'}`}
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -103,13 +107,17 @@ export default function SavedItems() {
         return (
           <div
             key={item.id}
-            className="group bg-white/[0.03] hover:bg-white/[0.05] rounded-xl overflow-hidden transition-all relative"
+            className={`group rounded-xl overflow-hidden transition-all relative ${
+              darkMode ? 'bg-white/[0.03] hover:bg-white/[0.05]' : 'bg-black/[0.03] hover:bg-black/[0.05]'
+            }`}
           >
             {/* Remove button */}
             <button
               onClick={() => handleRemove(sub.id)}
               disabled={removingId === sub.id}
-              className="absolute top-2 right-2 z-10 p-1.5 rounded-full bg-black/50 text-white/60 opacity-0 group-hover:opacity-100 hover:bg-black/70 hover:text-white transition-all"
+              className={`absolute top-2 right-2 z-10 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-all ${
+                darkMode ? 'bg-black/50 text-white/60 hover:bg-black/70 hover:text-white' : 'bg-white/50 text-black/60 hover:bg-white/70 hover:text-black'
+              }`}
               title="Remove from saved"
             >
               {removingId === sub.id ? (
@@ -126,7 +134,7 @@ export default function SavedItems() {
 
             <a href={sub.url} target="_blank" rel="noopener noreferrer">
               {/* Thumbnail */}
-              <div className="aspect-video bg-white/[0.02] overflow-hidden">
+              <div className={`aspect-video overflow-hidden ${darkMode ? 'bg-white/[0.02]' : 'bg-black/[0.02]'}`}>
                 {sub.thumbnail_url ? (
                   <img
                     src={sub.thumbnail_url}
@@ -134,7 +142,7 @@ export default function SavedItems() {
                     className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-white/20 text-xs">
+                  <div className={`w-full h-full flex items-center justify-center text-xs ${darkMode ? 'text-white/20' : 'text-black/20'}`}>
                     No preview
                   </div>
                 )}
@@ -142,19 +150,19 @@ export default function SavedItems() {
 
               {/* Info */}
               <div className="p-3">
-                <h3 className="text-sm font-medium text-white/90 truncate group-hover:text-white">
+                <h3 className={`text-sm font-medium truncate ${darkMode ? 'text-white/90 group-hover:text-white' : 'text-black/90 group-hover:text-black'}`}>
                   {sub.title || new URL(sub.url).hostname}
                 </h3>
                 <div className="flex items-center gap-2 mt-1">
-                  <div className="flex-1 h-1 rounded-full bg-white/10 overflow-hidden">
+                  <div className={`flex-1 h-1 rounded-full overflow-hidden ${darkMode ? 'bg-white/10' : 'bg-black/10'}`}>
                     <div
                       className={`h-full rounded-full ${
-                        craftPercent >= 70 ? 'bg-emerald-500' : craftPercent <= 30 ? 'bg-red-500' : 'bg-white/50'
+                        craftPercent >= 70 ? 'bg-emerald-500' : craftPercent <= 30 ? 'bg-red-500' : darkMode ? 'bg-white/50' : 'bg-black/50'
                       }`}
                       style={{ width: `${craftPercent}%` }}
                     />
                   </div>
-                  <span className="text-xs text-white/40">{craftPercent}%</span>
+                  <span className={`text-xs ${darkMode ? 'text-white/40' : 'text-black/40'}`}>{craftPercent}%</span>
                 </div>
               </div>
             </a>
