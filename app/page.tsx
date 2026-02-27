@@ -447,10 +447,28 @@ export default function Home() {
     // Try to get URL from various data types
     let url = ''
 
-    // Check for HTML data (images dragged from websites)
+    // Check all available data
     const html = e.dataTransfer.getData('text/html')
-    if (html) {
-      // First, try to find Pinterest/Dribbble/Behance page links (prefer these over image URLs)
+    const uriList = e.dataTransfer.getData('text/uri-list')
+    const plainText = e.dataTransfer.getData('text/plain')
+
+    // Page URL patterns we prefer over image URLs
+    const isPageUrl = (u: string) => {
+      return /pinterest\.[a-z.]+\/pin\//i.test(u) ||
+             /dribbble\.com\/shots\//i.test(u) ||
+             /behance\.net\/gallery\//i.test(u) ||
+             /instagram\.com\/p\//i.test(u)
+    }
+
+    // Check uri-list and plain text first - might have page URL
+    if (uriList && isPageUrl(uriList)) {
+      url = uriList.split('\n')[0].trim()
+    } else if (plainText && isPageUrl(plainText)) {
+      url = plainText.trim()
+    }
+
+    // Check HTML for page links
+    if (!url && html) {
       const pagePatterns = [
         /href=["'](https?:\/\/(?:www\.)?pinterest\.[a-z.]+\/pin\/[^"'\s]+)/i,
         /href=["'](https?:\/\/(?:www\.)?dribbble\.com\/shots\/[^"'\s]+)/i,
@@ -461,21 +479,20 @@ export default function Home() {
       for (const pattern of pagePatterns) {
         const match = html.match(pattern)
         if (match) {
-          url = match[1].split('"')[0].split("'")[0] // Clean up any trailing chars
+          url = match[1].split('"')[0].split("'")[0]
           break
         }
       }
+    }
 
-      // Fall back to image src if no page link found
-      if (!url) {
+    // Fall back to any URL we can find
+    if (!url) {
+      if (uriList) url = uriList.split('\n')[0].trim()
+      else if (plainText && plainText.startsWith('http')) url = plainText.trim()
+      else if (html) {
         const srcMatch = html.match(/src=["']([^"']+)["']/)
         if (srcMatch) url = srcMatch[1]
       }
-    }
-
-    // Check for direct URL
-    if (!url) {
-      url = e.dataTransfer.getData('text/uri-list') || e.dataTransfer.getData('text/plain') || ''
     }
 
     // Check for files (images)
@@ -496,6 +513,19 @@ export default function Home() {
     url = url.trim()
     if (!url.startsWith('http')) {
       setSubmitError('Invalid URL')
+      return
+    }
+
+    // Check for CDN/image hosting URLs - suggest copying the page link instead
+    const cdnPatterns = [
+      /i\.pinimg\.com/i,
+      /pinimg\.com/i,
+      /cdn\.dribbble\.com/i,
+      /mir-s3-cdn-cf\.behance\.net/i,
+    ]
+
+    if (cdnPatterns.some(p => p.test(url))) {
+      setSubmitError('Got image URL instead of page link. Try right-click → "Copy link" on Pinterest.')
       return
     }
 
