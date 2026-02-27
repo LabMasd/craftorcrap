@@ -5,6 +5,8 @@ import type { Submission, Verdict, Category } from '@/types'
 import { CATEGORIES } from '@/types'
 import { getFingerprint } from '@/lib/fingerprint'
 import { supabase } from '@/lib/supabase'
+import InstagramEmbed, { isInstagramUrl } from './InstagramEmbed'
+import YouTubeEmbed, { isYouTubeUrl } from './YouTubeEmbed'
 
 type CardSize = 'compact' | 'normal' | 'large'
 
@@ -195,31 +197,37 @@ export default function SubmissionCard({
       }`}
     >
       <div className="relative">
-        <a
-          href={submission.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block"
-        >
-          <div className={`relative overflow-hidden ${darkMode ? 'bg-white/[0.02]' : 'bg-neutral-100'}`}>
-            {submission.thumbnail_url ? (
-              <img
-                src={submission.thumbnail_url}
-                alt={submission.title || 'Submission thumbnail'}
-                className="w-full h-auto object-cover group-hover:scale-[1.02] transition-transform duration-500"
-                loading="lazy"
-              />
-            ) : (
-              <div
-                className={`w-full aspect-video flex items-center justify-center text-sm ${
-                  darkMode ? 'text-white/20' : 'text-black/20'
-                }`}
-              >
-                No preview
-              </div>
-            )}
-          </div>
-        </a>
+        {isInstagramUrl(submission.url) ? (
+          <InstagramEmbed url={submission.url} darkMode={darkMode} />
+        ) : isYouTubeUrl(submission.url) ? (
+          <YouTubeEmbed url={submission.url} darkMode={darkMode} />
+        ) : (
+          <a
+            href={submission.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block"
+          >
+            <div className={`relative overflow-hidden ${darkMode ? 'bg-white/[0.02]' : 'bg-neutral-100'}`}>
+              {submission.thumbnail_url ? (
+                <img
+                  src={submission.thumbnail_url}
+                  alt={submission.title || 'Submission thumbnail'}
+                  className="w-full h-auto object-cover group-hover:scale-[1.02] transition-transform duration-500"
+                  loading="lazy"
+                />
+              ) : (
+                <div
+                  className={`w-full aspect-video flex items-center justify-center text-sm ${
+                    darkMode ? 'text-white/20' : 'text-black/20'
+                  }`}
+                >
+                  No preview
+                </div>
+              )}
+            </div>
+          </a>
+        )}
 
         {/* Category tag - top left for uncategorized */}
         {needsCategory && (
