@@ -241,7 +241,7 @@ export default function ProDashboard() {
                   <button className="px-4 py-2 text-sm font-medium rounded-lg bg-amber-500 text-black hover:bg-amber-400 transition-colors">
                     View plans
                   </button>
-                  <span className="text-sm text-white/40">Starting at £15/mo</span>
+                  <span className="text-sm text-white/40">Starting at £6.99/mo</span>
                 </div>
               </div>
             </div>
