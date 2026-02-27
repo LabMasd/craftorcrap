@@ -149,6 +149,7 @@ export default function Home() {
   const [showStarredOnly, setShowStarredOnly] = useState(false)
   const [starredIds, setStarredIds] = useState<string[]>([])
   const [isTransitioning, setIsTransitioning] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
 
   // Inline submit state
   const [submitUrl, setSubmitUrl] = useState('')
@@ -386,8 +387,108 @@ export default function Home() {
     }
   }
 
+  // Drag and drop handlers
+  function handleDragOver(e: React.DragEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(true)
+  }
+
+  function handleDragLeave(e: React.DragEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    if (e.currentTarget === e.target) {
+      setIsDragging(false)
+    }
+  }
+
+  async function handleDrop(e: React.DragEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+
+    // Try to get URL from various data types
+    let url = ''
+
+    // Check for image being dragged
+    const html = e.dataTransfer.getData('text/html')
+    if (html) {
+      const match = html.match(/src=["']([^"']+)["']/)
+      if (match) url = match[1]
+    }
+
+    // Check for direct URL
+    if (!url) {
+      url = e.dataTransfer.getData('text/uri-list') || e.dataTransfer.getData('text/plain') || ''
+    }
+
+    // Check for files (images)
+    if (!url && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0]
+      if (file.type.startsWith('image/')) {
+        setSubmitError('File upload not supported yet. Drag image URLs from websites instead.')
+        return
+      }
+    }
+
+    if (!url) {
+      setSubmitError('Could not detect URL. Try dragging the image directly.')
+      return
+    }
+
+    // Clean up the URL
+    url = url.trim()
+    if (!url.startsWith('http')) {
+      setSubmitError('Invalid URL')
+      return
+    }
+
+    // Set the URL and auto-fetch preview
+    setSubmitUrl(url)
+    setSubmitError(null)
+    setPreview(null)
+    setFetchingPreview(true)
+
+    try {
+      const res = await fetch('/api/preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Failed to fetch preview')
+      }
+      const data = await res.json()
+      setPreview(data)
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : 'Failed to fetch preview')
+    } finally {
+      setFetchingPreview(false)
+    }
+  }
+
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'bg-black text-white' : 'bg-neutral-50 text-black'}`}>
+    <div
+      className={`min-h-screen transition-colors duration-300 ${darkMode ? 'bg-black text-white' : 'bg-neutral-50 text-black'}`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      {/* Drop zone overlay */}
+      {isDragging && (
+        <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center pointer-events-none">
+          <div className="text-center">
+            <div className="w-24 h-24 mx-auto mb-4 rounded-3xl border-4 border-dashed border-white/40 flex items-center justify-center">
+              <svg className="w-12 h-12 text-white/60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <p className="text-2xl font-semibold text-white mb-2">Drop image here</p>
+            <p className="text-white/50">Drag images from any website to submit</p>
+          </div>
+        </div>
+      )}
       {/* Fixed Header */}
       <header className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-xl ${darkMode ? 'bg-black/80 border-b border-white/10' : 'bg-white/80 border-b border-black/5'}`}>
         <div className="px-4 sm:px-6 py-3 flex items-center justify-between">

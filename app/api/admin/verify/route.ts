@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
+import { requireAdmin } from '@/lib/admin'
 
-export async function GET(request: NextRequest) {
-  const key = request.nextUrl.searchParams.get('key')
-  const adminSecret = process.env.ADMIN_SECRET
+export async function GET() {
+  const { authorized } = await requireAdmin()
 
-  if (!adminSecret || key !== adminSecret) {
+  if (!authorized) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

@@ -1,6 +1,17 @@
 import { auth } from '@clerk/nextjs/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { getServiceClient } from '@/lib/supabase'
+import { fetchUrlPreview } from '@/lib/microlink'
+
+// Check if URL is a direct image link
+function isImageUrl(url: string): boolean {
+  const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp', '.ico']
+  const urlLower = url.toLowerCase()
+  return imageExtensions.some(ext => urlLower.includes(ext)) ||
+         urlLower.includes('i.pinimg.com') ||
+         urlLower.includes('images.unsplash.com') ||
+         urlLower.includes('pbs.twimg.com')
+}
 
 // GET /api/pro/boards/[id]/items - Get items for a board
 export async function GET(
@@ -68,6 +79,34 @@ export async function POST(
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
+    // Fetch URL preview to get thumbnail and metadata
+    let preview = {
+      title: title || null,
+      thumbnail_url: null as string | null,
+      dominant_color: null as string | null,
+    }
+
+    try {
+      // If it's a direct image URL, use it as the preview
+      if (isImageUrl(url)) {
+        preview = {
+          title: title || null,
+          thumbnail_url: url,
+          dominant_color: null,
+        }
+      } else {
+        const urlPreview = await fetchUrlPreview(url)
+        preview = {
+          title: title || urlPreview.title,
+          thumbnail_url: urlPreview.thumbnail_url,
+          dominant_color: urlPreview.dominant_color,
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch preview:', err)
+      // Continue without preview
+    }
+
     // Get next position
     const { data: lastItem } = await supabase
       .from('board_items')
@@ -79,14 +118,16 @@ export async function POST(
 
     const nextPosition = (lastItem?.position || 0) + 1
 
-    // Create item
+    // Create item with preview data
     const { data: item, error } = await supabase
       .from('board_items')
       .insert({
         board_id: id,
         submitted_by: user.id,
         url,
-        title: title || null,
+        title: preview.title,
+        preview_image: preview.thumbnail_url,
+        dominant_color: preview.dominant_color,
         description: description || null,
         position: nextPosition,
       })

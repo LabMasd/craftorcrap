@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServiceClient } from '@/lib/supabase'
+import { requireAdmin } from '@/lib/admin'
 
 export async function POST(request: NextRequest) {
-  try {
-    const { id, key } = await request.json()
-    const adminSecret = process.env.ADMIN_SECRET
+  const { authorized } = await requireAdmin()
 
-    if (!adminSecret || key !== adminSecret) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+  if (!authorized) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  try {
+    const { id } = await request.json()
 
     if (!id) {
       return NextResponse.json({ error: 'Missing submission ID' }, { status: 400 })
