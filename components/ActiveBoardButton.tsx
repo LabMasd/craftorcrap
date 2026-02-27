@@ -11,9 +11,10 @@ interface Board {
 
 interface ActiveBoardButtonProps {
   darkMode?: boolean
+  openUp?: boolean
 }
 
-export default function ActiveBoardButton({ darkMode = true }: ActiveBoardButtonProps) {
+export default function ActiveBoardButton({ darkMode = true, openUp = false }: ActiveBoardButtonProps) {
   const [boards, setBoards] = useState<Board[]>([])
   const [activeBoard, setActiveBoardState] = useState<string | null>(null)
   const [activeBoardName, setActiveBoardName] = useState<string | null>(null)
@@ -128,7 +129,7 @@ export default function ActiveBoardButton({ darkMode = true }: ActiveBoardButton
       </button>
 
       {showPicker && (
-        <div className={`absolute top-full left-0 mt-2 w-56 rounded-xl shadow-2xl border overflow-hidden z-50 ${
+        <div className={`absolute ${openUp ? 'bottom-full mb-2' : 'top-full mt-2'} left-0 w-56 rounded-xl shadow-2xl border overflow-hidden z-50 ${
           darkMode ? 'bg-neutral-900 border-white/10' : 'bg-white border-black/10'
         }`}>
           {/* Boards - click active board again to deselect */}

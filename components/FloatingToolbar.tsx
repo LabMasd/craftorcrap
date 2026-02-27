@@ -188,7 +188,7 @@ export default function FloatingToolbar({
 
         {/* Board button - only for signed in */}
         <SignedIn>
-          <ActiveBoardButton darkMode={darkMode} />
+          <ActiveBoardButton darkMode={darkMode} openUp />
         </SignedIn>
 
         {/* Scroll to top button */}
