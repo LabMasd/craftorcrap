@@ -18,6 +18,7 @@ export async function GET() {
       .select(`
         id,
         created_at,
+        board_id,
         submissions (
           id,
           url,
@@ -80,6 +81,55 @@ export async function POST(request: Request) {
     return NextResponse.json(data)
   } catch (error) {
     console.error('Error in POST /api/user/saved:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
+// PATCH /api/user/saved - Move item to a board
+export async function PATCH(request: Request) {
+  try {
+    const { userId } = await auth()
+
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { submission_id, board_id } = await request.json()
+
+    if (!submission_id) {
+      return NextResponse.json({ error: 'submission_id required' }, { status: 400 })
+    }
+
+    const supabase = getServiceClient()
+
+    // If board_id is provided, verify it belongs to user
+    if (board_id) {
+      const { data: board } = await supabase
+        .from('user_boards')
+        .select('id')
+        .eq('id', board_id)
+        .eq('user_id', userId)
+        .single()
+
+      if (!board) {
+        return NextResponse.json({ error: 'Board not found' }, { status: 404 })
+      }
+    }
+
+    const { error } = await supabase
+      .from('saved_items')
+      .update({ board_id: board_id || null })
+      .eq('user_id', userId)
+      .eq('submission_id', submission_id)
+
+    if (error) {
+      console.error('Error moving item:', error)
+      return NextResponse.json({ error: 'Failed to move item' }, { status: 500 })
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Error in PATCH /api/user/saved:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

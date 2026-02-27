@@ -7,13 +7,14 @@ import DashboardTabs from '@/components/dashboard/DashboardTabs'
 import VoteHistory from '@/components/dashboard/VoteHistory'
 import SavedItems from '@/components/dashboard/SavedItems'
 import MySubmissions from '@/components/dashboard/MySubmissions'
+import MyBoards from '@/components/dashboard/MyBoards'
 
-type TabType = 'votes' | 'saved' | 'submissions'
+type TabType = 'votes' | 'saved' | 'boards' | 'submissions'
 
 export default function DashboardPage() {
   const { user, isLoaded, isSignedIn } = useUser()
-  const [activeTab, setActiveTab] = useState<TabType>('votes')
-  const [counts, setCounts] = useState({ votes: 0, saved: 0, submissions: 0 })
+  const [activeTab, setActiveTab] = useState<TabType>('boards')
+  const [counts, setCounts] = useState({ votes: 0, saved: 0, boards: 0, submissions: 0 })
   const [darkMode, setDarkMode] = useState(true)
 
   useEffect(() => {
@@ -30,21 +31,24 @@ export default function DashboardPage() {
 
     async function fetchCounts() {
       try {
-        const [votesRes, savedRes, submissionsRes] = await Promise.all([
+        const [votesRes, savedRes, boardsRes, submissionsRes] = await Promise.all([
           fetch('/api/user/votes'),
           fetch('/api/user/saved'),
+          fetch('/api/user/boards'),
           fetch('/api/user/submissions'),
         ])
 
-        const [votesData, savedData, submissionsData] = await Promise.all([
+        const [votesData, savedData, boardsData, submissionsData] = await Promise.all([
           votesRes.ok ? votesRes.json() : { votes: [] },
           savedRes.ok ? savedRes.json() : { items: [] },
+          boardsRes.ok ? boardsRes.json() : { boards: [] },
           submissionsRes.ok ? submissionsRes.json() : { submissions: [] },
         ])
 
         setCounts({
           votes: votesData.stats?.total_votes || votesData.votes?.length || 0,
           saved: savedData.items?.length || 0,
+          boards: boardsData.boards?.length || 0,
           submissions: submissionsData.stats?.total_submissions || submissionsData.submissions?.length || 0,
         })
       } catch (error) {
@@ -185,8 +189,9 @@ export default function DashboardPage() {
 
         {/* Tab content */}
         <div>
-          {activeTab === 'votes' && <VoteHistory darkMode={darkMode} />}
+          {activeTab === 'boards' && <MyBoards darkMode={darkMode} />}
           {activeTab === 'saved' && <SavedItems darkMode={darkMode} />}
+          {activeTab === 'votes' && <VoteHistory darkMode={darkMode} />}
           {activeTab === 'submissions' && <MySubmissions darkMode={darkMode} />}
         </div>
       </main>

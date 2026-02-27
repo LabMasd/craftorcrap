@@ -17,6 +17,7 @@
     "node-vibrant": "^4.0.4",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "stripe": "^20.4.0",
     "svix": "^1.86.0"
   },
   "devDependencies": {

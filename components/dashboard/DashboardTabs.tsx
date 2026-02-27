@@ -1,6 +1,6 @@
 'use client'
 
-type TabType = 'votes' | 'saved' | 'submissions'
+type TabType = 'votes' | 'saved' | 'boards' | 'submissions'
 
 interface DashboardTabsProps {
   activeTab: TabType
@@ -8,6 +8,7 @@ interface DashboardTabsProps {
   counts: {
     votes: number
     saved: number
+    boards: number
     submissions: number
   }
   darkMode?: boolean
@@ -15,9 +16,10 @@ interface DashboardTabsProps {
 
 export default function DashboardTabs({ activeTab, onTabChange, counts, darkMode = true }: DashboardTabsProps) {
   const tabs: { id: TabType; label: string; count: number }[] = [
-    { id: 'votes', label: 'My Votes', count: counts.votes },
-    { id: 'saved', label: 'Saved', count: counts.saved },
-    { id: 'submissions', label: 'My Submissions', count: counts.submissions },
+    { id: 'boards', label: 'Boards', count: counts.boards },
+    { id: 'saved', label: 'All Saved', count: counts.saved },
+    { id: 'votes', label: 'Votes', count: counts.votes },
+    { id: 'submissions', label: 'Submissions', count: counts.submissions },
   ]
 
   return (

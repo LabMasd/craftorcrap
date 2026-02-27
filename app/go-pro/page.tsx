@@ -33,6 +33,28 @@ export default function GoProPage() {
   const [darkMode, setDarkMode] = useState(true)
   const [currentPlan, setCurrentPlan] = useState<'free' | 'solo' | 'studio'>('free')
   const [loading, setLoading] = useState(true)
+  const [upgrading, setUpgrading] = useState<'solo' | 'studio' | null>(null)
+
+  async function handleUpgrade(plan: 'solo' | 'studio') {
+    setUpgrading(plan)
+    try {
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan }),
+      })
+      const data = await res.json()
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        console.error('Checkout error:', data.error)
+        setUpgrading(null)
+      }
+    } catch (error) {
+      console.error('Checkout error:', error)
+      setUpgrading(null)
+    }
+  }
 
   useEffect(() => {
     const saved = localStorage.getItem('craftorcrap-theme')
@@ -129,7 +151,7 @@ export default function GoProPage() {
             <div className="mb-6">
               <h3 className="text-xl font-semibold mb-1">Solo</h3>
               <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-bold">£6.99</span>
+                <span className="text-3xl font-bold">£4.99</span>
                 <span className={darkMode ? 'text-white/40' : 'text-black/40'}>/month</span>
               </div>
             </div>
@@ -152,8 +174,12 @@ export default function GoProPage() {
                 Go to Dashboard
               </Link>
             ) : isSignedIn ? (
-              <button className={`w-full py-3 rounded-lg font-semibold transition-all ${darkMode ? 'bg-white text-black hover:bg-white/90' : 'bg-black text-white hover:bg-black/90'}`}>
-                Upgrade to Solo
+              <button
+                onClick={() => handleUpgrade('solo')}
+                disabled={upgrading !== null}
+                className={`w-full py-3 rounded-lg font-semibold transition-all ${darkMode ? 'bg-white text-black hover:bg-white/90 disabled:bg-white/50' : 'bg-black text-white hover:bg-black/90 disabled:bg-black/50'}`}
+              >
+                {upgrading === 'solo' ? 'Redirecting...' : 'Upgrade to Solo'}
               </button>
             ) : (
               <SignInButton mode="modal">
@@ -192,8 +218,12 @@ export default function GoProPage() {
                 Go to Dashboard
               </Link>
             ) : isSignedIn ? (
-              <button className={`w-full py-3 rounded-lg font-semibold transition-all ${darkMode ? 'bg-white text-black hover:bg-white/90' : 'bg-black text-white hover:bg-black/90'}`}>
-                Upgrade to Studio
+              <button
+                onClick={() => handleUpgrade('studio')}
+                disabled={upgrading !== null}
+                className={`w-full py-3 rounded-lg font-semibold transition-all ${darkMode ? 'bg-white text-black hover:bg-white/90 disabled:bg-white/50' : 'bg-black text-white hover:bg-black/90 disabled:bg-black/50'}`}
+              >
+                {upgrading === 'studio' ? 'Redirecting...' : 'Upgrade to Studio'}
               </button>
             ) : (
               <SignInButton mode="modal">

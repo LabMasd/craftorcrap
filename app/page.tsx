@@ -1,10 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs'
 import SubmissionCard from '@/components/SubmissionCard'
 import ProLink from '@/components/ProLink'
+import ActiveBoardButton from '@/components/ActiveBoardButton'
+import FloatingToolbar from '@/components/FloatingToolbar'
 import { supabase } from '@/lib/supabase'
 import type { Submission, Category } from '@/types'
 import { CATEGORIES } from '@/types'
@@ -147,10 +149,10 @@ export default function Home() {
   const [cardSize, setCardSize] = useState<CardSize>('normal')
   const [darkMode, setDarkMode] = useState(true)
   const [isDemo, setIsDemo] = useState(false)
-  const [showStarredOnly, setShowStarredOnly] = useState(false)
-  const [starredIds, setStarredIds] = useState<string[]>([])
-  const [isTransitioning, setIsTransitioning] = useState(false)
+    const [isTransitioning, setIsTransitioning] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
+  const [showFloatingToolbar, setShowFloatingToolbar] = useState(false)
+  const filtersRef = useRef<HTMLDivElement>(null)
 
   // Inline submit state
   const [submitUrl, setSubmitUrl] = useState('')
@@ -166,16 +168,6 @@ export default function Home() {
     if (saved) setDarkMode(saved === 'dark')
     const savedSize = localStorage.getItem('craftorcrap-card-size')
     if (savedSize) setCardSize(savedSize as CardSize)
-    // Load starred items
-    const starred = JSON.parse(localStorage.getItem('craftorcrap-starred') || '[]')
-    setStarredIds(starred)
-
-    // Listen for star changes from SubmissionCard
-    const handleStarredChange = (e: CustomEvent<string[]>) => {
-      setStarredIds(e.detail)
-    }
-    window.addEventListener('starred-change', handleStarredChange as EventListener)
-    return () => window.removeEventListener('starred-change', handleStarredChange as EventListener)
   }, [])
 
   useEffect(() => {
@@ -185,6 +177,22 @@ export default function Home() {
   useEffect(() => {
     localStorage.setItem('craftorcrap-card-size', cardSize)
   }, [cardSize])
+
+  // Show floating toolbar when filters are scrolled out of view
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setShowFloatingToolbar(!entry.isIntersecting)
+      },
+      { threshold: 0, rootMargin: '-100px 0px 0px 0px' }
+    )
+
+    if (filtersRef.current) {
+      observer.observe(filtersRef.current)
+    }
+
+    return () => observer.disconnect()
+  }, [])
 
   useEffect(() => {
     async function fetchSubmissions() {
@@ -748,28 +756,11 @@ export default function Home() {
         </div>
 
         {/* Category Filters + Sort */}
-        <div className="mb-6">
+        <div className="mb-6" ref={filtersRef}>
           {/* Filter buttons row */}
           <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-4">
-            {/* Left side: Filter + Color + Starred buttons */}
+            {/* Left side: Filter + Color buttons */}
             <div className="flex items-center gap-2">
-              {/* Starred Filter button - only for signed in users */}
-              <SignedIn>
-                <button
-                  onClick={() => setShowStarredOnly(!showStarredOnly)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
-                    showStarredOnly
-                      ? 'bg-amber-500 text-white'
-                      : darkMode ? 'bg-white/5 text-white/50 hover:text-white/70' : 'bg-black/5 text-black/50 hover:text-black/70'
-                  }`}
-                >
-                  <svg className="w-3 h-3" fill={showStarredOnly ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                  </svg>
-                  Saved{starredIds.length > 0 ? ` (${starredIds.length})` : ''}
-                </button>
-              </SignedIn>
-
               {/* Category Filter button */}
               <button
                 onClick={() => { setShowCategoryFilter(!showCategoryFilter); setShowColorPicker(false); }}
@@ -803,6 +794,11 @@ export default function Home() {
                 )}
                 Color
               </button>
+
+              {/* Active Board button - only for signed in users */}
+              <SignedIn>
+                <ActiveBoardButton darkMode={darkMode} />
+              </SignedIn>
             </div>
 
             {/* Right side: Sort Toggle */}
@@ -931,7 +927,7 @@ export default function Home() {
           <div
             className={`${gridCols[cardSize]} gap-3 transition-opacity duration-200 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}
           >
-            {(showStarredOnly ? submissions.filter(s => starredIds.includes(s.id)) : submissions).map((submission) => (
+            {submissions.map((submission) => (
               <div key={submission.id} className="break-inside-avoid mb-3">
                 <SubmissionCard
                   submission={submission}
@@ -940,18 +936,25 @@ export default function Home() {
                 />
               </div>
             ))}
-            {showStarredOnly && submissions.filter(s => starredIds.includes(s.id)).length === 0 && (
-              <div className={`col-span-full text-center py-16 ${darkMode ? 'text-white/40' : 'text-black/40'}`}>
-                <svg className="w-12 h-12 mx-auto mb-3 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                </svg>
-                <p>No saved items yet</p>
-                <p className="text-[11px] mt-1 opacity-60">Hover over images and click the star to save them</p>
-              </div>
-            )}
           </div>
         )}
       </main>
+
+      {/* Floating Toolbar */}
+      <FloatingToolbar
+        darkMode={darkMode}
+        show={showFloatingToolbar}
+        onFilterClick={() => {
+          setShowCategoryFilter(!showCategoryFilter)
+          setShowColorPicker(false)
+        }}
+        onColorClick={() => {
+          setShowColorPicker(!showColorPicker)
+          setShowCategoryFilter(false)
+        }}
+        activeCategory={activeCategory}
+        activeColor={activeColor}
+      />
 
       {/* Footer */}
       <footer className={`fixed bottom-0 left-0 right-0 py-3 text-center text-[11px] backdrop-blur-sm ${darkMode ? 'bg-black/60 text-white/30' : 'bg-white/60 text-black/30'}`}>
