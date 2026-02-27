@@ -40,8 +40,8 @@ export default function ProLink({ darkMode = true }: ProLinkProps) {
         href="/pro"
         className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all ${
           darkMode
-            ? 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30'
-            : 'bg-amber-500/20 text-amber-600 hover:bg-amber-500/30'
+            ? 'bg-white text-black hover:bg-white/90'
+            : 'bg-black text-white hover:bg-black/90'
         }`}
       >
         Pro

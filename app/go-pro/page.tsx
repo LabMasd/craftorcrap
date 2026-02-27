@@ -81,7 +81,7 @@ export default function GoProPage() {
       {/* Hero */}
       <section className="max-w-5xl mx-auto px-4 py-16 text-center">
         <h1 className="text-4xl sm:text-5xl font-bold mb-4">
-          Get more from <span className={darkMode ? 'text-amber-400' : 'text-amber-500'}>craftorcrap</span>
+          Get more from craftorcrap
         </h1>
         <p className={`text-lg max-w-2xl mx-auto ${darkMode ? 'text-white/60' : 'text-black/60'}`}>
           Create private boards, get feedback from clients, and collaborate with your team.
@@ -122,8 +122,8 @@ export default function GoProPage() {
           </div>
 
           {/* Solo - Featured */}
-          <div className={`rounded-2xl p-6 border-2 relative ${darkMode ? 'bg-white/[0.03] border-amber-500' : 'bg-white border-amber-500'}`}>
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-amber-500 text-black text-xs font-semibold rounded-full">
+          <div className={`rounded-2xl p-6 border-2 relative ${darkMode ? 'bg-white/[0.03] border-white' : 'bg-white border-black'}`}>
+            <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 text-xs font-semibold rounded-full ${darkMode ? 'bg-white text-black' : 'bg-black text-white'}`}>
               Most Popular
             </div>
             <div className="mb-6">
@@ -148,16 +148,16 @@ export default function GoProPage() {
                 Loading...
               </div>
             ) : currentPlan === 'solo' ? (
-              <Link href="/pro" className="block w-full py-3 text-center rounded-lg bg-amber-500 text-black font-semibold hover:bg-amber-400 transition-all">
+              <Link href="/pro" className={`block w-full py-3 text-center rounded-lg font-semibold transition-all ${darkMode ? 'bg-white text-black hover:bg-white/90' : 'bg-black text-white hover:bg-black/90'}`}>
                 Go to Dashboard
               </Link>
             ) : isSignedIn ? (
-              <button className="w-full py-3 rounded-lg bg-amber-500 text-black font-semibold hover:bg-amber-400 transition-all">
+              <button className={`w-full py-3 rounded-lg font-semibold transition-all ${darkMode ? 'bg-white text-black hover:bg-white/90' : 'bg-black text-white hover:bg-black/90'}`}>
                 Upgrade to Solo
               </button>
             ) : (
               <SignInButton mode="modal">
-                <button className="w-full py-3 rounded-lg bg-amber-500 text-black font-semibold hover:bg-amber-400 transition-all">
+                <button className={`w-full py-3 rounded-lg font-semibold transition-all ${darkMode ? 'bg-white text-black hover:bg-white/90' : 'bg-black text-white hover:bg-black/90'}`}>
                   Sign up for Solo
                 </button>
               </SignInButton>
@@ -188,7 +188,7 @@ export default function GoProPage() {
                 Loading...
               </div>
             ) : currentPlan === 'studio' ? (
-              <Link href="/pro" className="block w-full py-3 text-center rounded-lg bg-purple-500 text-white font-semibold hover:bg-purple-400 transition-all">
+              <Link href="/pro" className={`block w-full py-3 text-center rounded-lg font-semibold transition-all ${darkMode ? 'bg-white text-black hover:bg-white/90' : 'bg-black text-white hover:bg-black/90'}`}>
                 Go to Dashboard
               </Link>
             ) : isSignedIn ? (
