@@ -169,7 +169,7 @@ export default function GoProPage() {
             <div className="mb-6">
               <h3 className="text-xl font-semibold mb-1">Studio</h3>
               <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-bold">£49</span>
+                <span className="text-3xl font-bold">£24.99</span>
                 <span className={darkMode ? 'text-white/40' : 'text-black/40'}>/month</span>
               </div>
             </div>
