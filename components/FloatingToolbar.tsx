@@ -1,46 +1,150 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { SignedIn } from '@clerk/nextjs'
 import ActiveBoardButton from './ActiveBoardButton'
+import type { Category } from '@/types'
+import { CATEGORIES } from '@/types'
+
+const COLOR_FILTERS = [
+  { name: 'Red', hex: '#ef4444' },
+  { name: 'Orange', hex: '#f97316' },
+  { name: 'Yellow', hex: '#eab308' },
+  { name: 'Green', hex: '#22c55e' },
+  { name: 'Blue', hex: '#3b82f6' },
+  { name: 'Purple', hex: '#a855f7' },
+  { name: 'Pink', hex: '#ec4899' },
+  { name: 'Black', hex: '#171717' },
+  { name: 'White', hex: '#f5f5f5' },
+]
 
 interface FloatingToolbarProps {
   darkMode: boolean
   show: boolean
-  onFilterClick: () => void
-  onColorClick: () => void
   activeCategory: string
   activeColor: string | null
+  onCategoryChange: (category: Category | 'all') => void
+  onColorChange: (color: string | null) => void
 }
 
 export default function FloatingToolbar({
   darkMode,
   show,
-  onFilterClick,
-  onColorClick,
   activeCategory,
   activeColor,
+  onCategoryChange,
+  onColorChange,
 }: FloatingToolbarProps) {
   const [isVisible, setIsVisible] = useState(false)
+  const [showCategoryPicker, setShowCategoryPicker] = useState(false)
+  const [showColorPicker, setShowColorPicker] = useState(false)
+  const toolbarRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (show) {
-      // Small delay for smooth appearance
       const timer = setTimeout(() => setIsVisible(true), 50)
       return () => clearTimeout(timer)
     } else {
       setIsVisible(false)
+      setShowCategoryPicker(false)
+      setShowColorPicker(false)
     }
   }, [show])
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (toolbarRef.current && !toolbarRef.current.contains(event.target as Node)) {
+        setShowCategoryPicker(false)
+        setShowColorPicker(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   if (!show) return null
 
   return (
     <div
+      ref={toolbarRef}
       className={`fixed bottom-20 left-1/2 -translate-x-1/2 z-40 transition-all duration-300 ${
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
       }`}
     >
+      {/* Category Dropdown - appears above */}
+      {showCategoryPicker && (
+        <div
+          className={`absolute bottom-full left-0 mb-2 p-2 rounded-xl shadow-2xl border backdrop-blur-xl ${
+            darkMode ? 'bg-neutral-900/95 border-white/10' : 'bg-white/95 border-black/10'
+          }`}
+        >
+          <div className="flex flex-wrap gap-1.5 max-w-[280px]">
+            <button
+              onClick={() => { onCategoryChange('all'); setShowCategoryPicker(false); }}
+              className={`px-2.5 py-1.5 text-[11px] font-medium rounded-full transition-all ${
+                activeCategory === 'all'
+                  ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
+                  : darkMode ? 'bg-white/10 text-white/60 hover:text-white' : 'bg-black/10 text-black/60 hover:text-black'
+              }`}
+            >
+              All
+            </button>
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => { onCategoryChange(cat); setShowCategoryPicker(false); }}
+                className={`px-2.5 py-1.5 text-[11px] font-medium rounded-full transition-all ${
+                  activeCategory === cat
+                    ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
+                    : darkMode ? 'bg-white/10 text-white/60 hover:text-white' : 'bg-black/10 text-black/60 hover:text-black'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Color Dropdown - appears above */}
+      {showColorPicker && (
+        <div
+          className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 p-2 rounded-xl shadow-2xl border backdrop-blur-xl ${
+            darkMode ? 'bg-neutral-900/95 border-white/10' : 'bg-white/95 border-black/10'
+          }`}
+        >
+          <div className="flex gap-1.5">
+            <button
+              onClick={() => { onColorChange(null); setShowColorPicker(false); }}
+              className={`w-7 h-7 rounded-full border-2 flex items-center justify-center ${
+                activeColor === null
+                  ? darkMode ? 'border-white' : 'border-black'
+                  : darkMode ? 'border-white/20 hover:border-white/40' : 'border-black/20 hover:border-black/40'
+              }`}
+              title="All colors"
+            >
+              <span className={`text-[7px] font-medium ${darkMode ? 'text-white/60' : 'text-black/60'}`}>All</span>
+            </button>
+            {COLOR_FILTERS.map((color) => (
+              <button
+                key={color.hex}
+                onClick={() => { onColorChange(color.hex); setShowColorPicker(false); }}
+                className={`w-7 h-7 rounded-full border-2 transition-transform ${
+                  activeColor === color.hex
+                    ? darkMode ? 'border-white scale-110' : 'border-black scale-110'
+                    : darkMode ? 'border-white/20 hover:border-white/40' : 'border-black/20 hover:border-black/40'
+                }`}
+                style={{ backgroundColor: color.hex }}
+                title={color.name}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Main toolbar */}
       <div
         className={`flex items-center gap-2 px-2 py-2 rounded-full shadow-2xl border backdrop-blur-xl ${
           darkMode
@@ -50,9 +154,9 @@ export default function FloatingToolbar({
       >
         {/* Filter button */}
         <button
-          onClick={onFilterClick}
+          onClick={() => { setShowCategoryPicker(!showCategoryPicker); setShowColorPicker(false); }}
           className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
-            activeCategory !== 'all'
+            activeCategory !== 'all' || showCategoryPicker
               ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
               : darkMode ? 'bg-white/10 text-white/70 hover:bg-white/20' : 'bg-black/10 text-black/70 hover:bg-black/20'
           }`}
@@ -65,9 +169,9 @@ export default function FloatingToolbar({
 
         {/* Color button */}
         <button
-          onClick={onColorClick}
+          onClick={() => { setShowColorPicker(!showColorPicker); setShowCategoryPicker(false); }}
           className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
-            activeColor
+            activeColor || showColorPicker
               ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
               : darkMode ? 'bg-white/10 text-white/70 hover:bg-white/20' : 'bg-black/10 text-black/70 hover:bg-black/20'
           }`}

@@ -944,16 +944,10 @@ export default function Home() {
       <FloatingToolbar
         darkMode={darkMode}
         show={showFloatingToolbar}
-        onFilterClick={() => {
-          setShowCategoryFilter(!showCategoryFilter)
-          setShowColorPicker(false)
-        }}
-        onColorClick={() => {
-          setShowColorPicker(!showColorPicker)
-          setShowCategoryFilter(false)
-        }}
         activeCategory={activeCategory}
         activeColor={activeColor}
+        onCategoryChange={setActiveCategory}
+        onColorChange={setActiveColor}
       />
 
       {/* Footer */}
