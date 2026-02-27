@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 interface InstagramEmbedProps {
   url: string
@@ -25,52 +25,67 @@ export function isInstagramUrl(url: string): boolean {
 
 export default function InstagramEmbed({ url, darkMode = true }: InstagramEmbedProps) {
   const containerRef = useRef<HTMLDivElement>(null)
+  const [processed, setProcessed] = useState(false)
 
   useEffect(() => {
-    const loadScript = () => {
-      if (window.instgrm) {
+    const processEmbed = () => {
+      if (window.instgrm && !processed) {
         window.instgrm.Embeds.process()
-      } else {
-        const existingScript = document.querySelector('script[src*="instagram.com/embed.js"]')
-        if (!existingScript) {
-          const script = document.createElement('script')
-          script.src = '//www.instagram.com/embed.js'
-          script.async = true
-          script.onload = () => {
-            if (window.instgrm) {
-              window.instgrm.Embeds.process()
-            }
-          }
-          document.body.appendChild(script)
-        }
+        setProcessed(true)
       }
     }
 
-    const timer = setTimeout(loadScript, 100)
-    return () => clearTimeout(timer)
-  }, [url])
+    // Try immediately
+    processEmbed()
+
+    // Retry a few times in case script hasn't loaded
+    const timers = [
+      setTimeout(processEmbed, 500),
+      setTimeout(processEmbed, 1000),
+      setTimeout(processEmbed, 2000),
+    ]
+
+    return () => timers.forEach(clearTimeout)
+  }, [url, processed])
 
   return (
     <div
       ref={containerRef}
-      className={`instagram-embed-container w-full flex justify-center ${darkMode ? 'bg-white/[0.02]' : 'bg-neutral-100'}`}
+      className={`instagram-embed-container w-full ${darkMode ? 'bg-white/[0.02]' : 'bg-neutral-100'}`}
     >
       <blockquote
         className="instagram-media"
         data-instgrm-permalink={url}
         data-instgrm-version="14"
         style={{
-          background: 'transparent',
+          background: '#000',
           border: 0,
           borderRadius: '3px',
           boxShadow: 'none',
-          margin: '0',
+          margin: '0 auto',
           maxWidth: '540px',
           minWidth: '326px',
           padding: 0,
           width: '100%',
         }}
-      />
+      >
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '400px',
+            color: 'rgba(255,255,255,0.4)',
+            textDecoration: 'none',
+            fontSize: '14px'
+          }}
+        >
+          Loading Instagram...
+        </a>
+      </blockquote>
     </div>
   )
 }

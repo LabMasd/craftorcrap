@@ -37,6 +37,9 @@ export default function RootLayout({
       }}
     >
       <html lang="en">
+        <head>
+          <script async src="//www.instagram.com/embed.js"></script>
+        </head>
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black text-white`}
         >
