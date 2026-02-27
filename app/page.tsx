@@ -447,11 +447,30 @@ export default function Home() {
     // Try to get URL from various data types
     let url = ''
 
-    // Check for image being dragged
+    // Check for HTML data (images dragged from websites)
     const html = e.dataTransfer.getData('text/html')
     if (html) {
-      const match = html.match(/src=["']([^"']+)["']/)
-      if (match) url = match[1]
+      // First, try to find Pinterest/Dribbble/Behance page links (prefer these over image URLs)
+      const pagePatterns = [
+        /href=["'](https?:\/\/(?:www\.)?pinterest\.[a-z.]+\/pin\/[^"'\s]+)/i,
+        /href=["'](https?:\/\/(?:www\.)?dribbble\.com\/shots\/[^"'\s]+)/i,
+        /href=["'](https?:\/\/(?:www\.)?behance\.net\/gallery\/[^"'\s]+)/i,
+        /href=["'](https?:\/\/(?:www\.)?instagram\.com\/p\/[^"'\s]+)/i,
+      ]
+
+      for (const pattern of pagePatterns) {
+        const match = html.match(pattern)
+        if (match) {
+          url = match[1].split('"')[0].split("'")[0] // Clean up any trailing chars
+          break
+        }
+      }
+
+      // Fall back to image src if no page link found
+      if (!url) {
+        const srcMatch = html.match(/src=["']([^"']+)["']/)
+        if (srcMatch) url = srcMatch[1]
+      }
     }
 
     // Check for direct URL
