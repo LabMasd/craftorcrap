@@ -34,6 +34,9 @@ export default function RootLayout({
           colorInputBackground: "#141414",
           colorInputText: "#fff",
         },
+        elements: {
+          footer: "hidden",
+        },
       }}
     >
       <html lang="en">

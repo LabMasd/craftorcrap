@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useUser } from '@clerk/nextjs'
 import type { Submission, Verdict, Category } from '@/types'
 import { CATEGORIES } from '@/types'
 import { getFingerprint } from '@/lib/fingerprint'
@@ -21,6 +22,7 @@ export default function SubmissionCard({
   size = 'normal',
   darkMode = true,
 }: SubmissionCardProps) {
+  const { isSignedIn } = useUser()
   const [submission, setSubmission] = useState(initialSubmission)
   const [userVote, setUserVote] = useState<Verdict | null>(null)
   const [isVoting, setIsVoting] = useState(false)
@@ -29,6 +31,7 @@ export default function SubmissionCard({
   const [showCategoryPicker, setShowCategoryPicker] = useState(false)
   const [isSettingCategory, setIsSettingCategory] = useState(false)
   const [isStarred, setIsStarred] = useState(false)
+  const [isStarring, setIsStarring] = useState(false)
 
   const totalVotes = submission.total_craft + submission.total_crap
   const craftPercent = totalVotes > 0 ? Math.round((submission.total_craft / totalVotes) * 100) : 50
@@ -50,23 +53,74 @@ export default function SubmissionCard({
 
   // Check if submission is starred
   useEffect(() => {
-    const starred = JSON.parse(localStorage.getItem('craftorcrap-starred') || '[]')
-    setIsStarred(starred.includes(submission.id))
-  }, [submission.id])
-
-  function toggleStar() {
-    const starred = JSON.parse(localStorage.getItem('craftorcrap-starred') || '[]')
-    let newStarred: string[]
-    if (starred.includes(submission.id)) {
-      newStarred = starred.filter((id: string) => id !== submission.id)
-      setIsStarred(false)
-    } else {
-      newStarred = [...starred, submission.id]
-      setIsStarred(true)
+    async function checkStarred() {
+      if (isSignedIn) {
+        // Check from API for logged in users
+        try {
+          const res = await fetch('/api/user/saved')
+          if (res.ok) {
+            const data = await res.json()
+            const isSaved = data.items?.some((item: { submissions: { id: string } }) =>
+              item.submissions.id === submission.id
+            )
+            setIsStarred(isSaved)
+          }
+        } catch {
+          // Fallback to localStorage
+          const starred = JSON.parse(localStorage.getItem('craftorcrap-starred') || '[]')
+          setIsStarred(starred.includes(submission.id))
+        }
+      } else {
+        // Use localStorage for anonymous users
+        const starred = JSON.parse(localStorage.getItem('craftorcrap-starred') || '[]')
+        setIsStarred(starred.includes(submission.id))
+      }
     }
-    localStorage.setItem('craftorcrap-starred', JSON.stringify(newStarred))
-    // Dispatch event so other components can react
-    window.dispatchEvent(new CustomEvent('starred-change', { detail: newStarred }))
+    checkStarred()
+  }, [submission.id, isSignedIn])
+
+  async function toggleStar() {
+    if (isStarring) return
+
+    if (isSignedIn) {
+      // Use API for logged in users
+      setIsStarring(true)
+      try {
+        if (isStarred) {
+          const res = await fetch('/api/user/saved', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ submission_id: submission.id }),
+          })
+          if (res.ok) setIsStarred(false)
+        } else {
+          const res = await fetch('/api/user/saved', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ submission_id: submission.id }),
+          })
+          if (res.ok) setIsStarred(true)
+        }
+      } catch (error) {
+        console.error('Error toggling star:', error)
+      } finally {
+        setIsStarring(false)
+      }
+    } else {
+      // Use localStorage for anonymous users
+      const starred = JSON.parse(localStorage.getItem('craftorcrap-starred') || '[]')
+      let newStarred: string[]
+      if (starred.includes(submission.id)) {
+        newStarred = starred.filter((id: string) => id !== submission.id)
+        setIsStarred(false)
+      } else {
+        newStarred = [...starred, submission.id]
+        setIsStarred(true)
+      }
+      localStorage.setItem('craftorcrap-starred', JSON.stringify(newStarred))
+      // Dispatch event so other components can react
+      window.dispatchEvent(new CustomEvent('starred-change', { detail: newStarred }))
+    }
   }
 
   useEffect(() => {

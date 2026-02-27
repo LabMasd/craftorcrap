@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useUser } from '@clerk/nextjs'
 import { supabase } from '@/lib/supabase'
 import { CATEGORIES, type Category } from '@/types'
 
@@ -17,6 +18,7 @@ interface SubmitFormProps {
 
 export default function SubmitForm({ darkMode = true }: SubmitFormProps) {
   const router = useRouter()
+  const { user } = useUser()
   const [url, setUrl] = useState('')
   const [category, setCategory] = useState<Category>('Other')
   const [preview, setPreview] = useState<Preview | null>(null)
@@ -91,6 +93,7 @@ export default function SubmitForm({ darkMode = true }: SubmitFormProps) {
         thumbnail_url: preview.thumbnail_url,
         category,
         submitted_by: null,
+        user_id: user?.id || null,
       })
 
       if (insertError) throw insertError

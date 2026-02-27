@@ -593,6 +593,16 @@ export default function Home() {
             </SignedOut>
             <SignedIn>
               <Link
+                href="/dashboard"
+                className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all ${
+                  darkMode
+                    ? 'text-white/60 hover:text-white'
+                    : 'text-black/60 hover:text-black'
+                }`}
+              >
+                Dashboard
+              </Link>
+              <Link
                 href="/pro"
                 className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all ${
                   darkMode

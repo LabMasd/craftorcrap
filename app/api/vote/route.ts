@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@clerk/nextjs/server'
 import { getServiceClient } from '@/lib/supabase'
 import type { Verdict } from '@/types'
 
@@ -21,6 +22,15 @@ export async function POST(request: NextRequest) {
         { error: 'Missing required fields' },
         { status: 400, headers: corsHeaders }
       )
+    }
+
+    // Get user_id if logged in (optional)
+    let user_id: string | null = null
+    try {
+      const { userId } = await auth()
+      user_id = userId
+    } catch {
+      // Not logged in, that's fine
     }
 
     if (verdict !== 'craft' && verdict !== 'crap') {
@@ -72,6 +82,7 @@ export async function POST(request: NextRequest) {
       verdict: verdict as Verdict,
       fingerprint,
       ip_address,
+      user_id,
     })
 
     if (voteError) {
