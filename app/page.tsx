@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs'
 import SubmissionCard from '@/components/SubmissionCard'
+import ProLink from '@/components/ProLink'
 import { supabase } from '@/lib/supabase'
 import type { Submission, Category } from '@/types'
 import { CATEGORIES } from '@/types'
@@ -602,16 +603,7 @@ export default function Home() {
               >
                 Dashboard
               </Link>
-              <Link
-                href="/pro"
-                className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all ${
-                  darkMode
-                    ? 'bg-white/10 text-white/70 hover:bg-white/20'
-                    : 'bg-black/10 text-black/70 hover:bg-black/20'
-                }`}
-              >
-                Pro
-              </Link>
+              <ProLink darkMode={darkMode} />
               <UserButton
                 afterSignOutUrl="/"
                 appearance={{
