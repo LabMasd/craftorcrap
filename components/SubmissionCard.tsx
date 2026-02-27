@@ -8,7 +8,7 @@ import { getFingerprint } from '@/lib/fingerprint'
 import { supabase } from '@/lib/supabase'
 import InstagramEmbed, { isInstagramUrl } from './InstagramEmbed'
 import YouTubeEmbed, { isYouTubeUrl } from './YouTubeEmbed'
-import BoardPicker, { getActiveBoard, setActiveBoard } from './BoardPicker'
+import { getActiveBoard } from './BoardPicker'
 
 type CardSize = 'compact' | 'normal' | 'large'
 
@@ -33,7 +33,6 @@ export default function SubmissionCard({
   const [isSettingCategory, setIsSettingCategory] = useState(false)
   const [isStarred, setIsStarred] = useState(false)
   const [isStarring, setIsStarring] = useState(false)
-  const [showBoardPicker, setShowBoardPicker] = useState(false)
   const [activeBoard, setActiveBoardState] = useState<string | null>(null)
 
   // Load active board on mount and listen for changes
@@ -95,18 +94,10 @@ export default function SubmissionCard({
     if (isStarred) {
       // Unsave
       unsaveItem()
-    } else if (activeBoard) {
-      // Save directly to active board
-      saveToBoard(activeBoard)
     } else {
-      // Show board picker
-      setShowBoardPicker(true)
+      // Save directly to active board (or Unsorted if no active board)
+      saveToBoard(activeBoard)
     }
-  }
-
-  function handleSetActiveBoard(boardId: string | null) {
-    setActiveBoard(boardId)
-    setActiveBoardState(boardId)
   }
 
   async function unsaveItem() {
@@ -129,7 +120,6 @@ export default function SubmissionCard({
   async function saveToBoard(boardId: string | null) {
     if (isStarring) return
     setIsStarring(true)
-    setShowBoardPicker(false)
 
     try {
       // First save the item
@@ -388,16 +378,6 @@ export default function SubmissionCard({
                 </svg>
               )}
             </button>
-
-            {/* Board Picker */}
-            <BoardPicker
-              isOpen={showBoardPicker}
-              onClose={() => setShowBoardPicker(false)}
-              onSelect={saveToBoard}
-              darkMode={darkMode}
-              activeBoard={activeBoard}
-              onSetActiveBoard={handleSetActiveBoard}
-            />
           </div>
         )}
       </div>
