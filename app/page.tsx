@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs'
 import SubmissionCard from '@/components/SubmissionCard'
-import ProLink from '@/components/ProLink'
 import ActiveBoardButton from '@/components/ActiveBoardButton'
 import FloatingToolbar from '@/components/FloatingToolbar'
 import { supabase } from '@/lib/supabase'
@@ -640,7 +639,6 @@ export default function Home() {
               >
                 Dashboard
               </Link>
-              <ProLink darkMode={darkMode} />
               <UserButton
                 afterSignOutUrl="/"
                 appearance={{
