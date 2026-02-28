@@ -116,6 +116,28 @@
   text-align: center;
 }
 
+/* Login Prompt */
+.craftorcrap-login-prompt {
+  text-align: center;
+  padding: 8px 0;
+}
+
+.craftorcrap-login-prompt a {
+  color: #fff;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 8px 16px;
+  border-radius: 8px;
+  display: inline-block;
+  transition: background 0.15s ease;
+}
+
+.craftorcrap-login-prompt a:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
 /* Rating Badge */
 .craftorcrap-badge {
   position: absolute;

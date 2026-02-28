@@ -1,37 +1,52 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { getServiceClient } from '@/lib/supabase'
+import { verifyExtensionToken, getTokenFromHeader } from '@/lib/extension-auth'
 import { fetchUrlPreview } from '@/lib/microlink'
 
-export async function POST(request: NextRequest) {
-  // Enable CORS for the extension
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-  }
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+}
 
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders })
+}
+
+export async function POST(request: NextRequest) {
   try {
+    // Get token from Authorization header
+    const authHeader = request.headers.get('Authorization')
+    const token = getTokenFromHeader(authHeader)
+
+    if (!token) {
+      return NextResponse.json(
+        { error: 'Authentication required', code: 'AUTH_REQUIRED' },
+        { status: 401, headers: corsHeaders }
+      )
+    }
+
+    // Verify token
+    const authResult = await verifyExtensionToken(token)
+
+    if (!authResult) {
+      return NextResponse.json(
+        { error: 'Invalid or expired token', code: 'INVALID_TOKEN' },
+        { status: 401, headers: corsHeaders }
+      )
+    }
+
+    const userId = authResult.userId
     const { url, imageUrl, category } = await request.json()
 
     if (!url) {
       return NextResponse.json(
         { error: 'URL is required' },
-        { status: 400, headers }
+        { status: 400, headers: corsHeaders }
       )
     }
 
-    // Check for Supabase credentials
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-    if (!supabaseUrl || !supabaseKey) {
-      return NextResponse.json(
-        { error: 'Database not configured' },
-        { status: 500, headers }
-      )
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseKey)
+    const supabase = getServiceClient()
 
     // Check if URL already exists
     const { data: existing } = await supabase
@@ -43,7 +58,7 @@ export async function POST(request: NextRequest) {
     if (existing) {
       return NextResponse.json(
         { error: 'This URL has already been submitted' },
-        { status: 409, headers }
+        { status: 409, headers: corsHeaders }
       )
     }
 
@@ -55,15 +70,13 @@ export async function POST(request: NextRequest) {
     try {
       const preview = await fetchUrlPreview(url)
       title = preview.title
-      // Use provided imageUrl if available, otherwise use preview thumbnail
       thumbnailUrl = imageUrl || preview.thumbnail_url
       dominantColor = preview.dominant_color
     } catch {
-      // If preview fetch fails, just use what we have
       console.log('Preview fetch failed, using provided data')
     }
 
-    // Insert submission
+    // Insert submission with user ID
     const { data, error } = await supabase
       .from('submissions')
       .insert({
@@ -72,7 +85,7 @@ export async function POST(request: NextRequest) {
         thumbnail_url: thumbnailUrl,
         dominant_color: dominantColor,
         category: category || null,
-        submitted_by: 'extension',
+        submitted_by: userId,
       })
       .select()
       .single()
@@ -83,24 +96,13 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       { success: true, id: data.id },
-      { status: 200, headers }
+      { status: 200, headers: corsHeaders }
     )
   } catch (error) {
     console.error('Extension submit error:', error)
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Failed to submit' },
-      { status: 500, headers }
+      { status: 500, headers: corsHeaders }
     )
   }
-}
-
-// Handle CORS preflight
-export async function OPTIONS() {
-  return NextResponse.json({}, {
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    },
-  })
 }

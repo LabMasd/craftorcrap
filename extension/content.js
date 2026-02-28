@@ -1,13 +1,29 @@
 // craftorcrap Extension - Universal Quality Filter
 // Vote craft/crap on any image, filter out the noise
 
-// Don't run on craftorcrap website
-if (window.location.hostname === 'craftorcrap.cc' || window.location.hostname === 'www.craftorcrap.cc') {
-  // Exit early
-} else {
-
 const CRAFTORCRAP_URL = 'https://craftorcrap.cc';
-const CATEGORIES = ['All', 'Web', 'Apps', 'Branding', 'Graphic Design', 'Motion', 'Illustration', 'Photography', 'Product', '3D', 'AI', 'Other'];
+
+// Listen for connect message from craftorcrap.cc
+window.addEventListener('message', (event) => {
+  if (event.data?.type === 'CRAFTORCRAP_CONNECT' && event.data?.token) {
+    chrome.storage.local.set({
+      extensionToken: event.data.token,
+      isAuthenticated: true,
+      currentUser: event.data.user || null,
+    });
+    // Show confirmation
+    const toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#22c55e;color:white;padding:12px 24px;border-radius:12px;font-family:system-ui;font-size:14px;font-weight:500;z-index:999999;';
+    toast.textContent = '✓ Extension connected!';
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+  }
+});
+
+// Don't run voting UI on craftorcrap website
+if (window.location.hostname === 'craftorcrap.cc' || window.location.hostname === 'www.craftorcrap.cc') {
+  // Exit early - but keep the message listener above
+} else {
 
 // Settings
 let settings = {
@@ -16,8 +32,10 @@ let settings = {
   showBadges: true,
 };
 
-// Fingerprint for voting
-let fingerprint = null;
+// Auth state
+let isAuthenticated = false;
+let currentUser = null;
+let extensionToken = null;
 
 // Cache for ratings
 const ratingsCache = new Map();
@@ -33,30 +51,40 @@ let hideTimeout = null;
 
 // Initialize
 async function init() {
-  // Generate fingerprint
-  fingerprint = 'ext-' + navigator.userAgent.slice(0, 30).replace(/[^a-zA-Z0-9]/g, '') + '-' +
-    (await crypto.subtle.digest('SHA-256', new TextEncoder().encode(navigator.userAgent + screen.width + screen.height))
-      .then(h => Array.from(new Uint8Array(h)).slice(0, 8).map(b => b.toString(16).padStart(2, '0')).join('')));
-
-  // Load settings
-  chrome.storage.local.get(['hoverEnabled', 'filterMode', 'showBadges'], (result) => {
+  // Load settings and auth
+  chrome.storage.local.get(['hoverEnabled', 'filterMode', 'showBadges', 'extensionToken', 'isAuthenticated', 'currentUser'], (result) => {
     settings.hoverEnabled = result.hoverEnabled !== false;
     settings.filterMode = result.filterMode || 'all';
     settings.showBadges = result.showBadges !== false;
+    extensionToken = result.extensionToken || null;
+    isAuthenticated = result.isAuthenticated || false;
+    currentUser = result.currentUser || null;
     applyFilter();
   });
 
   // Listen for setting changes
   chrome.storage.onChanged.addListener((changes, namespace) => {
     if (namespace === 'local') {
-      if (changes.hoverEnabled !== undefined) settings.hoverEnabled = changes.hoverEnabled.newValue !== false;
-      if (changes.filterMode !== undefined) {
+      if (changes.hoverEnabled) {
+        settings.hoverEnabled = changes.hoverEnabled.newValue !== false;
+      }
+      if (changes.filterMode) {
         settings.filterMode = changes.filterMode.newValue || 'all';
         applyFilter();
       }
-      if (changes.showBadges !== undefined) {
+      if (changes.showBadges) {
         settings.showBadges = changes.showBadges.newValue !== false;
         updateAllBadges();
+      }
+      if (changes.extensionToken) {
+        extensionToken = changes.extensionToken.newValue || null;
+        isAuthenticated = !!extensionToken;
+      }
+      if (changes.isAuthenticated) {
+        isAuthenticated = changes.isAuthenticated.newValue || false;
+      }
+      if (changes.currentUser) {
+        currentUser = changes.currentUser.newValue || null;
       }
     }
   });
@@ -70,6 +98,29 @@ async function init() {
   // Watch for new content
   const observer = new MutationObserver(debounce(scanPage, 500));
   observer.observe(document.body, { childList: true, subtree: true });
+}
+
+// Check authentication status
+async function checkAuth() {
+  try {
+    const response = await fetch(`${CRAFTORCRAP_URL}/api/extension/auth`, {
+      method: 'GET',
+      credentials: 'include',
+    });
+    const data = await response.json();
+    isAuthenticated = data.authenticated;
+    currentUser = data.user;
+
+    // Store auth state for sidepanel
+    chrome.storage.local.set({
+      isAuthenticated,
+      currentUser,
+    });
+  } catch (err) {
+    console.error('Auth check failed:', err);
+    isAuthenticated = false;
+    currentUser = null;
+  }
 }
 
 // Debounce helper
@@ -99,6 +150,9 @@ function createVoteOverlay() {
           <path d="M6 18L18 6M6 6l12 12"/>
         </svg>
       </button>
+    </div>
+    <div class="craftorcrap-login-prompt" style="display: none;">
+      <a href="${CRAFTORCRAP_URL}/extension/connect" target="_blank">Connect account to vote</a>
     </div>
     <div class="craftorcrap-rating-bar">
       <div class="craftorcrap-rating-fill"></div>
@@ -146,6 +200,18 @@ function showOverlay(element, url, imageUrl) {
   voteOverlay.style.position = 'fixed';
   voteOverlay.style.left = `${rect.left + 12}px`;
   voteOverlay.style.top = `${rect.bottom - 60}px`;
+
+  // Show/hide vote buttons based on auth
+  const voteButtons = voteOverlay.querySelector('.craftorcrap-vote-buttons');
+  const loginPrompt = voteOverlay.querySelector('.craftorcrap-login-prompt');
+
+  if (isAuthenticated) {
+    voteButtons.style.display = 'flex';
+    loginPrompt.style.display = 'none';
+  } else {
+    voteButtons.style.display = 'none';
+    loginPrompt.style.display = 'block';
+  }
 
   // Update rating display
   const rating = ratingsCache.get(url);
@@ -211,7 +277,13 @@ function hideOverlay() {
 
 // Handle vote
 async function handleVote(verdict) {
-  if (!currentUrl || !fingerprint) return;
+  if (!currentUrl) return;
+
+  // Check auth first
+  if (!isAuthenticated || !extensionToken) {
+    window.open(`${CRAFTORCRAP_URL}/extension/connect`, '_blank');
+    return;
+  }
 
   const craftBtn = voteOverlay.querySelector('.craftorcrap-vote-btn.craft');
   const crapBtn = voteOverlay.querySelector('.craftorcrap-vote-btn.crap');
@@ -225,16 +297,32 @@ async function handleVote(verdict) {
   try {
     const response = await fetch(`${CRAFTORCRAP_URL}/api/extension/vote`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${extensionToken}`,
+      },
       body: JSON.stringify({
         url: currentUrl,
         imageUrl: currentElement?.src || null,
         verdict,
-        fingerprint,
       }),
     });
 
     const data = await response.json();
+
+    if (response.status === 401) {
+      // Not authenticated - clear token and show login
+      isAuthenticated = false;
+      currentUser = null;
+      extensionToken = null;
+      chrome.storage.local.set({ isAuthenticated: false, currentUser: null, extensionToken: null });
+
+      const voteButtons = voteOverlay.querySelector('.craftorcrap-vote-buttons');
+      const loginPrompt = voteOverlay.querySelector('.craftorcrap-login-prompt');
+      voteButtons.style.display = 'none';
+      loginPrompt.style.display = 'block';
+      return;
+    }
 
     if (response.ok) {
       // Update cache
@@ -317,10 +405,15 @@ async function fetchRatings(urls) {
   if (newUrls.length === 0) return;
 
   try {
+    const headers = { 'Content-Type': 'application/json' };
+    if (extensionToken) {
+      headers['Authorization'] = `Bearer ${extensionToken}`;
+    }
+
     const response = await fetch(`${CRAFTORCRAP_URL}/api/extension/ratings`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ urls: newUrls, fingerprint }),
+      headers,
+      body: JSON.stringify({ urls: newUrls }),
     });
 
     const data = await response.json();

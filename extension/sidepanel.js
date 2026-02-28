@@ -5,6 +5,58 @@ let queue = [];
 let hoverEnabled = true;
 let showBadges = true;
 let filterMode = 'all';
+let isAuthenticated = false;
+let currentUser = null;
+let extensionToken = null;
+
+// Auth elements
+const authSection = document.getElementById('authSection');
+const authLoggedOut = document.getElementById('authLoggedOut');
+const authLoggedIn = document.getElementById('authLoggedIn');
+const authAvatar = document.getElementById('authAvatar');
+const authName = document.getElementById('authName');
+
+// Load auth state
+chrome.storage.local.get(['isAuthenticated', 'currentUser', 'extensionToken'], (result) => {
+  isAuthenticated = result.isAuthenticated || false;
+  currentUser = result.currentUser || null;
+  extensionToken = result.extensionToken || null;
+  updateAuthUI();
+});
+
+// Listen for auth changes
+chrome.storage.onChanged.addListener((changes, namespace) => {
+  if (namespace === 'local') {
+    if (changes.isAuthenticated) {
+      isAuthenticated = changes.isAuthenticated.newValue || false;
+      updateAuthUI();
+    }
+    if (changes.currentUser) {
+      currentUser = changes.currentUser.newValue || null;
+      updateAuthUI();
+    }
+    if (changes.extensionToken) {
+      extensionToken = changes.extensionToken.newValue || null;
+    }
+  }
+});
+
+function updateAuthUI() {
+  if (isAuthenticated && currentUser) {
+    authLoggedOut.style.display = 'none';
+    authLoggedIn.style.display = 'flex';
+    authName.textContent = currentUser.name || 'User';
+    if (currentUser.imageUrl) {
+      authAvatar.src = currentUser.imageUrl;
+      authAvatar.style.display = 'block';
+    } else {
+      authAvatar.style.display = 'none';
+    }
+  } else {
+    authLoggedOut.style.display = 'flex';
+    authLoggedIn.style.display = 'none';
+  }
+}
 
 // Elements
 const hoverToggle = document.getElementById('hoverToggle');
@@ -37,8 +89,13 @@ badgesToggle.addEventListener('click', () => {
 filterButtons.forEach(btn => {
   btn.addEventListener('click', () => {
     filterMode = btn.dataset.mode;
+
+    // Update UI immediately
+    filterButtons.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    // Save to storage (this will notify content scripts)
     chrome.storage.local.set({ filterMode });
-    updateSettingsUI();
   });
 });
 
@@ -271,9 +328,13 @@ submitBtn.addEventListener('click', async () => {
 
   for (const item of queue) {
     try {
+      const headers = { 'Content-Type': 'application/json' };
+      if (extensionToken) {
+        headers['Authorization'] = `Bearer ${extensionToken}`;
+      }
       const response = await fetch(`${CRAFTORCRAP_URL}/api/extension/submit`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           url: item.pageUrl,
           imageUrl: item.src,

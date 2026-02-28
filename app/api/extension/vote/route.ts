@@ -1,36 +1,59 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { getServiceClient } from '@/lib/supabase'
+import { verifyExtensionToken, getTokenFromHeader } from '@/lib/extension-auth'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+}
 
-// POST /api/extension/vote - Quick vote on any URL
-// Creates submission if it doesn't exist
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders })
+}
+
+// POST /api/extension/vote - Vote on any URL (requires token auth)
 export async function POST(request: NextRequest) {
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-  }
-
   try {
-    const { url, imageUrl, verdict, fingerprint } = await request.json()
+    // Get token from Authorization header
+    const authHeader = request.headers.get('Authorization')
+    const token = getTokenFromHeader(authHeader)
 
-    if (!url || !verdict || !fingerprint) {
+    if (!token) {
       return NextResponse.json(
-        { error: 'url, verdict, and fingerprint are required' },
-        { status: 400, headers }
+        { error: 'Authentication required', code: 'AUTH_REQUIRED' },
+        { status: 401, headers: corsHeaders }
+      )
+    }
+
+    // Verify token
+    const authResult = await verifyExtensionToken(token)
+
+    if (!authResult) {
+      return NextResponse.json(
+        { error: 'Invalid or expired token', code: 'INVALID_TOKEN' },
+        { status: 401, headers: corsHeaders }
+      )
+    }
+
+    const userId = authResult.userId
+    const { url, imageUrl, verdict } = await request.json()
+
+    if (!url || !verdict) {
+      return NextResponse.json(
+        { error: 'url and verdict are required' },
+        { status: 400, headers: corsHeaders }
       )
     }
 
     if (verdict !== 'craft' && verdict !== 'crap') {
       return NextResponse.json(
         { error: 'verdict must be "craft" or "crap"' },
-        { status: 400, headers }
+        { status: 400, headers: corsHeaders }
       )
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey)
+    const supabase = getServiceClient()
 
     // Find or create submission
     let submission
@@ -49,7 +72,7 @@ export async function POST(request: NextRequest) {
         .insert({
           url,
           thumbnail_url: imageUrl || null,
-          submitted_by: 'extension',
+          submitted_by: userId,
         })
         .select('id, total_craft, total_crap')
         .single()
@@ -60,12 +83,12 @@ export async function POST(request: NextRequest) {
       submission = newSubmission
     }
 
-    // Check if already voted
+    // Check if user already voted
     const { data: existingVote } = await supabase
       .from('votes')
       .select('id, verdict')
       .eq('submission_id', submission.id)
-      .eq('fingerprint', fingerprint)
+      .eq('user_id', userId)
       .single()
 
     if (existingVote) {
@@ -75,19 +98,33 @@ export async function POST(request: NextRequest) {
         user_vote: existingVote.verdict,
         total_craft: submission.total_craft,
         total_crap: submission.total_crap,
-      }, { headers })
+      }, { headers: corsHeaders })
     }
 
-    // Cast vote
+    // Get IP for rate limiting
+    const ip_address =
+      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+      request.headers.get('x-real-ip') ||
+      'unknown'
+
+    // Cast vote with user_id
     const { error: voteError } = await supabase
       .from('votes')
       .insert({
         submission_id: submission.id,
         verdict,
-        fingerprint,
+        user_id: userId,
+        ip_address,
+        fingerprint: `user-${userId}`,
       })
 
     if (voteError) {
+      if (voteError.code === '23505') {
+        return NextResponse.json(
+          { error: 'Already voted' },
+          { status: 409, headers: corsHeaders }
+        )
+      }
       throw voteError
     }
 
@@ -108,23 +145,13 @@ export async function POST(request: NextRequest) {
       user_vote: verdict,
       total_craft: newCraft,
       total_crap: newCrap,
-    }, { headers })
+    }, { headers: corsHeaders })
 
   } catch (error) {
     console.error('Extension vote error:', error)
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Failed to vote' },
-      { status: 500, headers }
+      { status: 500, headers: corsHeaders }
     )
   }
-}
-
-export async function OPTIONS() {
-  return NextResponse.json({}, {
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    },
-  })
 }

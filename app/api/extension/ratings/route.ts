@@ -1,31 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { getServiceClient } from '@/lib/supabase'
+import { verifyExtensionToken, getTokenFromHeader } from '@/lib/extension-auth'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+}
+
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders })
+}
 
 // POST /api/extension/ratings - Batch fetch ratings for URLs
 export async function POST(request: NextRequest) {
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-  }
-
   try {
-    const { urls, fingerprint } = await request.json()
+    const { urls } = await request.json()
 
     if (!urls || !Array.isArray(urls)) {
       return NextResponse.json(
         { error: 'urls array is required' },
-        { status: 400, headers }
+        { status: 400, headers: corsHeaders }
       )
+    }
+
+    // Get user if token provided (optional for viewing)
+    let userId: string | null = null
+    const authHeader = request.headers.get('Authorization')
+    const token = getTokenFromHeader(authHeader)
+
+    if (token) {
+      const authResult = await verifyExtensionToken(token)
+      if (authResult) {
+        userId = authResult.userId
+      }
     }
 
     // Limit to 100 URLs per request
     const limitedUrls = urls.slice(0, 100)
 
-    const supabase = createClient(supabaseUrl, supabaseKey)
+    const supabase = getServiceClient()
 
     // Fetch submissions for these URLs
     const { data: submissions, error } = await supabase
@@ -37,14 +51,14 @@ export async function POST(request: NextRequest) {
       throw error
     }
 
-    // If fingerprint provided, also get user's votes
+    // If logged in, get user's votes
     let userVotes: Record<string, string> = {}
-    if (fingerprint && submissions && submissions.length > 0) {
+    if (userId && submissions && submissions.length > 0) {
       const submissionIds = submissions.map(s => s.id)
       const { data: votes } = await supabase
         .from('votes')
         .select('submission_id, verdict')
-        .eq('fingerprint', fingerprint)
+        .eq('user_id', userId)
         .in('submission_id', submissionIds)
 
       if (votes) {
@@ -74,23 +88,16 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    return NextResponse.json({ ratings }, { headers })
+    return NextResponse.json({
+      ratings,
+      authenticated: !!userId,
+    }, { headers: corsHeaders })
 
   } catch (error) {
     console.error('Extension ratings error:', error)
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Failed to fetch ratings' },
-      { status: 500, headers }
+      { status: 500, headers: corsHeaders }
     )
   }
-}
-
-export async function OPTIONS() {
-  return NextResponse.json({}, {
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    },
-  })
 }
