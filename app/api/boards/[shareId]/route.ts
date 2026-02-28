@@ -6,10 +6,10 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
 export async function GET(
   request: Request,
-  { params }: { params: { shareId: string } }
+  { params }: { params: Promise<{ shareId: string }> }
 ) {
   const supabase = createClient(supabaseUrl, supabaseServiceKey)
-  const { shareId } = params
+  const { shareId } = await params
 
   // Get board by share_id
   const { data: board, error: boardError } = await supabase

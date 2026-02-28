@@ -7,10 +7,10 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
 export async function POST(
   request: Request,
-  { params }: { params: { shareId: string } }
+  { params }: { params: Promise<{ shareId: string }> }
 ) {
   const supabase = createClient(supabaseUrl, supabaseServiceKey)
-  const { shareId } = params
+  const { shareId } = await params
 
   try {
     const { url, imageUrl } = await request.json()
