@@ -9,8 +9,9 @@ let crapStyle = 'blur'; // 'blur' or 'cover'
 let isAuthenticated = false;
 let currentUser = null;
 let extensionToken = null;
-let recentCrafts = [];
 let userBoards = [];
+let defaultBoardId = ''; // empty = unsorted
+let sharePublicly = false;
 
 // Auth elements
 const authSection = document.getElementById('authSection');
@@ -19,30 +20,32 @@ const authLoggedIn = document.getElementById('authLoggedIn');
 const authAvatar = document.getElementById('authAvatar');
 const authName = document.getElementById('authName');
 
-// Crafts section elements
-const craftsSection = document.getElementById('craftsSection');
-const craftsList = document.getElementById('craftsList');
-const craftsClear = document.getElementById('craftsClear');
+// Craft settings elements
+const craftSettings = document.getElementById('craftSettings');
+const defaultBoardSelect = document.getElementById('defaultBoardSelect');
+const publicToggle = document.getElementById('publicToggle');
 
-// Load auth state and recent crafts
-chrome.storage.local.get(['isAuthenticated', 'currentUser', 'extensionToken', 'recentCrafts'], (result) => {
+// Load auth state and craft settings
+chrome.storage.local.get(['isAuthenticated', 'currentUser', 'extensionToken', 'defaultBoardId', 'sharePublicly'], (result) => {
   isAuthenticated = result.isAuthenticated || false;
   currentUser = result.currentUser || null;
   extensionToken = result.extensionToken || null;
-  recentCrafts = result.recentCrafts || [];
+  defaultBoardId = result.defaultBoardId || '';
+  sharePublicly = result.sharePublicly || false;
   updateAuthUI();
-  renderRecentCrafts();
+  updateCraftSettingsUI();
   if (extensionToken) {
     fetchUserBoards();
   }
 });
 
-// Listen for auth and crafts changes
+// Listen for auth changes
 chrome.storage.onChanged.addListener((changes, namespace) => {
   if (namespace === 'local') {
     if (changes.isAuthenticated) {
       isAuthenticated = changes.isAuthenticated.newValue || false;
       updateAuthUI();
+      updateCraftSettingsUI();
     }
     if (changes.currentUser) {
       currentUser = changes.currentUser.newValue || null;
@@ -53,10 +56,7 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
       if (extensionToken) {
         fetchUserBoards();
       }
-    }
-    if (changes.recentCrafts) {
-      recentCrafts = changes.recentCrafts.newValue || [];
-      renderRecentCrafts();
+      updateCraftSettingsUI();
     }
   }
 });
@@ -431,201 +431,47 @@ async function fetchUserBoards() {
     if (response.ok) {
       const data = await response.json();
       userBoards = data.boards || [];
-      renderRecentCrafts(); // Re-render to update board dropdowns
+      updateBoardDropdown();
     }
   } catch (err) {
     console.error('Failed to fetch boards:', err);
   }
 }
 
-// Render recent crafts
-function renderRecentCrafts() {
-  if (recentCrafts.length === 0) {
-    craftsSection.style.display = 'none';
-    return;
-  }
-
-  craftsSection.style.display = 'block';
-
-  craftsList.innerHTML = recentCrafts.map((craft, index) => `
-    <div class="craft-item" data-index="${index}">
-      ${craft.imageUrl
-        ? `<img class="craft-item-thumb" src="${craft.imageUrl}" alt="" onerror="this.style.display='none'">`
-        : '<div class="craft-item-thumb"></div>'
-      }
-      <div class="craft-item-info">
-        <div class="craft-item-url">${getDomain(craft.url)}</div>
-        <div class="craft-item-actions">
-          <div class="craft-action-row">
-            <select class="craft-board-select" data-craft-index="${index}" ${craft.savedToBoard ? 'disabled' : ''}>
-              <option value="">Select board...</option>
-              ${userBoards.map(board => `
-                <option value="${board.id}" ${craft.boardId === board.id ? 'selected' : ''}>${board.name}</option>
-              `).join('')}
-            </select>
-            <button class="craft-action-btn board-btn ${craft.savedToBoard ? 'done' : ''}" data-craft-index="${index}" data-action="board" ${craft.savedToBoard ? 'disabled' : ''}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-              </svg>
-              ${craft.savedToBoard ? 'Saved' : 'Save'}
-            </button>
-          </div>
-          <div class="craft-action-row">
-            <button class="craft-action-btn public-btn ${craft.submittedPublic ? 'done' : ''}" data-craft-index="${index}" data-action="public" ${craft.submittedPublic ? 'disabled' : ''}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="2" y1="12" x2="22" y2="12"/>
-                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-              </svg>
-              ${craft.submittedPublic ? 'On craftorcrap' : 'Add to craftorcrap'}
-            </button>
-          </div>
-        </div>
-      </div>
-      <button class="craft-item-remove" data-craft-index="${index}" title="Remove">
-        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-        </svg>
-      </button>
-    </div>
-  `).join('');
-
-  // Add event listeners for board save
-  craftsList.querySelectorAll('.craft-action-btn[data-action="board"]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const index = parseInt(btn.dataset.craftIndex);
-      const select = craftsList.querySelector(`select[data-craft-index="${index}"]`);
-      const boardId = select?.value || null;
-      if (!boardId) {
-        select.focus();
-        return;
-      }
-      saveCraftToBoard(index, boardId);
-    });
-  });
-
-  // Add event listeners for public submit
-  craftsList.querySelectorAll('.craft-action-btn[data-action="public"]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const index = parseInt(btn.dataset.craftIndex);
-      submitCraftPublic(index);
-    });
-  });
-
-  craftsList.querySelectorAll('.craft-item-remove').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const index = parseInt(btn.dataset.craftIndex);
-      removeCraft(index);
-    });
-  });
+// Update board dropdown with user's boards
+function updateBoardDropdown() {
+  defaultBoardSelect.innerHTML = `
+    <option value="">Unsorted</option>
+    ${userBoards.map(board => `
+      <option value="${board.id}" ${defaultBoardId === board.id ? 'selected' : ''}>${board.name}</option>
+    `).join('')}
+  `;
 }
 
-// Save craft to board
-async function saveCraftToBoard(index, boardId) {
-  const craft = recentCrafts[index];
-  if (!craft || !extensionToken || !boardId) return;
+// Update craft settings UI
+function updateCraftSettingsUI() {
+  // Show settings only when authenticated
+  craftSettings.style.display = isAuthenticated ? 'block' : 'none';
 
-  const btn = craftsList.querySelector(`.craft-action-btn[data-action="board"][data-craft-index="${index}"]`);
-  const select = craftsList.querySelector(`select[data-craft-index="${index}"]`);
+  // Update toggle state
+  publicToggle.classList.toggle('active', sharePublicly);
 
-  if (btn) {
-    btn.disabled = true;
-    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg> Saving...';
-  }
-
-  try {
-    const response = await fetch(`${CRAFTORCRAP_URL}/api/extension/save`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${extensionToken}`,
-      },
-      body: JSON.stringify({
-        url: craft.url,
-        board_id: boardId,
-      }),
-    });
-
-    if (response.ok) {
-      recentCrafts[index].savedToBoard = true;
-      recentCrafts[index].boardId = boardId;
-      chrome.storage.local.set({ recentCrafts });
-      renderRecentCrafts();
-    } else {
-      if (btn) {
-        btn.disabled = false;
-        btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg> Save';
-      }
-    }
-  } catch (err) {
-    console.error('Save failed:', err);
-    if (btn) {
-      btn.disabled = false;
-      btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg> Save';
-    }
+  // Update dropdown selection
+  if (defaultBoardSelect.value !== defaultBoardId) {
+    defaultBoardSelect.value = defaultBoardId;
   }
 }
 
-// Submit craft to public craftorcrap page
-async function submitCraftPublic(index) {
-  const craft = recentCrafts[index];
-  if (!craft || !extensionToken) return;
+// Board select change
+defaultBoardSelect.addEventListener('change', () => {
+  defaultBoardId = defaultBoardSelect.value;
+  chrome.storage.local.set({ defaultBoardId });
+});
 
-  const btn = craftsList.querySelector(`.craft-action-btn[data-action="public"][data-craft-index="${index}"]`);
-
-  if (btn) {
-    btn.disabled = true;
-    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> Submitting...';
-  }
-
-  try {
-    const response = await fetch(`${CRAFTORCRAP_URL}/api/extension/submit`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${extensionToken}`,
-      },
-      body: JSON.stringify({
-        url: craft.url,
-        imageUrl: craft.imageUrl,
-        category: 'Web',
-      }),
-    });
-
-    if (response.ok || response.status === 409) {
-      // 409 means already submitted, which is fine
-      recentCrafts[index].submittedPublic = true;
-      chrome.storage.local.set({ recentCrafts });
-      renderRecentCrafts();
-    } else {
-      if (btn) {
-        btn.disabled = false;
-        btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> Add to craftorcrap';
-      }
-    }
-  } catch (err) {
-    console.error('Submit failed:', err);
-    if (btn) {
-      btn.disabled = false;
-      btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> Add to craftorcrap';
-    }
-  }
-}
-
-// Remove craft from list
-function removeCraft(index) {
-  recentCrafts.splice(index, 1);
-  chrome.storage.local.set({ recentCrafts });
-  renderRecentCrafts();
-}
-
-// Clear all crafts
-craftsClear.addEventListener('click', () => {
-  recentCrafts = [];
-  chrome.storage.local.set({ recentCrafts });
-  renderRecentCrafts();
+// Public toggle
+publicToggle.addEventListener('click', () => {
+  sharePublicly = !sharePublicly;
+  chrome.storage.local.set({ sharePublicly });
+  updateCraftSettingsUI();
 });
 

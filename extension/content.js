@@ -31,6 +31,8 @@ let settings = {
   filterMode: 'all', // 'all', 'hide-crap', 'craft-only'
   showBadges: true,
   crapStyle: 'blur', // 'blur' or 'cover'
+  defaultBoardId: '', // board to save crafts to
+  sharePublicly: false, // submit crafts to public page
 };
 
 // Auth state
@@ -53,11 +55,13 @@ let hideTimeout = null;
 // Initialize
 async function init() {
   // Load settings and auth
-  chrome.storage.local.get(['hoverEnabled', 'filterMode', 'showBadges', 'crapStyle', 'extensionToken', 'isAuthenticated', 'currentUser'], (result) => {
+  chrome.storage.local.get(['hoverEnabled', 'filterMode', 'showBadges', 'crapStyle', 'extensionToken', 'isAuthenticated', 'currentUser', 'defaultBoardId', 'sharePublicly'], (result) => {
     settings.hoverEnabled = result.hoverEnabled !== false;
     settings.filterMode = result.filterMode || 'all';
     settings.showBadges = result.showBadges !== false;
     settings.crapStyle = result.crapStyle || 'blur';
+    settings.defaultBoardId = result.defaultBoardId || '';
+    settings.sharePublicly = result.sharePublicly || false;
     extensionToken = result.extensionToken || null;
     isAuthenticated = result.isAuthenticated || false;
     currentUser = result.currentUser || null;
@@ -91,6 +95,12 @@ async function init() {
       }
       if (changes.currentUser) {
         currentUser = changes.currentUser.newValue || null;
+      }
+      if (changes.defaultBoardId) {
+        settings.defaultBoardId = changes.defaultBoardId.newValue || '';
+      }
+      if (changes.sharePublicly) {
+        settings.sharePublicly = changes.sharePublicly.newValue || false;
       }
     }
   });
@@ -281,28 +291,47 @@ function hideOverlay() {
   }, 800);
 }
 
-// Add craft to recent crafts for sidepanel
-async function addToRecentCrafts(url, imageUrl) {
-  chrome.storage.local.get(['recentCrafts'], (result) => {
-    const recentCrafts = result.recentCrafts || [];
+// Save craft to board
+async function saveCraftToBoard(url, boardId) {
+  if (!extensionToken) return;
 
-    // Check if already exists
-    if (recentCrafts.some(item => item.url === url)) return;
-
-    // Add to beginning
-    recentCrafts.unshift({
-      url,
-      imageUrl,
-      timestamp: Date.now(),
+  try {
+    await fetch(`${CRAFTORCRAP_URL}/api/extension/save`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${extensionToken}`,
+      },
+      body: JSON.stringify({
+        url,
+        board_id: boardId,
+      }),
     });
+  } catch (err) {
+    console.error('Save to board failed:', err);
+  }
+}
 
-    // Keep only last 20
-    if (recentCrafts.length > 20) {
-      recentCrafts.pop();
-    }
+// Submit craft to public page
+async function submitCraftPublic(url, imageUrl) {
+  if (!extensionToken) return;
 
-    chrome.storage.local.set({ recentCrafts });
-  });
+  try {
+    await fetch(`${CRAFTORCRAP_URL}/api/extension/submit`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${extensionToken}`,
+      },
+      body: JSON.stringify({
+        url,
+        imageUrl,
+        category: 'Web',
+      }),
+    });
+  } catch (err) {
+    console.error('Submit public failed:', err);
+  }
 }
 
 // Handle vote
@@ -372,9 +401,15 @@ async function handleVote(verdict) {
       updateBadge(currentElement, currentUrl);
       applyFilterToElement(currentElement, currentUrl);
 
-      // Store craft votes for sidepanel
+      // Handle craft vote actions based on settings
       if (verdict === 'craft') {
-        addToRecentCrafts(currentUrl, currentElement?.src || null);
+        // Save to board (or unsorted)
+        saveCraftToBoard(currentUrl, settings.defaultBoardId || null);
+
+        // Submit to public page if enabled
+        if (settings.sharePublicly) {
+          submitCraftPublic(currentUrl, currentElement?.src || null);
+        }
       }
     }
   } catch (err) {
