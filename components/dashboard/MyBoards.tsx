@@ -22,6 +22,9 @@ export default function MyBoards({ darkMode = true }: MyBoardsProps) {
   const [showCreate, setShowCreate] = useState(false)
   const [newBoardName, setNewBoardName] = useState('')
   const [creating, setCreating] = useState(false)
+  const [isShareable, setIsShareable] = useState(false)
+  const [allowVoting, setAllowVoting] = useState(true)
+  const [allowSubmissions, setAllowSubmissions] = useState(true)
 
   useEffect(() => {
     fetchBoards()
@@ -50,7 +53,12 @@ export default function MyBoards({ darkMode = true }: MyBoardsProps) {
       const res = await fetch('/api/user/boards', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newBoardName.trim() }),
+        body: JSON.stringify({
+          name: newBoardName.trim(),
+          is_public: isShareable,
+          allow_voting: isShareable ? allowVoting : false,
+          allow_submissions: isShareable ? allowSubmissions : false,
+        }),
       })
 
       if (res.ok) {
@@ -58,6 +66,9 @@ export default function MyBoards({ darkMode = true }: MyBoardsProps) {
         setBoards((prev) => [{ ...newBoard, item_count: 0 }, ...prev])
         setNewBoardName('')
         setShowCreate(false)
+        setIsShareable(false)
+        setAllowVoting(true)
+        setAllowSubmissions(true)
       }
     } catch (error) {
       console.error('Error creating board:', error)
@@ -113,12 +124,61 @@ export default function MyBoards({ darkMode = true }: MyBoardsProps) {
             onChange={(e) => setNewBoardName(e.target.value)}
             placeholder="Board name..."
             autoFocus
-            onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
+            onKeyDown={(e) => e.key === 'Enter' && !isShareable && handleCreate()}
             className={`w-full bg-transparent border-none outline-none text-lg font-medium placeholder:opacity-40 ${
               darkMode ? 'text-white' : 'text-black'
             }`}
           />
-          <div className="flex gap-2 mt-3">
+
+          {/* Shareable toggle */}
+          <label className="flex items-center gap-3 mt-4 cursor-pointer">
+            <button
+              type="button"
+              onClick={() => setIsShareable(!isShareable)}
+              className={`relative w-10 h-5 rounded-full transition-colors ${
+                isShareable ? 'bg-emerald-500' : darkMode ? 'bg-white/20' : 'bg-black/20'
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
+                  isShareable ? 'translate-x-5' : ''
+                }`}
+              />
+            </button>
+            <span className={`text-sm ${darkMode ? 'text-white/70' : 'text-black/70'}`}>
+              Make shareable
+            </span>
+          </label>
+
+          {/* Shareable options */}
+          {isShareable && (
+            <div className={`mt-3 pl-4 border-l-2 space-y-2 ${darkMode ? 'border-white/10' : 'border-black/10'}`}>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={allowVoting}
+                  onChange={(e) => setAllowVoting(e.target.checked)}
+                  className="w-4 h-4 rounded accent-emerald-500"
+                />
+                <span className={`text-sm ${darkMode ? 'text-white/60' : 'text-black/60'}`}>
+                  Allow voting
+                </span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={allowSubmissions}
+                  onChange={(e) => setAllowSubmissions(e.target.checked)}
+                  className="w-4 h-4 rounded accent-emerald-500"
+                />
+                <span className={`text-sm ${darkMode ? 'text-white/60' : 'text-black/60'}`}>
+                  Allow submissions
+                </span>
+              </label>
+            </div>
+          )}
+
+          <div className="flex gap-2 mt-4">
             <button
               onClick={handleCreate}
               disabled={creating || !newBoardName.trim()}
@@ -132,6 +192,9 @@ export default function MyBoards({ darkMode = true }: MyBoardsProps) {
               onClick={() => {
                 setShowCreate(false)
                 setNewBoardName('')
+                setIsShareable(false)
+                setAllowVoting(true)
+                setAllowSubmissions(true)
               }}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 darkMode ? 'bg-white/10 hover:bg-white/20' : 'bg-black/10 hover:bg-black/20'

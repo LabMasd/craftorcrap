@@ -76,7 +76,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { name, icon } = await request.json()
+    const { name, icon, allow_voting, allow_submissions } = await request.json()
 
     if (!name || name.trim().length === 0) {
       return NextResponse.json({ error: 'Name is required' }, { status: 400 })
@@ -94,6 +94,8 @@ export async function POST(request: Request) {
         name: name.trim(),
         icon: icon || 'folder',
         share_id: shareId,
+        allow_voting: allow_voting ?? true,
+        allow_submissions: allow_submissions ?? true,
       })
       .select()
       .single()

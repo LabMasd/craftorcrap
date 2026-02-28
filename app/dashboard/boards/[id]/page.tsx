@@ -36,6 +36,7 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
   const [editing, setEditing] = useState(false)
   const [newName, setNewName] = useState('')
   const [copied, setCopied] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
 
   useEffect(() => {
     const saved = localStorage.getItem('craftorcrap-theme')
@@ -205,32 +206,85 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
             )}
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={copyShareLink}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
-                copied
-                  ? 'bg-emerald-500 text-white'
-                  : darkMode
-                  ? 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
-                  : 'bg-black/5 text-black/60 hover:bg-black/10 hover:text-black'
-              }`}
-            >
-              {copied ? (
+            {/* Settings dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setShowSettings(!showSettings)}
+                className={`p-2 rounded-full transition-all ${
+                  showSettings
+                    ? darkMode ? 'bg-white/20' : 'bg-black/10'
+                    : darkMode ? 'hover:bg-white/10' : 'hover:bg-black/5'
+                }`}
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </button>
+
+              {showSettings && (
                 <>
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  Copied!
-                </>
-              ) : (
-                <>
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                  </svg>
-                  Share
+                  <div className="fixed inset-0 z-40" onClick={() => setShowSettings(false)} />
+                  <div className={`absolute right-0 top-full mt-2 w-64 rounded-xl p-3 z-50 shadow-xl ${
+                    darkMode ? 'bg-neutral-900 border border-white/10' : 'bg-white border border-black/10'
+                  }`}>
+                    <p className={`text-xs font-medium mb-3 ${darkMode ? 'text-white/40' : 'text-black/40'}`}>
+                      Share Settings
+                    </p>
+
+                    <label className="flex items-center justify-between py-2 cursor-pointer">
+                      <span className={`text-sm ${darkMode ? 'text-white/80' : 'text-black/80'}`}>Allow voting</span>
+                      <button
+                        onClick={() => togglePermission('allow_voting')}
+                        className={`relative w-10 h-5 rounded-full transition-colors ${
+                          board.allow_voting ? 'bg-emerald-500' : darkMode ? 'bg-white/20' : 'bg-black/20'
+                        }`}
+                      >
+                        <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
+                          board.allow_voting ? 'translate-x-5' : ''
+                        }`} />
+                      </button>
+                    </label>
+
+                    <label className="flex items-center justify-between py-2 cursor-pointer">
+                      <span className={`text-sm ${darkMode ? 'text-white/80' : 'text-black/80'}`}>Allow submissions</span>
+                      <button
+                        onClick={() => togglePermission('allow_submissions')}
+                        className={`relative w-10 h-5 rounded-full transition-colors ${
+                          board.allow_submissions ? 'bg-emerald-500' : darkMode ? 'bg-white/20' : 'bg-black/20'
+                        }`}
+                      >
+                        <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
+                          board.allow_submissions ? 'translate-x-5' : ''
+                        }`} />
+                      </button>
+                    </label>
+
+                    <div className={`border-t my-2 ${darkMode ? 'border-white/10' : 'border-black/10'}`} />
+
+                    <button
+                      onClick={() => {
+                        copyShareLink()
+                        setShowSettings(false)
+                      }}
+                      className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                        copied
+                          ? 'bg-emerald-500 text-white'
+                          : darkMode
+                          ? 'bg-white/10 text-white/80 hover:bg-white/20'
+                          : 'bg-black/5 text-black/80 hover:bg-black/10'
+                      }`}
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                      </svg>
+                      {copied ? 'Link copied!' : 'Copy share link'}
+                    </button>
+                  </div>
                 </>
               )}
-            </button>
+            </div>
+
             <button
               onClick={() => setDarkMode(!darkMode)}
               className={`p-2 rounded-full transition-all ${darkMode ? 'hover:bg-white/10' : 'hover:bg-black/5'}`}
@@ -248,55 +302,6 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
           </div>
         </div>
       </header>
-
-      {/* Share Settings */}
-      <div className={`border-b ${darkMode ? 'border-white/5' : 'border-black/5'}`}>
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-6">
-            <span className={`text-sm ${darkMode ? 'text-white/40' : 'text-black/40'}`}>
-              Share settings:
-            </span>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <button
-                onClick={() => togglePermission('allow_voting')}
-                className={`relative w-10 h-5 rounded-full transition-colors ${
-                  board.allow_voting
-                    ? 'bg-emerald-500'
-                    : darkMode ? 'bg-white/20' : 'bg-black/20'
-                }`}
-              >
-                <span
-                  className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
-                    board.allow_voting ? 'translate-x-5' : ''
-                  }`}
-                />
-              </button>
-              <span className={`text-sm ${darkMode ? 'text-white/70' : 'text-black/70'}`}>
-                Allow voting
-              </span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <button
-                onClick={() => togglePermission('allow_submissions')}
-                className={`relative w-10 h-5 rounded-full transition-colors ${
-                  board.allow_submissions
-                    ? 'bg-emerald-500'
-                    : darkMode ? 'bg-white/20' : 'bg-black/20'
-                }`}
-              >
-                <span
-                  className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
-                    board.allow_submissions ? 'translate-x-5' : ''
-                  }`}
-                />
-              </button>
-              <span className={`text-sm ${darkMode ? 'text-white/70' : 'text-black/70'}`}>
-                Allow submissions
-              </span>
-            </label>
-          </div>
-        </div>
-      </div>
 
       {/* Content */}
       <main className="max-w-4xl mx-auto px-4 py-8">
