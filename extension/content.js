@@ -41,6 +41,10 @@ let extensionToken = null;
 // Cache for ratings
 const ratingsCache = new Map();
 
+// User's boards cache
+let userBoards = [];
+let boardsFetched = false;
+
 // Track processed elements
 const processedElements = new WeakSet();
 
@@ -138,6 +142,28 @@ function debounce(fn, delay) {
   };
 }
 
+// Fetch user's boards
+async function fetchUserBoards() {
+  if (!extensionToken || boardsFetched) return;
+
+  try {
+    const response = await fetch(`${CRAFTORCRAP_URL}/api/extension/boards`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${extensionToken}`,
+      },
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      userBoards = data.boards || [];
+      boardsFetched = true;
+    }
+  } catch (err) {
+    console.error('Failed to fetch boards:', err);
+  }
+}
+
 // Create the vote overlay
 function createVoteOverlay() {
   if (voteOverlay) return;
@@ -160,6 +186,19 @@ function createVoteOverlay() {
     <div class="craftorcrap-login-prompt" style="display: none;">
       <a href="${CRAFTORCRAP_URL}/extension/connect" target="_blank">Connect account to vote</a>
     </div>
+    <div class="craftorcrap-save-panel" style="display: none;">
+      <div class="craftorcrap-save-header">
+        <span>Save to board?</span>
+        <button class="craftorcrap-save-skip">Skip</button>
+      </div>
+      <div class="craftorcrap-boards-list"></div>
+      <button class="craftorcrap-save-unsorted">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+        </svg>
+        Save without board
+      </button>
+    </div>
     <div class="craftorcrap-rating-bar">
       <div class="craftorcrap-rating-fill"></div>
     </div>
@@ -175,6 +214,18 @@ function createVoteOverlay() {
       e.preventDefault();
       handleVote(btn.dataset.vote);
     });
+  });
+
+  // Skip save button
+  voteOverlay.querySelector('.craftorcrap-save-skip').addEventListener('click', (e) => {
+    e.stopPropagation();
+    hideSavePanel();
+  });
+
+  // Save without board button
+  voteOverlay.querySelector('.craftorcrap-save-unsorted').addEventListener('click', (e) => {
+    e.stopPropagation();
+    saveToBoard(null);
   });
 
   voteOverlay.addEventListener('mouseenter', () => {
@@ -275,10 +326,107 @@ function hideOverlay() {
   hideTimeout = setTimeout(() => {
     if (voteOverlay) {
       voteOverlay.classList.remove('show');
+      hideSavePanel();
     }
     currentElement = null;
     currentUrl = null;
   }, 800);
+}
+
+// Show save panel after craft vote
+function showSavePanel() {
+  const savePanel = voteOverlay.querySelector('.craftorcrap-save-panel');
+  const boardsList = voteOverlay.querySelector('.craftorcrap-boards-list');
+
+  // Populate boards
+  if (userBoards.length > 0) {
+    boardsList.innerHTML = userBoards.map(board => `
+      <button class="craftorcrap-board-btn" data-board-id="${board.id}">
+        <span class="craftorcrap-board-icon">${getBoardIcon(board.icon)}</span>
+        <span>${board.name}</span>
+      </button>
+    `).join('');
+
+    // Add click listeners
+    boardsList.querySelectorAll('.craftorcrap-board-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        saveToBoard(btn.dataset.boardId);
+      });
+    });
+  } else {
+    boardsList.innerHTML = '<div class="craftorcrap-no-boards">No boards yet</div>';
+  }
+
+  savePanel.style.display = 'block';
+}
+
+// Get board icon (SF Symbol name to emoji/icon)
+function getBoardIcon(iconName) {
+  const icons = {
+    'folder': '📁',
+    'star': '⭐',
+    'heart': '❤️',
+    'bookmark': '🔖',
+    'film': '🎬',
+    'photo': '📷',
+    'paintbrush': '🎨',
+    'pencil': '✏️',
+    'lightbulb': '💡',
+    'globe': '🌐',
+  };
+  return icons[iconName] || '📁';
+}
+
+// Hide save panel
+function hideSavePanel() {
+  const savePanel = voteOverlay?.querySelector('.craftorcrap-save-panel');
+  if (savePanel) {
+    savePanel.style.display = 'none';
+  }
+}
+
+// Save to board
+async function saveToBoard(boardId) {
+  if (!currentUrl || !extensionToken) return;
+
+  const savePanel = voteOverlay.querySelector('.craftorcrap-save-panel');
+  savePanel.classList.add('saving');
+
+  try {
+    const response = await fetch(`${CRAFTORCRAP_URL}/api/extension/save`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${extensionToken}`,
+      },
+      body: JSON.stringify({
+        url: currentUrl,
+        board_id: boardId,
+      }),
+    });
+
+    if (response.ok) {
+      // Show success feedback
+      savePanel.innerHTML = `
+        <div class="craftorcrap-save-success">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20">
+            <path d="M5 13l4 4L19 7"/>
+          </svg>
+          <span>Saved!</span>
+        </div>
+      `;
+      setTimeout(() => {
+        hideSavePanel();
+        hideOverlay();
+      }, 1000);
+    } else {
+      hideSavePanel();
+    }
+  } catch (err) {
+    console.error('Save failed:', err);
+    hideSavePanel();
+  }
 }
 
 // Handle vote
@@ -347,6 +495,15 @@ async function handleVote(verdict) {
       updateOverlayRating(ratingsCache.get(currentUrl));
       updateBadge(currentElement, currentUrl);
       applyFilterToElement(currentElement, currentUrl);
+
+      // Show save panel for craft votes
+      if (verdict === 'craft') {
+        // Fetch boards if not already done
+        if (!boardsFetched) {
+          await fetchUserBoards();
+        }
+        showSavePanel();
+      }
     }
   } catch (err) {
     console.error('Vote failed:', err);
