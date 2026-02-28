@@ -30,6 +30,7 @@ let settings = {
   hoverEnabled: true,
   filterMode: 'all', // 'all', 'hide-crap', 'craft-only'
   showBadges: true,
+  crapStyle: 'blur', // 'blur' or 'cover'
 };
 
 // Auth state
@@ -52,10 +53,11 @@ let hideTimeout = null;
 // Initialize
 async function init() {
   // Load settings and auth
-  chrome.storage.local.get(['hoverEnabled', 'filterMode', 'showBadges', 'extensionToken', 'isAuthenticated', 'currentUser'], (result) => {
+  chrome.storage.local.get(['hoverEnabled', 'filterMode', 'showBadges', 'crapStyle', 'extensionToken', 'isAuthenticated', 'currentUser'], (result) => {
     settings.hoverEnabled = result.hoverEnabled !== false;
     settings.filterMode = result.filterMode || 'all';
     settings.showBadges = result.showBadges !== false;
+    settings.crapStyle = result.crapStyle || 'blur';
     extensionToken = result.extensionToken || null;
     isAuthenticated = result.isAuthenticated || false;
     currentUser = result.currentUser || null;
@@ -75,6 +77,10 @@ async function init() {
       if (changes.showBadges) {
         settings.showBadges = changes.showBadges.newValue !== false;
         updateAllBadges();
+      }
+      if (changes.crapStyle) {
+        settings.crapStyle = changes.crapStyle.newValue || 'blur';
+        applyFilter();
       }
       if (changes.extensionToken) {
         extensionToken = changes.extensionToken.newValue || null;
@@ -465,9 +471,18 @@ function updateAllBadges() {
 
 // Apply filter to single element
 function applyFilterToElement(element, url) {
+  // Remove existing cover if any
+  const existingCover = element._craftorcrapCover;
+  if (existingCover) {
+    existingCover.remove();
+    element._craftorcrapCover = null;
+  }
+
+  // Reset element styles
+  element.style.filter = '';
+  element.style.opacity = '';
+
   if (settings.filterMode === 'all') {
-    element.style.filter = '';
-    element.style.opacity = '';
     return;
   }
 
@@ -475,16 +490,35 @@ function applyFilterToElement(element, url) {
   if (!rating) return;
 
   const percent = rating.percent;
+  const shouldFilter =
+    (settings.filterMode === 'hide-crap' && percent < 30) ||
+    (settings.filterMode === 'craft-only' && percent < 70);
 
-  if (settings.filterMode === 'hide-crap' && percent < 30) {
-    element.style.filter = 'grayscale(1) blur(3px)';
-    element.style.opacity = '0.3';
-  } else if (settings.filterMode === 'craft-only' && percent < 70) {
-    element.style.filter = 'grayscale(1) blur(2px)';
-    element.style.opacity = '0.4';
+  if (!shouldFilter) return;
+
+  if (settings.crapStyle === 'cover') {
+    // Create black cover
+    const cover = document.createElement('div');
+    cover.className = 'craftorcrap-cover';
+    cover.innerHTML = `
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+      </svg>
+      <span>${percent}% craft</span>
+    `;
+
+    // Position cover
+    const wrapper = element.parentElement;
+    if (getComputedStyle(wrapper).position === 'static') {
+      wrapper.style.position = 'relative';
+    }
+    wrapper.appendChild(cover);
+    element._craftorcrapCover = cover;
   } else {
-    element.style.filter = '';
-    element.style.opacity = '';
+    // Blur style
+    element.style.filter = 'grayscale(1) blur(4px)';
+    element.style.opacity = '0.3';
   }
 }
 

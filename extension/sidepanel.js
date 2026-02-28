@@ -5,6 +5,7 @@ let queue = [];
 let hoverEnabled = true;
 let showBadges = true;
 let filterMode = 'all';
+let crapStyle = 'blur'; // 'blur' or 'cover'
 let isAuthenticated = false;
 let currentUser = null;
 let extensionToken = null;
@@ -62,12 +63,14 @@ function updateAuthUI() {
 const hoverToggle = document.getElementById('hoverToggle');
 const badgesToggle = document.getElementById('badgesToggle');
 const filterButtons = document.querySelectorAll('.filter-btn');
+const crapStyleButtons = document.querySelectorAll('.style-btn');
 
 // Load settings
-chrome.storage.local.get(['hoverEnabled', 'showBadges', 'filterMode'], (result) => {
+chrome.storage.local.get(['hoverEnabled', 'showBadges', 'filterMode', 'crapStyle'], (result) => {
   hoverEnabled = result.hoverEnabled !== false;
   showBadges = result.showBadges !== false;
   filterMode = result.filterMode || 'all';
+  crapStyle = result.crapStyle || 'blur';
   updateSettingsUI();
 });
 
@@ -99,6 +102,20 @@ filterButtons.forEach(btn => {
   });
 });
 
+// Crap style buttons
+crapStyleButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    crapStyle = btn.dataset.style;
+
+    // Update UI immediately
+    crapStyleButtons.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    // Save to storage
+    chrome.storage.local.set({ crapStyle });
+  });
+});
+
 function updateSettingsUI() {
   // Hover toggle
   hoverToggle.classList.toggle('active', hoverEnabled);
@@ -109,6 +126,11 @@ function updateSettingsUI() {
   // Filter buttons
   filterButtons.forEach(btn => {
     btn.classList.toggle('active', btn.dataset.mode === filterMode);
+  });
+
+  // Crap style buttons
+  crapStyleButtons.forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.style === crapStyle);
   });
 }
 

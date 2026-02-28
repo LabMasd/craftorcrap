@@ -388,6 +388,35 @@
       border-top: 1px solid rgba(255,255,255,0.06);
     }
 
+    .style-toggle {
+      display: flex;
+      gap: 4px;
+      background: rgba(255,255,255,0.1);
+      padding: 3px;
+      border-radius: 8px;
+    }
+
+    .style-btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      color: rgba(255,255,255,0.6);
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .style-btn:hover {
+      color: #fff;
+    }
+
+    .style-btn.active {
+      background: #fff;
+      color: #000;
+    }
+
     /* Auth Section */
     .auth-section {
       padding: 12px 16px;
@@ -504,6 +533,16 @@
         <span>Show save button when hovering images</span>
       </div>
       <div class="toggle" id="hoverToggle"></div>
+    </div>
+    <div class="setting-row">
+      <div class="setting-label">
+        Hide crap style
+        <span>How filtered content appears</span>
+      </div>
+      <div class="style-toggle" id="crapStyleToggle">
+        <button class="style-btn active" data-style="blur">Blur</button>
+        <button class="style-btn" data-style="cover">Cover</button>
+      </div>
     </div>
   </div>
 
