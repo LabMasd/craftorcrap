@@ -445,6 +445,9 @@ function scanPage() {
       }
     });
 
+    // Always set the URL for filtering
+    img._craftorcrapUrl = url;
+
     // Add badge container
     if (!img.parentElement.querySelector('.craftorcrap-badge')) {
       const badge = document.createElement('div');
@@ -458,13 +461,17 @@ function scanPage() {
       }
       wrapper.appendChild(badge);
       img._craftorcrapBadge = badge;
-      img._craftorcrapUrl = url;
     }
   });
 
   // Fetch ratings for new URLs
   if (urls.length > 0) {
     fetchRatings(urls);
+  }
+
+  // Apply filter immediately for craft-only mode (covers unrated images)
+  if (settings.filterMode === 'craft-only') {
+    applyFilter();
   }
 }
 
