@@ -9,6 +9,8 @@ let crapStyle = 'blur'; // 'blur' or 'cover'
 let isAuthenticated = false;
 let currentUser = null;
 let extensionToken = null;
+let recentCrafts = [];
+let userBoards = [];
 
 // Auth elements
 const authSection = document.getElementById('authSection');
@@ -17,15 +19,25 @@ const authLoggedIn = document.getElementById('authLoggedIn');
 const authAvatar = document.getElementById('authAvatar');
 const authName = document.getElementById('authName');
 
-// Load auth state
-chrome.storage.local.get(['isAuthenticated', 'currentUser', 'extensionToken'], (result) => {
+// Crafts section elements
+const craftsSection = document.getElementById('craftsSection');
+const craftsList = document.getElementById('craftsList');
+const craftsClear = document.getElementById('craftsClear');
+
+// Load auth state and recent crafts
+chrome.storage.local.get(['isAuthenticated', 'currentUser', 'extensionToken', 'recentCrafts'], (result) => {
   isAuthenticated = result.isAuthenticated || false;
   currentUser = result.currentUser || null;
   extensionToken = result.extensionToken || null;
+  recentCrafts = result.recentCrafts || [];
   updateAuthUI();
+  renderRecentCrafts();
+  if (extensionToken) {
+    fetchUserBoards();
+  }
 });
 
-// Listen for auth changes
+// Listen for auth and crafts changes
 chrome.storage.onChanged.addListener((changes, namespace) => {
   if (namespace === 'local') {
     if (changes.isAuthenticated) {
@@ -38,6 +50,13 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
     }
     if (changes.extensionToken) {
       extensionToken = changes.extensionToken.newValue || null;
+      if (extensionToken) {
+        fetchUserBoards();
+      }
+    }
+    if (changes.recentCrafts) {
+      recentCrafts = changes.recentCrafts.newValue || [];
+      renderRecentCrafts();
     }
   }
 });
@@ -395,5 +414,146 @@ submitBtn.addEventListener('click', async () => {
     submitBtn.disabled = false;
     submitBtn.textContent = `Submit ${queue.length} item${queue.length !== 1 ? 's' : ''}`;
   }
+});
+
+// Fetch user's boards
+async function fetchUserBoards() {
+  if (!extensionToken) return;
+
+  try {
+    const response = await fetch(`${CRAFTORCRAP_URL}/api/extension/boards`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${extensionToken}`,
+      },
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      userBoards = data.boards || [];
+      renderRecentCrafts(); // Re-render to update board dropdowns
+    }
+  } catch (err) {
+    console.error('Failed to fetch boards:', err);
+  }
+}
+
+// Render recent crafts
+function renderRecentCrafts() {
+  if (recentCrafts.length === 0) {
+    craftsSection.style.display = 'none';
+    return;
+  }
+
+  craftsSection.style.display = 'block';
+
+  craftsList.innerHTML = recentCrafts.map((craft, index) => `
+    <div class="craft-item" data-index="${index}">
+      ${craft.imageUrl
+        ? `<img class="craft-item-thumb" src="${craft.imageUrl}" alt="" onerror="this.style.display='none'">`
+        : '<div class="craft-item-thumb"></div>'
+      }
+      <div class="craft-item-info">
+        <div class="craft-item-url">${getDomain(craft.url)}</div>
+        <div class="craft-item-actions">
+          <select class="craft-board-select" data-craft-index="${index}">
+            <option value="">No board</option>
+            ${userBoards.map(board => `
+              <option value="${board.id}">${board.name}</option>
+            `).join('')}
+          </select>
+          <button class="craft-save-btn" data-craft-index="${index}" ${craft.saved ? 'disabled' : ''}>
+            ${craft.saved ? 'Saved' : 'Save'}
+          </button>
+        </div>
+      </div>
+      <button class="craft-item-remove" data-craft-index="${index}" title="Remove">
+        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+  `).join('');
+
+  // Add event listeners
+  craftsList.querySelectorAll('.craft-save-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const index = parseInt(btn.dataset.craftIndex);
+      const select = craftsList.querySelector(`select[data-craft-index="${index}"]`);
+      const boardId = select?.value || null;
+      saveCraftToBoard(index, boardId);
+    });
+  });
+
+  craftsList.querySelectorAll('.craft-item-remove').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const index = parseInt(btn.dataset.craftIndex);
+      removeCraft(index);
+    });
+  });
+}
+
+// Save craft to board
+async function saveCraftToBoard(index, boardId) {
+  const craft = recentCrafts[index];
+  if (!craft || !extensionToken) return;
+
+  const btn = craftsList.querySelector(`.craft-save-btn[data-craft-index="${index}"]`);
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+  }
+
+  try {
+    const response = await fetch(`${CRAFTORCRAP_URL}/api/extension/save`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${extensionToken}`,
+      },
+      body: JSON.stringify({
+        url: craft.url,
+        board_id: boardId || null,
+      }),
+    });
+
+    if (response.ok) {
+      // Mark as saved
+      recentCrafts[index].saved = true;
+      chrome.storage.local.set({ recentCrafts });
+
+      if (btn) {
+        btn.textContent = 'Saved';
+        btn.classList.add('saved');
+      }
+    } else {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Save';
+      }
+    }
+  } catch (err) {
+    console.error('Save failed:', err);
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Save';
+    }
+  }
+}
+
+// Remove craft from list
+function removeCraft(index) {
+  recentCrafts.splice(index, 1);
+  chrome.storage.local.set({ recentCrafts });
+  renderRecentCrafts();
+}
+
+// Clear all crafts
+craftsClear.addEventListener('click', () => {
+  recentCrafts = [];
+  chrome.storage.local.set({ recentCrafts });
+  renderRecentCrafts();
 });
 
