@@ -272,7 +272,7 @@ function hideOverlay() {
     }
     currentElement = null;
     currentUrl = null;
-  }, 300);
+  }, 800);
 }
 
 // Handle vote
