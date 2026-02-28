@@ -2,6 +2,44 @@ const CRAFTORCRAP_URL = 'https://craftorcrap.cc';
 
 let queue = [];
 
+// Filter mode elements
+const filterButtons = document.querySelectorAll('.filter-btn');
+const badgesToggle = document.getElementById('badgesToggle');
+
+// Load filter settings
+chrome.storage.local.get(['filterMode', 'showBadges'], (result) => {
+  const mode = result.filterMode || 'all';
+  const showBadges = result.showBadges !== false;
+
+  // Update filter buttons
+  filterButtons.forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.mode === mode);
+  });
+
+  // Update badges toggle
+  badgesToggle.classList.toggle('active', showBadges);
+});
+
+// Filter button handlers
+filterButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const mode = btn.dataset.mode;
+
+    // Update UI
+    filterButtons.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    // Save setting
+    chrome.storage.local.set({ filterMode: mode });
+  });
+});
+
+// Badges toggle handler
+badgesToggle.addEventListener('click', () => {
+  const isActive = badgesToggle.classList.toggle('active');
+  chrome.storage.local.set({ showBadges: isActive });
+});
+
 // Elements
 const pickBtn = document.getElementById('pickBtn');
 const clearBtn = document.getElementById('clearBtn');
