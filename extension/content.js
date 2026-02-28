@@ -420,48 +420,43 @@ async function handleVote(verdict) {
   }
 }
 
-// Scan page for images
+// Scan page for images and videos
 function scanPage() {
-  const images = document.querySelectorAll('img');
   const urls = [];
 
-  images.forEach(img => {
+  // Process images
+  document.querySelectorAll('img').forEach(img => {
     if (processedElements.has(img)) return;
     if (img.naturalWidth < 100 || img.naturalHeight < 100) return;
 
     processedElements.add(img);
-
-    // Get the page URL this image links to
-    const link = img.closest('a');
-    const url = link?.href || window.location.href;
-
+    const url = getElementUrl(img);
     urls.push(url);
+    setupElement(img, url, img.src);
+  });
 
-    // Add hover listeners
-    img.addEventListener('mouseenter', () => showOverlay(img, url, img.src));
-    img.addEventListener('mouseleave', (e) => {
-      if (!voteOverlay?.contains(e.relatedTarget)) {
-        hideOverlay();
-      }
-    });
+  // Process videos
+  document.querySelectorAll('video').forEach(video => {
+    if (processedElements.has(video)) return;
+    if (video.offsetWidth < 100 || video.offsetHeight < 100) return;
 
-    // Always set the URL for filtering
-    img._craftorcrapUrl = url;
+    processedElements.add(video);
+    const url = getElementUrl(video);
+    urls.push(url);
+    setupElement(video, url, video.poster || null);
+  });
 
-    // Add badge container
-    if (!img.parentElement.querySelector('.craftorcrap-badge')) {
-      const badge = document.createElement('div');
-      badge.className = 'craftorcrap-badge';
-      badge.style.display = 'none';
+  // Process video containers (for custom players, LinkedIn, etc.)
+  document.querySelectorAll('[data-video-id], [class*="video"], [class*="Video"], .feed-shared-update-v2, .feed-shared-article').forEach(container => {
+    if (processedElements.has(container)) return;
+    if (container.offsetWidth < 100 || container.offsetHeight < 100) return;
+    // Skip if it's an img or video element itself
+    if (container.tagName === 'IMG' || container.tagName === 'VIDEO') return;
 
-      // Position relative to image
-      const wrapper = img.parentElement;
-      if (getComputedStyle(wrapper).position === 'static') {
-        wrapper.style.position = 'relative';
-      }
-      wrapper.appendChild(badge);
-      img._craftorcrapBadge = badge;
-    }
+    processedElements.add(container);
+    const url = getElementUrl(container);
+    urls.push(url);
+    setupElement(container, url, null);
   });
 
   // Fetch ratings for new URLs
@@ -469,9 +464,43 @@ function scanPage() {
     fetchRatings(urls);
   }
 
-  // Apply filter immediately for craft-only mode (covers unrated images)
+  // Apply filter immediately for craft-only mode (covers unrated elements)
   if (settings.filterMode === 'craft-only') {
     applyFilter();
+  }
+}
+
+// Get URL for an element (from parent link or current page)
+function getElementUrl(element) {
+  const link = element.closest('a');
+  return link?.href || window.location.href;
+}
+
+// Setup an element for voting/filtering
+function setupElement(element, url, thumbnail) {
+  // Add hover listeners
+  element.addEventListener('mouseenter', () => showOverlay(element, url, thumbnail));
+  element.addEventListener('mouseleave', (e) => {
+    if (!voteOverlay?.contains(e.relatedTarget)) {
+      hideOverlay();
+    }
+  });
+
+  // Set URL for filtering
+  element._craftorcrapUrl = url;
+
+  // Add badge container
+  const wrapper = element.parentElement;
+  if (wrapper && !wrapper.querySelector('.craftorcrap-badge')) {
+    const badge = document.createElement('div');
+    badge.className = 'craftorcrap-badge';
+    badge.style.display = 'none';
+
+    if (getComputedStyle(wrapper).position === 'static') {
+      wrapper.style.position = 'relative';
+    }
+    wrapper.appendChild(badge);
+    element._craftorcrapBadge = badge;
   }
 }
 
@@ -533,9 +562,9 @@ function updateBadge(element, url) {
 
 // Update all badges
 function updateAllBadges() {
-  document.querySelectorAll('img').forEach(img => {
-    if (img._craftorcrapUrl) {
-      updateBadge(img, img._craftorcrapUrl);
+  document.querySelectorAll('img, video, [data-video-id], [class*="video"], [class*="Video"]').forEach(el => {
+    if (el._craftorcrapUrl) {
+      updateBadge(el, el._craftorcrapUrl);
     }
   });
 }
@@ -606,9 +635,9 @@ function applyFilterToElement(element, url) {
 
 // Apply filter to all elements
 function applyFilter() {
-  document.querySelectorAll('img').forEach(img => {
-    if (img._craftorcrapUrl) {
-      applyFilterToElement(img, img._craftorcrapUrl);
+  document.querySelectorAll('img, video, [data-video-id], [class*="video"], [class*="Video"]').forEach(el => {
+    if (el._craftorcrapUrl) {
+      applyFilterToElement(el, el._craftorcrapUrl);
     }
   });
 }
