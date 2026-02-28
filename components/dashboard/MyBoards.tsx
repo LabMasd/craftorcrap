@@ -185,9 +185,10 @@ export default function MyBoards({ darkMode = true }: MyBoardsProps) {
 
         {/* User boards */}
         {boards.map((board) => (
-          <div
+          <Link
             key={board.id}
-            className={`group rounded-xl p-4 transition-all relative ${
+            href={`/dashboard/boards/${board.id}`}
+            className={`group rounded-xl p-4 transition-all relative block ${
               darkMode ? 'bg-white/[0.03] hover:bg-white/[0.05]' : 'bg-black/[0.03] hover:bg-black/[0.05]'
             }`}
           >
@@ -195,9 +196,10 @@ export default function MyBoards({ darkMode = true }: MyBoardsProps) {
             <button
               onClick={(e) => {
                 e.preventDefault()
+                e.stopPropagation()
                 handleDelete(board.id)
               }}
-              className={`absolute top-2 right-2 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-all ${
+              className={`absolute top-2 right-2 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-all z-10 ${
                 darkMode ? 'hover:bg-white/10 text-white/40 hover:text-white/60' : 'hover:bg-black/10 text-black/40 hover:text-black/60'
               }`}
             >
@@ -206,24 +208,22 @@ export default function MyBoards({ darkMode = true }: MyBoardsProps) {
               </svg>
             </button>
 
-            <Link href={`/dashboard/boards/${board.id}`}>
-              <div
-                className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 ${
-                  darkMode ? 'bg-white/10' : 'bg-black/10'
-                }`}
-              >
-                <svg className={`w-5 h-5 ${darkMode ? 'text-white/60' : 'text-black/60'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                </svg>
-              </div>
-              <h3 className={`font-medium truncate ${darkMode ? 'text-white/90 group-hover:text-white' : 'text-black/90 group-hover:text-black'}`}>
-                {board.name}
-              </h3>
-              <p className={`text-sm ${darkMode ? 'text-white/40' : 'text-black/40'}`}>
-                {board.item_count} item{board.item_count !== 1 ? 's' : ''}
-              </p>
-            </Link>
-          </div>
+            <div
+              className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 ${
+                darkMode ? 'bg-white/10' : 'bg-black/10'
+              }`}
+            >
+              <svg className={`w-5 h-5 ${darkMode ? 'text-white/60' : 'text-black/60'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+              </svg>
+            </div>
+            <h3 className={`font-medium truncate ${darkMode ? 'text-white/90 group-hover:text-white' : 'text-black/90 group-hover:text-black'}`}>
+              {board.name}
+            </h3>
+            <p className={`text-sm ${darkMode ? 'text-white/40' : 'text-black/40'}`}>
+              {board.item_count} item{board.item_count !== 1 ? 's' : ''}
+            </p>
+          </Link>
         ))}
       </div>
 
