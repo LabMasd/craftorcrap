@@ -20,16 +20,17 @@ const authLoggedIn = document.getElementById('authLoggedIn');
 const authAvatar = document.getElementById('authAvatar');
 const authName = document.getElementById('authName');
 
-// Craft settings elements
-const craftSettings = document.getElementById('craftSettings');
-const craftSettingsHeader = document.getElementById('craftSettingsHeader');
-const craftSettingsSummary = document.getElementById('craftSettingsSummary');
+// Settings dropdown elements
+const settingsDropdown = document.getElementById('settingsDropdown');
+const settingsHeader = document.getElementById('settingsHeader');
+const craftSettingsRow = document.getElementById('craftSettingsRow');
+const publicSettingRow = document.getElementById('publicSettingRow');
 const defaultBoardSelect = document.getElementById('defaultBoardSelect');
 const publicToggle = document.getElementById('publicToggle');
 
-// Toggle craft settings dropdown
-craftSettingsHeader.addEventListener('click', () => {
-  craftSettings.classList.toggle('open');
+// Toggle settings dropdown
+settingsHeader.addEventListener('click', () => {
+  settingsDropdown.classList.toggle('open');
 });
 
 // Load auth state and craft settings
@@ -458,8 +459,9 @@ function updateBoardDropdown() {
 
 // Update craft settings UI
 function updateCraftSettingsUI() {
-  // Show settings only when authenticated
-  craftSettings.style.display = isAuthenticated ? 'block' : 'none';
+  // Show craft-specific settings only when authenticated
+  craftSettingsRow.style.display = isAuthenticated ? 'flex' : 'none';
+  publicSettingRow.style.display = isAuthenticated ? 'flex' : 'none';
 
   // Update toggle state
   publicToggle.classList.toggle('active', sharePublicly);
@@ -468,23 +470,6 @@ function updateCraftSettingsUI() {
   if (defaultBoardSelect.value !== defaultBoardId) {
     defaultBoardSelect.value = defaultBoardId;
   }
-
-  // Update summary text
-  updateSettingsSummary();
-}
-
-// Update the collapsed summary text
-function updateSettingsSummary() {
-  const boardName = defaultBoardId
-    ? (userBoards.find(b => b.id === defaultBoardId)?.name || 'Board')
-    : 'Unsorted';
-
-  const parts = [boardName];
-  if (sharePublicly) {
-    parts.push('Public');
-  }
-
-  craftSettingsSummary.innerHTML = parts.join(' <span class="dot"></span> ');
 }
 
 // Board select change

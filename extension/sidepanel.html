@@ -275,16 +275,17 @@
       color: #ef4444;
     }
 
-    .settings {
-      padding: 12px 16px;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-    }
-
     .setting-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
+    }
+
+    .setting-row + .setting-row {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255,255,255,0.06);
     }
 
     .setting-label {
@@ -380,12 +381,6 @@
     .filter-btn.active.craft-only {
       background: #22c55e;
       color: #fff;
-    }
-
-    .setting-row + .setting-row {
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px solid rgba(255,255,255,0.06);
     }
 
     .style-toggle {
@@ -486,94 +481,42 @@
       color: #fff;
     }
 
-    /* Craft Settings Section - Collapsible */
-    .craft-settings {
+    /* Collapsible Settings Dropdown */
+    .settings-dropdown {
       border-bottom: 1px solid rgba(255,255,255,0.06);
     }
 
-    .craft-settings-header {
+    .settings-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 10px 16px;
+      padding: 12px 16px;
       cursor: pointer;
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
       transition: background 0.15s;
     }
 
-    .craft-settings-header:hover {
+    .settings-header:hover {
       background: rgba(255,255,255,0.03);
     }
 
-    .craft-settings-title {
-      font-size: 11px;
-      color: rgba(255,255,255,0.5);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .craft-settings-title svg {
-      color: #22c55e;
-      width: 14px;
-      height: 14px;
-    }
-
-    .craft-settings-summary {
-      font-size: 10px;
-      color: rgba(255,255,255,0.4);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .craft-settings-summary .dot {
-      width: 4px;
-      height: 4px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.3);
-    }
-
-    .craft-settings-arrow {
+    .settings-arrow {
       color: rgba(255,255,255,0.3);
       transition: transform 0.2s;
     }
 
-    .craft-settings.open .craft-settings-arrow {
+    .settings-dropdown.open .settings-arrow {
       transform: rotate(180deg);
     }
 
-    .craft-settings-body {
+    .settings-body {
       display: none;
       padding: 0 16px 12px;
     }
 
-    .craft-settings.open .craft-settings-body {
+    .settings-dropdown.open .settings-body {
       display: block;
-    }
-
-    .craft-setting-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-    }
-
-    .craft-setting-row + .craft-setting-row {
-      margin-top: 10px;
-      padding-top: 10px;
-      border-top: 1px solid rgba(255,255,255,0.06);
-    }
-
-    .craft-setting-label {
-      font-size: 12px;
-      color: rgba(255,255,255,0.7);
-    }
-
-    .craft-setting-label span {
-      display: block;
-      font-size: 10px;
-      color: rgba(255,255,255,0.4);
-      margin-top: 2px;
     }
 
     .craft-board-select {
@@ -632,60 +575,51 @@
     </div>
   </div>
 
-  <div class="settings">
-    <div class="setting-row">
-      <div class="setting-label">
-        Show rating badges
-        <span>Display scores on images</span>
-      </div>
-      <div class="toggle active" id="badgesToggle"></div>
-    </div>
-    <div class="setting-row">
-      <div class="setting-label">
-        Quick save on hover
-        <span>Show save button when hovering images</span>
-      </div>
-      <div class="toggle" id="hoverToggle"></div>
-    </div>
-    <div class="setting-row">
-      <div class="setting-label">
-        Hide crap style
-        <span>How filtered content appears</span>
-      </div>
-      <div class="style-toggle" id="crapStyleToggle">
-        <button class="style-btn active" data-style="blur">Blur</button>
-        <button class="style-btn" data-style="cover">Cover</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="craft-settings" id="craftSettings" style="display: none;">
-    <div class="craft-settings-header" id="craftSettingsHeader">
-      <div class="craft-settings-title">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M5 13l4 4L19 7"/>
-        </svg>
-        Craft settings
-      </div>
-      <div class="craft-settings-summary" id="craftSettingsSummary"></div>
-      <svg class="craft-settings-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+  <div class="settings-dropdown" id="settingsDropdown">
+    <div class="settings-header" id="settingsHeader">
+      <span>Settings</span>
+      <svg class="settings-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M6 9l6 6 6-6"/>
       </svg>
     </div>
-    <div class="craft-settings-body">
-      <div class="craft-setting-row">
-        <div class="craft-setting-label">
-          Save to board
-          <span>Where your crafts are saved</span>
+    <div class="settings-body" id="settingsBody">
+      <div class="setting-row">
+        <div class="setting-label">
+          Show rating badges
+          <span>Display scores on images</span>
+        </div>
+        <div class="toggle active" id="badgesToggle"></div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">
+          Vote on hover
+          <span>Show vote buttons when hovering images</span>
+        </div>
+        <div class="toggle" id="hoverToggle"></div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">
+          Filter style
+          <span>How filtered content appears</span>
+        </div>
+        <div class="style-toggle" id="crapStyleToggle">
+          <button class="style-btn active" data-style="blur">Blur</button>
+          <button class="style-btn" data-style="cover">Cover</button>
+        </div>
+      </div>
+      <div class="setting-row" id="craftSettingsRow" style="display: none;">
+        <div class="setting-label">
+          Save crafts to
+          <span>Board for your craft votes</span>
         </div>
         <select class="craft-board-select" id="defaultBoardSelect">
           <option value="">Unsorted</option>
         </select>
       </div>
-      <div class="craft-setting-row">
-        <div class="craft-setting-label">
+      <div class="setting-row" id="publicSettingRow" style="display: none;">
+        <div class="setting-label">
           Share publicly
-          <span>Add to craftorcrap for others to vote</span>
+          <span>Add crafts to public page</span>
         </div>
         <div class="toggle" id="publicToggle"></div>
       </div>

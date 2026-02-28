@@ -551,12 +551,23 @@ function applyFilterToElement(element, url) {
   }
 
   const rating = ratingsCache.get(url);
-  if (!rating) return;
 
-  const percent = rating.percent;
-  const shouldFilter =
-    (settings.filterMode === 'hide-crap' && percent < 30) ||
-    (settings.filterMode === 'craft-only' && percent < 70);
+  let shouldFilter = false;
+  let filterText = '';
+
+  if (settings.filterMode === 'craft-only') {
+    // Craft Only: show only images YOU voted craft on, hide everything else
+    if (!rating || rating.user_vote !== 'craft') {
+      shouldFilter = true;
+      filterText = rating ? `${rating.percent}% craft` : 'Not voted';
+    }
+  } else if (settings.filterMode === 'hide-crap') {
+    // Hide Crap: hide images with low ratings
+    if (rating && rating.percent < 30) {
+      shouldFilter = true;
+      filterText = `${rating.percent}% craft`;
+    }
+  }
 
   if (!shouldFilter) return;
 
@@ -569,7 +580,7 @@ function applyFilterToElement(element, url) {
         <circle cx="12" cy="12" r="10"/>
         <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
       </svg>
-      <span>${percent}% craft</span>
+      <span>${filterText}</span>
     `;
 
     // Position cover
