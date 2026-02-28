@@ -22,8 +22,15 @@ const authName = document.getElementById('authName');
 
 // Craft settings elements
 const craftSettings = document.getElementById('craftSettings');
+const craftSettingsHeader = document.getElementById('craftSettingsHeader');
+const craftSettingsSummary = document.getElementById('craftSettingsSummary');
 const defaultBoardSelect = document.getElementById('defaultBoardSelect');
 const publicToggle = document.getElementById('publicToggle');
+
+// Toggle craft settings dropdown
+craftSettingsHeader.addEventListener('click', () => {
+  craftSettings.classList.toggle('open');
+});
 
 // Load auth state and craft settings
 chrome.storage.local.get(['isAuthenticated', 'currentUser', 'extensionToken', 'defaultBoardId', 'sharePublicly'], (result) => {
@@ -446,6 +453,7 @@ function updateBoardDropdown() {
       <option value="${board.id}" ${defaultBoardId === board.id ? 'selected' : ''}>${board.name}</option>
     `).join('')}
   `;
+  updateSettingsSummary();
 }
 
 // Update craft settings UI
@@ -460,6 +468,23 @@ function updateCraftSettingsUI() {
   if (defaultBoardSelect.value !== defaultBoardId) {
     defaultBoardSelect.value = defaultBoardId;
   }
+
+  // Update summary text
+  updateSettingsSummary();
+}
+
+// Update the collapsed summary text
+function updateSettingsSummary() {
+  const boardName = defaultBoardId
+    ? (userBoards.find(b => b.id === defaultBoardId)?.name || 'Board')
+    : 'Unsorted';
+
+  const parts = [boardName];
+  if (sharePublicly) {
+    parts.push('Public');
+  }
+
+  craftSettingsSummary.innerHTML = parts.join(' <span class="dot"></span> ');
 }
 
 // Board select change
