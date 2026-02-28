@@ -8,6 +8,9 @@ interface Board {
   id: string
   name: string
   icon: string
+  share_id: string
+  allow_voting: boolean
+  allow_submissions: boolean
 }
 
 interface SavedItem {
@@ -32,6 +35,7 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
   const [darkMode, setDarkMode] = useState(true)
   const [editing, setEditing] = useState(false)
   const [newName, setNewName] = useState('')
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     const saved = localStorage.getItem('craftorcrap-theme')
@@ -46,7 +50,13 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
         const res = await fetch(`/api/user/boards/${id}`)
         if (res.ok) {
           const data = await res.json()
-          setBoard(data.board)
+          // Ensure defaults for permission fields
+          const boardData = {
+            ...data.board,
+            allow_voting: data.board?.allow_voting ?? true,
+            allow_submissions: data.board?.allow_submissions ?? true,
+          }
+          setBoard(boardData)
           setItems(data.items || [])
           setNewName(data.board?.name || '')
         }
@@ -80,6 +90,38 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
       console.error('Error renaming board:', error)
     }
     setEditing(false)
+  }
+
+  function copyShareLink() {
+    if (!board?.share_id) return
+    const url = `${window.location.origin}/b/${board.share_id}`
+    navigator.clipboard.writeText(url)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  async function togglePermission(field: 'allow_voting' | 'allow_submissions') {
+    if (!board) return
+    const newValue = !board[field]
+
+    // Optimistic update
+    setBoard(prev => prev ? { ...prev, [field]: newValue } : null)
+
+    try {
+      const res = await fetch(`/api/user/boards/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [field]: newValue }),
+      })
+
+      if (!res.ok) {
+        // Revert on failure
+        setBoard(prev => prev ? { ...prev, [field]: !newValue } : null)
+      }
+    } catch {
+      // Revert on error
+      setBoard(prev => prev ? { ...prev, [field]: !newValue } : null)
+    }
   }
 
   async function handleRemoveFromBoard(submissionId: string) {
@@ -162,22 +204,99 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
               </button>
             )}
           </div>
-          <button
-            onClick={() => setDarkMode(!darkMode)}
-            className={`p-2 rounded-full transition-all ${darkMode ? 'hover:bg-white/10' : 'hover:bg-black/5'}`}
-          >
-            {darkMode ? (
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-            ) : (
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-              </svg>
-            )}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={copyShareLink}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                copied
+                  ? 'bg-emerald-500 text-white'
+                  : darkMode
+                  ? 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
+                  : 'bg-black/5 text-black/60 hover:bg-black/10 hover:text-black'
+              }`}
+            >
+              {copied ? (
+                <>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Copied!
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                  </svg>
+                  Share
+                </>
+              )}
+            </button>
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className={`p-2 rounded-full transition-all ${darkMode ? 'hover:bg-white/10' : 'hover:bg-black/5'}`}
+            >
+              {darkMode ? (
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              ) : (
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+              )}
+            </button>
+          </div>
         </div>
       </header>
+
+      {/* Share Settings */}
+      <div className={`border-b ${darkMode ? 'border-white/5' : 'border-black/5'}`}>
+        <div className="max-w-4xl mx-auto px-4 py-4">
+          <div className="flex items-center gap-6">
+            <span className={`text-sm ${darkMode ? 'text-white/40' : 'text-black/40'}`}>
+              Share settings:
+            </span>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <button
+                onClick={() => togglePermission('allow_voting')}
+                className={`relative w-10 h-5 rounded-full transition-colors ${
+                  board.allow_voting
+                    ? 'bg-emerald-500'
+                    : darkMode ? 'bg-white/20' : 'bg-black/20'
+                }`}
+              >
+                <span
+                  className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
+                    board.allow_voting ? 'translate-x-5' : ''
+                  }`}
+                />
+              </button>
+              <span className={`text-sm ${darkMode ? 'text-white/70' : 'text-black/70'}`}>
+                Allow voting
+              </span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <button
+                onClick={() => togglePermission('allow_submissions')}
+                className={`relative w-10 h-5 rounded-full transition-colors ${
+                  board.allow_submissions
+                    ? 'bg-emerald-500'
+                    : darkMode ? 'bg-white/20' : 'bg-black/20'
+                }`}
+              >
+                <span
+                  className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
+                    board.allow_submissions ? 'translate-x-5' : ''
+                  }`}
+                />
+              </button>
+              <span className={`text-sm ${darkMode ? 'text-white/70' : 'text-black/70'}`}>
+                Allow submissions
+              </span>
+            </label>
+          </div>
+        </div>
+      </div>
 
       {/* Content */}
       <main className="max-w-4xl mx-auto px-4 py-8">

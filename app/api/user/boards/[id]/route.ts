@@ -75,13 +75,15 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { name, icon } = await request.json()
+    const { name, icon, allow_voting, allow_submissions } = await request.json()
 
     const supabase = getServiceClient()
 
-    const updates: Record<string, string> = {}
+    const updates: Record<string, string | boolean> = {}
     if (name) updates.name = name.trim()
     if (icon) updates.icon = icon
+    if (typeof allow_voting === 'boolean') updates.allow_voting = allow_voting
+    if (typeof allow_submissions === 'boolean') updates.allow_submissions = allow_submissions
 
     const { data, error } = await supabase
       .from('user_boards')

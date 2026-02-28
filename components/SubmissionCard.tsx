@@ -16,12 +16,14 @@ interface SubmissionCardProps {
   submission: Submission
   size?: CardSize
   darkMode?: boolean
+  disableVoting?: boolean
 }
 
 export default function SubmissionCard({
   submission: initialSubmission,
   size = 'normal',
   darkMode = true,
+  disableVoting = false,
 }: SubmissionCardProps) {
   const { isSignedIn } = useUser()
   const [submission, setSubmission] = useState(initialSubmission)
@@ -398,50 +400,52 @@ export default function SubmissionCard({
           )}
         </div>
 
-        <div className={`flex gap-1 ${isCompact ? 'mb-1.5' : 'mb-3'}`}>
-          <button
-            onClick={() => handleVote('craft')}
-            disabled={!!userVote || isVoting}
-            className={`flex-1 font-semibold tracking-wide rounded-md transition-all duration-200 ${
-              isCompact ? 'py-1 text-[9px]' : 'py-2 text-[11px]'
-            } ${
-              userVote === 'craft'
-                ? darkMode
-                  ? 'bg-white text-black'
-                  : 'bg-black text-white'
-                : userVote
-                ? darkMode
-                  ? 'bg-white/5 text-white/20 cursor-not-allowed'
-                  : 'bg-black/5 text-black/20 cursor-not-allowed'
-                : darkMode
-                ? 'bg-white/5 text-white/60 hover:bg-white hover:text-black'
-                : 'bg-black/5 text-black/60 hover:bg-black hover:text-white'
-            }`}
-          >
-            CRAFT
-          </button>
-          <button
-            onClick={() => handleVote('crap')}
-            disabled={!!userVote || isVoting}
-            className={`flex-1 font-semibold tracking-wide rounded-md transition-all duration-200 ${
-              isCompact ? 'py-1 text-[9px]' : 'py-2 text-[11px]'
-            } ${
-              userVote === 'crap'
-                ? darkMode
-                  ? 'bg-white text-black'
-                  : 'bg-black text-white'
-                : userVote
-                ? darkMode
-                  ? 'bg-white/5 text-white/20 cursor-not-allowed'
-                  : 'bg-black/5 text-black/20 cursor-not-allowed'
-                : darkMode
-                ? 'bg-white/5 text-white/60 hover:bg-white hover:text-black'
-                : 'bg-black/5 text-black/60 hover:bg-black hover:text-white'
-            }`}
-          >
-            CRAP
-          </button>
-        </div>
+        {!disableVoting && (
+          <div className={`flex gap-1 ${isCompact ? 'mb-1.5' : 'mb-3'}`}>
+            <button
+              onClick={() => handleVote('craft')}
+              disabled={!!userVote || isVoting}
+              className={`flex-1 font-semibold tracking-wide rounded-md transition-all duration-200 ${
+                isCompact ? 'py-1 text-[9px]' : 'py-2 text-[11px]'
+              } ${
+                userVote === 'craft'
+                  ? darkMode
+                    ? 'bg-white text-black'
+                    : 'bg-black text-white'
+                  : userVote
+                  ? darkMode
+                    ? 'bg-white/5 text-white/20 cursor-not-allowed'
+                    : 'bg-black/5 text-black/20 cursor-not-allowed'
+                  : darkMode
+                  ? 'bg-white/5 text-white/60 hover:bg-white hover:text-black'
+                  : 'bg-black/5 text-black/60 hover:bg-black hover:text-white'
+              }`}
+            >
+              CRAFT
+            </button>
+            <button
+              onClick={() => handleVote('crap')}
+              disabled={!!userVote || isVoting}
+              className={`flex-1 font-semibold tracking-wide rounded-md transition-all duration-200 ${
+                isCompact ? 'py-1 text-[9px]' : 'py-2 text-[11px]'
+              } ${
+                userVote === 'crap'
+                  ? darkMode
+                    ? 'bg-white text-black'
+                    : 'bg-black text-white'
+                  : userVote
+                  ? darkMode
+                    ? 'bg-white/5 text-white/20 cursor-not-allowed'
+                    : 'bg-black/5 text-black/20 cursor-not-allowed'
+                  : darkMode
+                  ? 'bg-white/5 text-white/60 hover:bg-white hover:text-black'
+                  : 'bg-black/5 text-black/60 hover:bg-black hover:text-white'
+              }`}
+            >
+              CRAP
+            </button>
+          </div>
+        )}
 
         <div className="flex items-center gap-2">
           <div

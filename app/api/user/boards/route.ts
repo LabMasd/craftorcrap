@@ -84,12 +84,16 @@ export async function POST(request: Request) {
 
     const supabase = getServiceClient()
 
+    // Generate a unique share_id
+    const shareId = Math.random().toString(36).substring(2, 12)
+
     const { data, error } = await supabase
       .from('user_boards')
       .insert({
         user_id: userId,
         name: name.trim(),
         icon: icon || 'folder',
+        share_id: shareId,
       })
       .select()
       .single()
