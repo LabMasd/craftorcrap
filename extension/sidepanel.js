@@ -3,28 +3,56 @@ const CATEGORIES = ['Web', 'Apps', 'Branding', 'Graphic Design', 'Motion', 'Illu
 
 let queue = [];
 let hoverEnabled = true;
+let showBadges = true;
+let filterMode = 'all';
 
-// Hover toggle
+// Elements
 const hoverToggle = document.getElementById('hoverToggle');
+const badgesToggle = document.getElementById('badgesToggle');
+const filterButtons = document.querySelectorAll('.filter-btn');
 
-// Load hover setting
-chrome.storage.local.get(['hoverEnabled'], (result) => {
-  hoverEnabled = result.hoverEnabled !== false; // Default to true
-  updateToggleUI();
+// Load settings
+chrome.storage.local.get(['hoverEnabled', 'showBadges', 'filterMode'], (result) => {
+  hoverEnabled = result.hoverEnabled !== false;
+  showBadges = result.showBadges !== false;
+  filterMode = result.filterMode || 'all';
+  updateSettingsUI();
 });
 
+// Hover toggle
 hoverToggle.addEventListener('click', () => {
   hoverEnabled = !hoverEnabled;
   chrome.storage.local.set({ hoverEnabled });
-  updateToggleUI();
+  updateSettingsUI();
 });
 
-function updateToggleUI() {
-  if (hoverEnabled) {
-    hoverToggle.classList.add('active');
-  } else {
-    hoverToggle.classList.remove('active');
-  }
+// Badges toggle
+badgesToggle.addEventListener('click', () => {
+  showBadges = !showBadges;
+  chrome.storage.local.set({ showBadges });
+  updateSettingsUI();
+});
+
+// Filter buttons
+filterButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    filterMode = btn.dataset.mode;
+    chrome.storage.local.set({ filterMode });
+    updateSettingsUI();
+  });
+});
+
+function updateSettingsUI() {
+  // Hover toggle
+  hoverToggle.classList.toggle('active', hoverEnabled);
+
+  // Badges toggle
+  badgesToggle.classList.toggle('active', showBadges);
+
+  // Filter buttons
+  filterButtons.forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.mode === filterMode);
+  });
 }
 
 // Elements
