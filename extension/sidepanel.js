@@ -456,15 +456,30 @@ function renderRecentCrafts() {
       <div class="craft-item-info">
         <div class="craft-item-url">${getDomain(craft.url)}</div>
         <div class="craft-item-actions">
-          <select class="craft-board-select" data-craft-index="${index}">
-            <option value="">No board</option>
-            ${userBoards.map(board => `
-              <option value="${board.id}">${board.name}</option>
-            `).join('')}
-          </select>
-          <button class="craft-save-btn" data-craft-index="${index}" ${craft.saved ? 'disabled' : ''}>
-            ${craft.saved ? 'Saved' : 'Save'}
-          </button>
+          <div class="craft-action-row">
+            <select class="craft-board-select" data-craft-index="${index}" ${craft.savedToBoard ? 'disabled' : ''}>
+              <option value="">Select board...</option>
+              ${userBoards.map(board => `
+                <option value="${board.id}" ${craft.boardId === board.id ? 'selected' : ''}>${board.name}</option>
+              `).join('')}
+            </select>
+            <button class="craft-action-btn board-btn ${craft.savedToBoard ? 'done' : ''}" data-craft-index="${index}" data-action="board" ${craft.savedToBoard ? 'disabled' : ''}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+              </svg>
+              ${craft.savedToBoard ? 'Saved' : 'Save'}
+            </button>
+          </div>
+          <div class="craft-action-row">
+            <button class="craft-action-btn public-btn ${craft.submittedPublic ? 'done' : ''}" data-craft-index="${index}" data-action="public" ${craft.submittedPublic ? 'disabled' : ''}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="2" y1="12" x2="22" y2="12"/>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+              </svg>
+              ${craft.submittedPublic ? 'On craftorcrap' : 'Add to craftorcrap'}
+            </button>
+          </div>
         </div>
       </div>
       <button class="craft-item-remove" data-craft-index="${index}" title="Remove">
@@ -475,14 +490,27 @@ function renderRecentCrafts() {
     </div>
   `).join('');
 
-  // Add event listeners
-  craftsList.querySelectorAll('.craft-save-btn').forEach(btn => {
+  // Add event listeners for board save
+  craftsList.querySelectorAll('.craft-action-btn[data-action="board"]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const index = parseInt(btn.dataset.craftIndex);
       const select = craftsList.querySelector(`select[data-craft-index="${index}"]`);
       const boardId = select?.value || null;
+      if (!boardId) {
+        select.focus();
+        return;
+      }
       saveCraftToBoard(index, boardId);
+    });
+  });
+
+  // Add event listeners for public submit
+  craftsList.querySelectorAll('.craft-action-btn[data-action="public"]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const index = parseInt(btn.dataset.craftIndex);
+      submitCraftPublic(index);
     });
   });
 
@@ -498,12 +526,14 @@ function renderRecentCrafts() {
 // Save craft to board
 async function saveCraftToBoard(index, boardId) {
   const craft = recentCrafts[index];
-  if (!craft || !extensionToken) return;
+  if (!craft || !extensionToken || !boardId) return;
 
-  const btn = craftsList.querySelector(`.craft-save-btn[data-craft-index="${index}"]`);
+  const btn = craftsList.querySelector(`.craft-action-btn[data-action="board"][data-craft-index="${index}"]`);
+  const select = craftsList.querySelector(`select[data-craft-index="${index}"]`);
+
   if (btn) {
     btn.disabled = true;
-    btn.textContent = 'Saving...';
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg> Saving...';
   }
 
   try {
@@ -515,30 +545,72 @@ async function saveCraftToBoard(index, boardId) {
       },
       body: JSON.stringify({
         url: craft.url,
-        board_id: boardId || null,
+        board_id: boardId,
       }),
     });
 
     if (response.ok) {
-      // Mark as saved
-      recentCrafts[index].saved = true;
+      recentCrafts[index].savedToBoard = true;
+      recentCrafts[index].boardId = boardId;
       chrome.storage.local.set({ recentCrafts });
-
-      if (btn) {
-        btn.textContent = 'Saved';
-        btn.classList.add('saved');
-      }
+      renderRecentCrafts();
     } else {
       if (btn) {
         btn.disabled = false;
-        btn.textContent = 'Save';
+        btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg> Save';
       }
     }
   } catch (err) {
     console.error('Save failed:', err);
     if (btn) {
       btn.disabled = false;
-      btn.textContent = 'Save';
+      btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg> Save';
+    }
+  }
+}
+
+// Submit craft to public craftorcrap page
+async function submitCraftPublic(index) {
+  const craft = recentCrafts[index];
+  if (!craft || !extensionToken) return;
+
+  const btn = craftsList.querySelector(`.craft-action-btn[data-action="public"][data-craft-index="${index}"]`);
+
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> Submitting...';
+  }
+
+  try {
+    const response = await fetch(`${CRAFTORCRAP_URL}/api/extension/submit`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${extensionToken}`,
+      },
+      body: JSON.stringify({
+        url: craft.url,
+        imageUrl: craft.imageUrl,
+        category: 'Web',
+      }),
+    });
+
+    if (response.ok || response.status === 409) {
+      // 409 means already submitted, which is fine
+      recentCrafts[index].submittedPublic = true;
+      chrome.storage.local.set({ recentCrafts });
+      renderRecentCrafts();
+    } else {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> Add to craftorcrap';
+      }
+    }
+  } catch (err) {
+    console.error('Submit failed:', err);
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> Add to craftorcrap';
     }
   }
 }
