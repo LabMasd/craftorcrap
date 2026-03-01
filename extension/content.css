@@ -4,20 +4,16 @@
 #craftorcrap-overlay {
   position: fixed;
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 6px;
-  background: rgba(10, 10, 10, 0.95);
-  backdrop-filter: blur(12px);
-  border-radius: 8px;
+  flex-direction: row;
+  gap: 6px;
+  padding: 0;
+  background: transparent;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   z-index: 2147483647;
   opacity: 0;
   transform: translateY(4px);
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
   pointer-events: none;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
-  min-width: 70px;
 }
 
 #craftorcrap-overlay.show {
@@ -29,26 +25,26 @@
 /* Vote Buttons */
 .craftorcrap-vote-buttons {
   display: flex;
-  gap: 3px;
+  gap: 4px;
 }
 
 .craftorcrap-vote-btn {
-  flex: 1;
-  height: 20px;
-  width: 20px;
+  width: 24px;
+  height: 24px;
   border: none;
-  border-radius: 4px;
+  border-radius: 50%;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.15s ease;
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.7);
+  background: rgba(0, 0, 0, 0.8);
+  color: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .craftorcrap-vote-btn:hover:not(:disabled) {
-  transform: scale(1.05);
+  transform: scale(1.15);
 }
 
 .craftorcrap-vote-btn.craft:hover:not(:disabled) {
@@ -63,146 +59,51 @@
 
 .craftorcrap-vote-btn:disabled {
   cursor: not-allowed;
-  opacity: 0.4;
+  opacity: 0.3;
 }
 
 .craftorcrap-vote-btn.voted.craft {
   background: #22c55e;
   color: white;
-  opacity: 1;
 }
 
 .craftorcrap-vote-btn.voted.crap {
   background: #ef4444;
   color: white;
-  opacity: 1;
 }
 
 .craftorcrap-vote-btn.loading {
-  opacity: 0.6;
+  opacity: 0.5;
 }
 
 .craftorcrap-vote-btn svg {
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
 }
 
-/* Category Selector */
+/* Category Selector - hidden in minimal mode */
 .craftorcrap-category-row {
-  margin-top: 1px;
+  display: none;
 }
 
-.craftorcrap-category-select {
-  width: 100%;
-  background: rgba(255, 255, 255, 0.08);
-  border: none;
-  border-radius: 3px;
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 8px;
-  font-weight: 500;
-  padding: 3px 14px 3px 4px;
-  cursor: pointer;
-  outline: none;
-  -webkit-appearance: none;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='6' fill='white' opacity='0.5' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 4px center;
-  transition: all 0.15s ease;
-}
-
-.craftorcrap-category-select:hover {
-  background-color: rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.craftorcrap-category-select:focus {
-  background-color: rgba(255, 255, 255, 0.15);
-  color: #fff;
-}
-
-.craftorcrap-category-select option {
-  background: #1a1a1a;
-  color: #fff;
-  padding: 8px;
-}
-
-/* Undo Row */
+/* Undo Row - hidden in minimal mode */
 .craftorcrap-undo-row {
-  text-align: center;
+  display: none;
 }
 
-.craftorcrap-undo-btn {
-  background: none;
-  border: none;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 7px;
-  cursor: pointer;
-  padding: 2px 4px;
-  border-radius: 2px;
-  transition: all 0.15s ease;
-}
-
-.craftorcrap-undo-btn:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.craftorcrap-undo-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* Rating Bar */
+/* Rating Bar - hidden in minimal mode */
 .craftorcrap-rating-bar {
-  height: 2px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 1px;
-  overflow: hidden;
+  display: none;
 }
 
-.craftorcrap-rating-fill {
-  height: 100%;
-  background: rgba(255, 255, 255, 0.5);
-  border-radius: 1px;
-  transition: width 0.3s ease, background 0.3s ease;
-}
-
-.craftorcrap-rating-fill.high {
-  background: #22c55e;
-}
-
-.craftorcrap-rating-fill.low {
-  background: #ef4444;
-}
-
-/* Rating Text */
+/* Rating Text - hidden in minimal mode */
 .craftorcrap-rating-text {
-  font-size: 7px;
-  color: rgba(255, 255, 255, 0.5);
-  text-align: center;
+  display: none;
 }
 
-/* Login Prompt */
+/* Login Prompt - shown as tooltip on hover */
 .craftorcrap-login-prompt {
-  text-align: center;
-  padding: 2px 0;
-}
-
-.craftorcrap-login-prompt a {
-  color: #fff;
-  text-decoration: none;
-  font-size: 7px;
-  font-weight: 500;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 3px 6px;
-  border-radius: 3px;
-  display: inline-block;
-  transition: background 0.15s ease;
-}
-
-.craftorcrap-login-prompt a:hover {
-  background: rgba(255, 255, 255, 0.2);
+  display: none;
 }
 
 /* Rating Badge */
