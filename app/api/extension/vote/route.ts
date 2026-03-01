@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     }
 
     const userId = authResult.userId
-    const { url, imageUrl, verdict } = await request.json()
+    const { url, imageUrl, verdict, category } = await request.json()
 
     if (!url || !verdict) {
       return NextResponse.json(
@@ -59,12 +59,19 @@ export async function POST(request: NextRequest) {
     let submission
     const { data: existing } = await supabase
       .from('submissions')
-      .select('id, total_craft, total_crap')
+      .select('id, total_craft, total_crap, category')
       .eq('url', url)
       .single()
 
     if (existing) {
       submission = existing
+      // Update category if provided and not already set
+      if (category && !existing.category) {
+        await supabase
+          .from('submissions')
+          .update({ category })
+          .eq('id', existing.id)
+      }
     } else {
       // Create new submission
       const { data: newSubmission, error: createError } = await supabase
@@ -73,6 +80,7 @@ export async function POST(request: NextRequest) {
           url,
           thumbnail_url: imageUrl || null,
           submitted_by: userId,
+          category: category || null,
         })
         .select('id, total_craft, total_crap')
         .single()

@@ -163,6 +163,9 @@ function debounce(fn, delay) {
   };
 }
 
+// Categories list
+const CATEGORIES = ['Web', 'Apps', 'Branding', 'Graphic', 'Motion', 'Illustration', 'Photo', 'Product', '3D', 'AI'];
+
 // Create the vote overlay
 function createVoteOverlay() {
   if (voteOverlay) return;
@@ -181,6 +184,12 @@ function createVoteOverlay() {
           <path d="M6 18L18 6M6 6l12 12"/>
         </svg>
       </button>
+    </div>
+    <div class="craftorcrap-category-row">
+      <select class="craftorcrap-category-select">
+        <option value="">Category</option>
+        ${CATEGORIES.map(cat => `<option value="${cat}">${cat}</option>`).join('')}
+      </select>
     </div>
     <div class="craftorcrap-login-prompt" style="display: none;">
       <a href="${CRAFTORCRAP_URL}/extension/connect" target="_blank">Connect account to vote</a>
@@ -391,12 +400,16 @@ async function handleVote(verdict) {
 
   const craftBtn = voteOverlay.querySelector('.craftorcrap-vote-btn.craft');
   const crapBtn = voteOverlay.querySelector('.craftorcrap-vote-btn.crap');
+  const categorySelect = voteOverlay.querySelector('.craftorcrap-category-select');
   const clickedBtn = verdict === 'craft' ? craftBtn : crapBtn;
 
   // Disable buttons
   craftBtn.disabled = true;
   crapBtn.disabled = true;
   clickedBtn.classList.add('loading');
+
+  // Get selected category
+  const category = categorySelect?.value || null;
 
   try {
     const response = await fetch(`${CRAFTORCRAP_URL}/api/extension/vote`, {
@@ -409,6 +422,7 @@ async function handleVote(verdict) {
         url: currentUrl,
         imageUrl: currentElement?.src || null,
         verdict,
+        category,
       }),
     });
 
