@@ -154,7 +154,7 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('')
   const filtersRef = useRef<HTMLDivElement>(null)
 
-  // Community boards carousel
+  // Community boards dropdown
   const [communityBoards, setCommunityBoards] = useState<{
     id: string
     title: string
@@ -164,6 +164,13 @@ export default function Home() {
     itemCount: number
     previews: string[]
   }[]>([])
+  const [showBoardsDropdown, setShowBoardsDropdown] = useState(false)
+  const [showCreateBoard, setShowCreateBoard] = useState(false)
+  const [newBoardName, setNewBoardName] = useState('')
+  const [newBoardTopic, setNewBoardTopic] = useState('')
+  const [creatingBoard, setCreatingBoard] = useState(false)
+
+  const BOARD_TOPICS = ['Design', 'Tech', 'Fashion', 'Architecture', 'Art', 'Photography', 'Gaming', 'Music', 'Film']
 
   // Inline submit state
   const [submitUrl, setSubmitUrl] = useState('')
@@ -448,6 +455,36 @@ export default function Home() {
       submitDomain = new URL(submitUrl).hostname.replace('www.', '')
     } catch {
       submitDomain = ''
+    }
+  }
+
+  async function handleCreateBoard() {
+    if (!newBoardName.trim()) return
+    setCreatingBoard(true)
+
+    try {
+      const res = await fetch('/api/user/boards', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newBoardName.trim(),
+          is_public: true,
+          visibility: 'public',
+          topic: newBoardTopic || null,
+          allow_voting: true,
+          allow_submissions: true,
+        }),
+      })
+
+      if (res.ok) {
+        const board = await res.json()
+        // Redirect to the new board
+        window.location.href = `/b/${board.slug || board.share_id}`
+      }
+    } catch (err) {
+      console.error('Failed to create board:', err)
+    } finally {
+      setCreatingBoard(false)
     }
   }
 
@@ -872,67 +909,6 @@ export default function Home() {
           )}
         </div>
 
-        {/* Community Boards Carousel */}
-        {communityBoards.length > 0 && (
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className={`text-sm font-medium ${darkMode ? 'text-white/70' : 'text-black/70'}`}>
-                Community Boards
-              </h2>
-              <Link
-                href="/explore"
-                className={`text-xs ${darkMode ? 'text-white/40 hover:text-white/60' : 'text-black/40 hover:text-black/60'}`}
-              >
-                See all
-              </Link>
-            </div>
-            <div className="flex gap-3 overflow-x-auto pb-2 -mx-3 px-3 scrollbar-hide">
-              {communityBoards.map((board) => (
-                <Link
-                  key={board.id}
-                  href={`/b/${board.slug}`}
-                  className={`flex-shrink-0 w-48 rounded-xl overflow-hidden transition-all ${
-                    darkMode ? 'bg-white/[0.03] hover:bg-white/[0.06]' : 'bg-black/[0.03] hover:bg-black/[0.06]'
-                  }`}
-                >
-                  {/* Preview images grid */}
-                  <div className="aspect-[2/1] relative overflow-hidden">
-                    {board.previews.length > 0 ? (
-                      <div className="grid grid-cols-2 h-full">
-                        {board.previews.slice(0, 4).map((preview, i) => (
-                          <div key={i} className="relative overflow-hidden">
-                            <img
-                              src={preview}
-                              alt=""
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className={`w-full h-full flex items-center justify-center ${darkMode ? 'bg-white/5' : 'bg-black/5'}`}>
-                        <svg className={`w-8 h-8 ${darkMode ? 'text-white/20' : 'text-black/20'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                        </svg>
-                      </div>
-                    )}
-                  </div>
-                  {/* Info */}
-                  <div className="p-2.5">
-                    <h3 className={`text-xs font-medium truncate ${darkMode ? 'text-white/90' : 'text-black/90'}`}>
-                      {board.title}
-                    </h3>
-                    <div className={`flex items-center gap-2 mt-1 text-[10px] ${darkMode ? 'text-white/40' : 'text-black/40'}`}>
-                      {board.topic && <span>{board.topic}</span>}
-                      <span>{board.itemCount} items</span>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Category Filters + Sort */}
         <div className="mb-6" ref={filtersRef}>
           {/* Filter buttons row */}
@@ -972,6 +948,161 @@ export default function Home() {
                 )}
                 Color
               </button>
+
+              {/* Community Boards dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => { setShowBoardsDropdown(!showBoardsDropdown); setShowCategoryFilter(false); setShowColorPicker(false); setShowCreateBoard(false); }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
+                    showBoardsDropdown
+                      ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
+                      : darkMode ? 'bg-white/5 text-white/50 hover:text-white/70' : 'bg-black/5 text-black/50 hover:text-black/70'
+                  }`}
+                >
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  Boards
+                </button>
+
+                {showBoardsDropdown && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => { setShowBoardsDropdown(false); setShowCreateBoard(false); }} />
+                    <div className={`absolute left-0 top-full mt-2 w-72 rounded-xl p-3 z-50 shadow-xl ${
+                      darkMode ? 'bg-neutral-900 border border-white/10' : 'bg-white border border-black/10'
+                    }`}>
+                      {/* Create new board */}
+                      {showCreateBoard ? (
+                        <div className="space-y-3">
+                          <input
+                            type="text"
+                            value={newBoardName}
+                            onChange={(e) => setNewBoardName(e.target.value)}
+                            placeholder="Board name..."
+                            autoFocus
+                            className={`w-full px-3 py-2 text-sm rounded-lg outline-none ${
+                              darkMode ? 'bg-white/10 text-white placeholder:text-white/30' : 'bg-black/5 text-black placeholder:text-black/30'
+                            }`}
+                          />
+                          <div className="flex flex-wrap gap-1.5">
+                            {BOARD_TOPICS.map((t) => (
+                              <button
+                                key={t}
+                                onClick={() => setNewBoardTopic(newBoardTopic === t ? '' : t)}
+                                className={`px-2 py-1 text-[10px] font-medium rounded-full transition-all ${
+                                  newBoardTopic === t
+                                    ? 'bg-emerald-500 text-white'
+                                    : darkMode
+                                    ? 'bg-white/10 text-white/50 hover:bg-white/15'
+                                    : 'bg-black/10 text-black/50 hover:bg-black/15'
+                                }`}
+                              >
+                                {t}
+                              </button>
+                            ))}
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={handleCreateBoard}
+                              disabled={!newBoardName.trim() || creatingBoard}
+                              className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all disabled:opacity-50 ${
+                                darkMode ? 'bg-white text-black' : 'bg-black text-white'
+                              }`}
+                            >
+                              {creatingBoard ? 'Creating...' : 'Create Board'}
+                            </button>
+                            <button
+                              onClick={() => { setShowCreateBoard(false); setNewBoardName(''); setNewBoardTopic(''); }}
+                              className={`px-4 py-2 text-xs font-medium rounded-lg ${
+                                darkMode ? 'bg-white/10 text-white/70' : 'bg-black/10 text-black/70'
+                              }`}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <SignedIn>
+                            <button
+                              onClick={() => setShowCreateBoard(true)}
+                              className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium mb-2 transition-all ${
+                                darkMode ? 'bg-white/10 text-white hover:bg-white/15' : 'bg-black/5 text-black hover:bg-black/10'
+                              }`}
+                            >
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                              </svg>
+                              Create Board
+                            </button>
+                          </SignedIn>
+                          <SignedOut>
+                            <Link
+                              href="/sign-in"
+                              className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium mb-2 transition-all ${
+                                darkMode ? 'bg-white/10 text-white hover:bg-white/15' : 'bg-black/5 text-black hover:bg-black/10'
+                              }`}
+                            >
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                              </svg>
+                              Sign in to create
+                            </Link>
+                          </SignedOut>
+
+                          {communityBoards.length > 0 && (
+                            <>
+                              <div className={`text-[10px] font-medium uppercase tracking-wider mb-2 ${darkMode ? 'text-white/30' : 'text-black/30'}`}>
+                                Popular Boards
+                              </div>
+                              <div className="space-y-1 max-h-64 overflow-y-auto">
+                                {communityBoards.slice(0, 8).map((board) => (
+                                  <Link
+                                    key={board.id}
+                                    href={`/b/${board.slug}`}
+                                    onClick={() => setShowBoardsDropdown(false)}
+                                    className={`flex items-center gap-3 px-2 py-2 rounded-lg transition-all ${
+                                      darkMode ? 'hover:bg-white/5' : 'hover:bg-black/5'
+                                    }`}
+                                  >
+                                    {board.previews[0] ? (
+                                      <img src={board.previews[0]} alt="" className="w-8 h-8 rounded object-cover" />
+                                    ) : (
+                                      <div className={`w-8 h-8 rounded flex items-center justify-center ${darkMode ? 'bg-white/10' : 'bg-black/10'}`}>
+                                        <svg className={`w-4 h-4 ${darkMode ? 'text-white/30' : 'text-black/30'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                                        </svg>
+                                      </div>
+                                    )}
+                                    <div className="flex-1 min-w-0">
+                                      <div className={`text-sm font-medium truncate ${darkMode ? 'text-white/90' : 'text-black/90'}`}>
+                                        {board.title}
+                                      </div>
+                                      <div className={`text-[10px] ${darkMode ? 'text-white/40' : 'text-black/40'}`}>
+                                        {board.topic && <span>{board.topic} · </span>}
+                                        {board.itemCount} items
+                                      </div>
+                                    </div>
+                                  </Link>
+                                ))}
+                              </div>
+                              <Link
+                                href="/explore"
+                                onClick={() => setShowBoardsDropdown(false)}
+                                className={`block text-center text-xs mt-2 py-2 rounded-lg ${
+                                  darkMode ? 'text-white/50 hover:text-white/70 hover:bg-white/5' : 'text-black/50 hover:text-black/70 hover:bg-black/5'
+                                }`}
+                              >
+                                See all boards
+                              </Link>
+                            </>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
 
               {/* Active Board button - only for signed in users */}
               <SignedIn>
