@@ -637,15 +637,31 @@ export default function Home() {
     >
       {/* Drop zone overlay */}
       {isDragging && (
-        <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center pointer-events-none">
-          <div className="text-center">
-            <div className="w-24 h-24 mx-auto mb-4 rounded-3xl border-4 border-dashed border-white/40 flex items-center justify-center">
-              <svg className="w-12 h-12 text-white/60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        <div
+          className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center"
+          onClick={() => setIsDragging(false)}
+        >
+          <div
+            className="relative bg-neutral-900 rounded-2xl p-12 max-w-md mx-4 shadow-2xl border border-white/10"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setIsDragging(false)}
+              className="absolute top-4 right-4 text-white/40 hover:text-white transition-colors"
+            >
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
+            </button>
+            <div className="text-center">
+              <div className="w-20 h-20 mx-auto mb-4 rounded-2xl border-2 border-dashed border-white/30 flex items-center justify-center">
+                <svg className="w-10 h-10 text-white/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <p className="text-xl font-semibold text-white mb-2">Drop image here</p>
+              <p className="text-white/40 text-sm">Drag images from any website to submit</p>
             </div>
-            <p className="text-2xl font-semibold text-white mb-2">Drop image here</p>
-            <p className="text-white/50">Drag images from any website to submit</p>
           </div>
         </div>
       )}
