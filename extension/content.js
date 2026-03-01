@@ -197,9 +197,6 @@ function createVoteOverlay() {
     <div class="craftorcrap-undo-row" style="display: none;">
       <button class="craftorcrap-undo-btn">Undo vote</button>
     </div>
-    <div class="craftorcrap-followed-row" style="display: none;">
-      <span class="craftorcrap-followed-text"></span>
-    </div>
     <div class="craftorcrap-rating-bar">
       <div class="craftorcrap-rating-fill"></div>
     </div>
@@ -297,7 +294,6 @@ function updateOverlayRating(rating) {
   const craftBtn = voteOverlay.querySelector('.craftorcrap-vote-btn.craft');
   const crapBtn = voteOverlay.querySelector('.craftorcrap-vote-btn.crap');
   const undoRow = voteOverlay.querySelector('.craftorcrap-undo-row');
-  const followedRow = voteOverlay.querySelector('.craftorcrap-followed-row');
 
   // Reset button states
   craftBtn.classList.remove('voted', 'disabled');
@@ -305,7 +301,6 @@ function updateOverlayRating(rating) {
   craftBtn.disabled = false;
   crapBtn.disabled = false;
   undoRow.style.display = 'none';
-  if (followedRow) followedRow.style.display = 'none';
 
   if (rating) {
     const percent = rating.percent;
@@ -326,23 +321,6 @@ function updateOverlayRating(rating) {
       }
     } else {
       text.textContent = 'No votes yet';
-    }
-
-    // Show followed users' votes
-    if (followedRow && rating.followed_votes) {
-      const fv = rating.followed_votes;
-      const totalFollowed = fv.craft + fv.crap;
-      if (totalFollowed > 0) {
-        const followedText = followedRow.querySelector('.craftorcrap-followed-text');
-        if (fv.craft > 0 && fv.crap > 0) {
-          followedText.textContent = `Friends: ${fv.craft} craft, ${fv.crap} crap`;
-        } else if (fv.craft > 0) {
-          followedText.textContent = `${fv.craft} friend${fv.craft > 1 ? 's' : ''} voted craft`;
-        } else {
-          followedText.textContent = `${fv.crap} friend${fv.crap > 1 ? 's' : ''} voted crap`;
-        }
-        followedRow.style.display = 'block';
-      }
     }
 
     // Show user's vote and undo option
