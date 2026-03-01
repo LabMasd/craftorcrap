@@ -169,6 +169,8 @@ export default function Home() {
   const [newBoardName, setNewBoardName] = useState('')
   const [newBoardTopic, setNewBoardTopic] = useState('')
   const [creatingBoard, setCreatingBoard] = useState(false)
+  const [activeBoardFilter, setActiveBoardFilter] = useState<string | null>(null)
+  const [showBoardFilterDropdown, setShowBoardFilterDropdown] = useState(false)
 
   const BOARD_TOPICS = ['Design', 'Tech', 'Fashion', 'Architecture', 'Art', 'Photography', 'Gaming', 'Music', 'Film']
 
@@ -728,17 +730,163 @@ export default function Home() {
               ))}
             </div>
 
-            {/* Explore link */}
-            <Link
-              href="/explore"
-              className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all ${
-                darkMode
-                  ? 'text-white/60 hover:text-white'
-                  : 'text-black/60 hover:text-black'
-              }`}
-            >
-              Boards
-            </Link>
+            {/* Community Boards dropdown - in header */}
+            <div className="relative">
+              <button
+                onClick={() => { setShowBoardsDropdown(!showBoardsDropdown); setShowCreateBoard(false); }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full transition-all ${
+                  showBoardsDropdown
+                    ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
+                    : darkMode ? 'text-white/60 hover:text-white' : 'text-black/60 hover:text-black'
+                }`}
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                Community Boards
+                <svg className={`w-3 h-3 transition-transform ${showBoardsDropdown ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {showBoardsDropdown && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => { setShowBoardsDropdown(false); setShowCreateBoard(false); }} />
+                  <div className={`absolute right-0 top-full mt-2 w-72 rounded-xl p-3 z-50 shadow-xl ${
+                    darkMode ? 'bg-neutral-900 border border-white/10' : 'bg-white border border-black/10'
+                  }`}>
+                    {/* Create new board */}
+                    {showCreateBoard ? (
+                      <div className="space-y-3">
+                        <input
+                          type="text"
+                          value={newBoardName}
+                          onChange={(e) => setNewBoardName(e.target.value)}
+                          placeholder="Board name..."
+                          autoFocus
+                          className={`w-full px-3 py-2 text-sm rounded-lg outline-none ${
+                            darkMode ? 'bg-white/10 text-white placeholder:text-white/30' : 'bg-black/5 text-black placeholder:text-black/30'
+                          }`}
+                        />
+                        <div className="flex flex-wrap gap-1.5">
+                          {BOARD_TOPICS.map((t) => (
+                            <button
+                              key={t}
+                              onClick={() => setNewBoardTopic(newBoardTopic === t ? '' : t)}
+                              className={`px-2 py-1 text-[10px] font-medium rounded-full transition-all ${
+                                newBoardTopic === t
+                                  ? 'bg-emerald-500 text-white'
+                                  : darkMode
+                                  ? 'bg-white/10 text-white/50 hover:bg-white/15'
+                                  : 'bg-black/10 text-black/50 hover:bg-black/15'
+                              }`}
+                            >
+                              {t}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={handleCreateBoard}
+                            disabled={!newBoardName.trim() || creatingBoard}
+                            className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all disabled:opacity-50 ${
+                              darkMode ? 'bg-white text-black' : 'bg-black text-white'
+                            }`}
+                          >
+                            {creatingBoard ? 'Creating...' : 'Create Board'}
+                          </button>
+                          <button
+                            onClick={() => { setShowCreateBoard(false); setNewBoardName(''); setNewBoardTopic(''); }}
+                            className={`px-4 py-2 text-xs font-medium rounded-lg ${
+                              darkMode ? 'bg-white/10 text-white/70' : 'bg-black/10 text-black/70'
+                            }`}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <SignedIn>
+                          <button
+                            onClick={() => setShowCreateBoard(true)}
+                            className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium mb-2 transition-all ${
+                              darkMode ? 'bg-white/10 text-white hover:bg-white/15' : 'bg-black/5 text-black hover:bg-black/10'
+                            }`}
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                            </svg>
+                            Create Board
+                          </button>
+                        </SignedIn>
+                        <SignedOut>
+                          <Link
+                            href="/sign-in"
+                            className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium mb-2 transition-all ${
+                              darkMode ? 'bg-white/10 text-white hover:bg-white/15' : 'bg-black/5 text-black hover:bg-black/10'
+                            }`}
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                            </svg>
+                            Sign in to create
+                          </Link>
+                        </SignedOut>
+
+                        {communityBoards.length > 0 && (
+                          <>
+                            <div className={`text-[10px] font-medium uppercase tracking-wider mb-2 ${darkMode ? 'text-white/30' : 'text-black/30'}`}>
+                              Popular Boards
+                            </div>
+                            <div className="space-y-1 max-h-64 overflow-y-auto">
+                              {communityBoards.slice(0, 8).map((board) => (
+                                <Link
+                                  key={board.id}
+                                  href={`/b/${board.slug}`}
+                                  onClick={() => setShowBoardsDropdown(false)}
+                                  className={`flex items-center gap-3 px-2 py-2 rounded-lg transition-all ${
+                                    darkMode ? 'hover:bg-white/5' : 'hover:bg-black/5'
+                                  }`}
+                                >
+                                  {board.previews[0] ? (
+                                    <img src={board.previews[0]} alt="" className="w-8 h-8 rounded object-cover" />
+                                  ) : (
+                                    <div className={`w-8 h-8 rounded flex items-center justify-center ${darkMode ? 'bg-white/10' : 'bg-black/10'}`}>
+                                      <svg className={`w-4 h-4 ${darkMode ? 'text-white/30' : 'text-black/30'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                                      </svg>
+                                    </div>
+                                  )}
+                                  <div className="flex-1 min-w-0">
+                                    <div className={`text-sm font-medium truncate ${darkMode ? 'text-white/90' : 'text-black/90'}`}>
+                                      {board.title}
+                                    </div>
+                                    <div className={`text-[10px] ${darkMode ? 'text-white/40' : 'text-black/40'}`}>
+                                      {board.topic && <span>{board.topic} · </span>}
+                                      {board.itemCount} items
+                                    </div>
+                                  </div>
+                                </Link>
+                              ))}
+                            </div>
+                            <Link
+                              href="/explore"
+                              onClick={() => setShowBoardsDropdown(false)}
+                              className={`block text-center text-xs mt-2 py-2 rounded-lg ${
+                                darkMode ? 'text-white/50 hover:text-white/70 hover:bg-white/5' : 'text-black/50 hover:text-black/70 hover:bg-black/5'
+                              }`}
+                            >
+                              See all boards
+                            </Link>
+                          </>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
 
             {/* Auth buttons */}
             <SignedOut>
@@ -949,160 +1097,57 @@ export default function Home() {
                 Color
               </button>
 
-              {/* Community Boards dropdown */}
-              <div className="relative">
-                <button
-                  onClick={() => { setShowBoardsDropdown(!showBoardsDropdown); setShowCategoryFilter(false); setShowColorPicker(false); setShowCreateBoard(false); }}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
-                    showBoardsDropdown
-                      ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
-                      : darkMode ? 'bg-white/5 text-white/50 hover:text-white/70' : 'bg-black/5 text-black/50 hover:text-black/70'
-                  }`}
-                >
-                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                  Boards
-                </button>
+              {/* Board Filter dropdown */}
+              {communityBoards.length > 0 && (
+                <div className="relative">
+                  <button
+                    onClick={() => { setShowBoardFilterDropdown(!showBoardFilterDropdown); setShowCategoryFilter(false); setShowColorPicker(false); }}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
+                      activeBoardFilter || showBoardFilterDropdown
+                        ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
+                        : darkMode ? 'bg-white/5 text-white/50 hover:text-white/70' : 'bg-black/5 text-black/50 hover:text-black/70'
+                    }`}
+                  >
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                    {activeBoardFilter ? communityBoards.find(b => b.id === activeBoardFilter)?.title || 'Board' : 'Board'}
+                  </button>
 
-                {showBoardsDropdown && (
-                  <>
-                    <div className="fixed inset-0 z-40" onClick={() => { setShowBoardsDropdown(false); setShowCreateBoard(false); }} />
-                    <div className={`absolute left-0 top-full mt-2 w-72 rounded-xl p-3 z-50 shadow-xl ${
-                      darkMode ? 'bg-neutral-900 border border-white/10' : 'bg-white border border-black/10'
-                    }`}>
-                      {/* Create new board */}
-                      {showCreateBoard ? (
-                        <div className="space-y-3">
-                          <input
-                            type="text"
-                            value={newBoardName}
-                            onChange={(e) => setNewBoardName(e.target.value)}
-                            placeholder="Board name..."
-                            autoFocus
-                            className={`w-full px-3 py-2 text-sm rounded-lg outline-none ${
-                              darkMode ? 'bg-white/10 text-white placeholder:text-white/30' : 'bg-black/5 text-black placeholder:text-black/30'
+                  {showBoardFilterDropdown && (
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setShowBoardFilterDropdown(false)} />
+                      <div className={`absolute left-0 top-full mt-2 w-56 rounded-xl p-2 z-50 shadow-xl ${
+                        darkMode ? 'bg-neutral-900 border border-white/10' : 'bg-white border border-black/10'
+                      }`}>
+                        <button
+                          onClick={() => { setActiveBoardFilter(null); setShowBoardFilterDropdown(false); }}
+                          className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${
+                            !activeBoardFilter
+                              ? darkMode ? 'bg-white/10 text-white' : 'bg-black/10 text-black'
+                              : darkMode ? 'text-white/70 hover:bg-white/5' : 'text-black/70 hover:bg-black/5'
+                          }`}
+                        >
+                          All boards
+                        </button>
+                        {communityBoards.slice(0, 10).map((board) => (
+                          <button
+                            key={board.id}
+                            onClick={() => { setActiveBoardFilter(board.id); setShowBoardFilterDropdown(false); }}
+                            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${
+                              activeBoardFilter === board.id
+                                ? darkMode ? 'bg-white/10 text-white' : 'bg-black/10 text-black'
+                                : darkMode ? 'text-white/70 hover:bg-white/5' : 'text-black/70 hover:bg-black/5'
                             }`}
-                          />
-                          <div className="flex flex-wrap gap-1.5">
-                            {BOARD_TOPICS.map((t) => (
-                              <button
-                                key={t}
-                                onClick={() => setNewBoardTopic(newBoardTopic === t ? '' : t)}
-                                className={`px-2 py-1 text-[10px] font-medium rounded-full transition-all ${
-                                  newBoardTopic === t
-                                    ? 'bg-emerald-500 text-white'
-                                    : darkMode
-                                    ? 'bg-white/10 text-white/50 hover:bg-white/15'
-                                    : 'bg-black/10 text-black/50 hover:bg-black/15'
-                                }`}
-                              >
-                                {t}
-                              </button>
-                            ))}
-                          </div>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={handleCreateBoard}
-                              disabled={!newBoardName.trim() || creatingBoard}
-                              className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all disabled:opacity-50 ${
-                                darkMode ? 'bg-white text-black' : 'bg-black text-white'
-                              }`}
-                            >
-                              {creatingBoard ? 'Creating...' : 'Create Board'}
-                            </button>
-                            <button
-                              onClick={() => { setShowCreateBoard(false); setNewBoardName(''); setNewBoardTopic(''); }}
-                              className={`px-4 py-2 text-xs font-medium rounded-lg ${
-                                darkMode ? 'bg-white/10 text-white/70' : 'bg-black/10 text-black/70'
-                              }`}
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <>
-                          <SignedIn>
-                            <button
-                              onClick={() => setShowCreateBoard(true)}
-                              className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium mb-2 transition-all ${
-                                darkMode ? 'bg-white/10 text-white hover:bg-white/15' : 'bg-black/5 text-black hover:bg-black/10'
-                              }`}
-                            >
-                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                              </svg>
-                              Create Board
-                            </button>
-                          </SignedIn>
-                          <SignedOut>
-                            <Link
-                              href="/sign-in"
-                              className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium mb-2 transition-all ${
-                                darkMode ? 'bg-white/10 text-white hover:bg-white/15' : 'bg-black/5 text-black hover:bg-black/10'
-                              }`}
-                            >
-                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                              </svg>
-                              Sign in to create
-                            </Link>
-                          </SignedOut>
-
-                          {communityBoards.length > 0 && (
-                            <>
-                              <div className={`text-[10px] font-medium uppercase tracking-wider mb-2 ${darkMode ? 'text-white/30' : 'text-black/30'}`}>
-                                Popular Boards
-                              </div>
-                              <div className="space-y-1 max-h-64 overflow-y-auto">
-                                {communityBoards.slice(0, 8).map((board) => (
-                                  <Link
-                                    key={board.id}
-                                    href={`/b/${board.slug}`}
-                                    onClick={() => setShowBoardsDropdown(false)}
-                                    className={`flex items-center gap-3 px-2 py-2 rounded-lg transition-all ${
-                                      darkMode ? 'hover:bg-white/5' : 'hover:bg-black/5'
-                                    }`}
-                                  >
-                                    {board.previews[0] ? (
-                                      <img src={board.previews[0]} alt="" className="w-8 h-8 rounded object-cover" />
-                                    ) : (
-                                      <div className={`w-8 h-8 rounded flex items-center justify-center ${darkMode ? 'bg-white/10' : 'bg-black/10'}`}>
-                                        <svg className={`w-4 h-4 ${darkMode ? 'text-white/30' : 'text-black/30'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                                        </svg>
-                                      </div>
-                                    )}
-                                    <div className="flex-1 min-w-0">
-                                      <div className={`text-sm font-medium truncate ${darkMode ? 'text-white/90' : 'text-black/90'}`}>
-                                        {board.title}
-                                      </div>
-                                      <div className={`text-[10px] ${darkMode ? 'text-white/40' : 'text-black/40'}`}>
-                                        {board.topic && <span>{board.topic} · </span>}
-                                        {board.itemCount} items
-                                      </div>
-                                    </div>
-                                  </Link>
-                                ))}
-                              </div>
-                              <Link
-                                href="/explore"
-                                onClick={() => setShowBoardsDropdown(false)}
-                                className={`block text-center text-xs mt-2 py-2 rounded-lg ${
-                                  darkMode ? 'text-white/50 hover:text-white/70 hover:bg-white/5' : 'text-black/50 hover:text-black/70 hover:bg-black/5'
-                                }`}
-                              >
-                                See all boards
-                              </Link>
-                            </>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  </>
-                )}
-              </div>
+                          >
+                            {board.title}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
 
               {/* Active Board button - only for signed in users */}
               <SignedIn>
@@ -1264,6 +1309,55 @@ export default function Home() {
           <div
             className={`${gridCols[cardSize]} gap-3 transition-opacity duration-200 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}
           >
+            {/* Community Board cards - shown at top when no filters active */}
+            {!activeBoardFilter && activeCategory === 'all' && !activeColor && !searchQuery && communityBoards.slice(0, 3).map((board) => (
+              <Link
+                key={`board-${board.id}`}
+                href={`/b/${board.slug}`}
+                className="break-inside-avoid mb-3 block group"
+              >
+                <div className={`rounded-xl overflow-hidden transition-all ${
+                  darkMode ? 'bg-white/5 hover:bg-white/10' : 'bg-black/5 hover:bg-black/10'
+                }`}>
+                  {/* Preview images grid */}
+                  {board.previews.length > 0 ? (
+                    <div className="grid grid-cols-2 gap-0.5 aspect-[4/3]">
+                      {board.previews.slice(0, 4).map((preview, i) => (
+                        <img
+                          key={i}
+                          src={preview}
+                          alt=""
+                          className="w-full h-full object-cover"
+                        />
+                      ))}
+                      {board.previews.length < 4 && Array(4 - board.previews.length).fill(0).map((_, i) => (
+                        <div key={`empty-${i}`} className={`${darkMode ? 'bg-white/5' : 'bg-black/5'}`} />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className={`aspect-[4/3] flex items-center justify-center ${darkMode ? 'bg-white/5' : 'bg-black/5'}`}>
+                      <svg className={`w-12 h-12 ${darkMode ? 'text-white/20' : 'text-black/20'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                      </svg>
+                    </div>
+                  )}
+                  <div className="p-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="px-2 py-0.5 text-[9px] font-semibold rounded-full bg-emerald-500/20 text-emerald-400">
+                        Community Board
+                      </span>
+                    </div>
+                    <h3 className={`font-semibold text-sm ${darkMode ? 'text-white/90' : 'text-black/90'}`}>
+                      {board.title}
+                    </h3>
+                    <p className={`text-[11px] mt-0.5 ${darkMode ? 'text-white/40' : 'text-black/40'}`}>
+                      {board.topic && <span>{board.topic} · </span>}
+                      {board.itemCount} items · {board.followerCount} followers
+                    </p>
+                  </div>
+                </div>
+              </Link>
+            ))}
             {submissions.map((submission) => (
               <div key={submission.id} className="break-inside-avoid mb-3">
                 <SubmissionCard
