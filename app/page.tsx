@@ -237,6 +237,58 @@ export default function Home() {
       // Small delay to let fade out complete
       await new Promise(resolve => setTimeout(resolve, 150))
 
+      // If a community board is selected, fetch its items
+      if (activeBoardFilter) {
+        const selectedBoard = communityBoards.find(b => b.id === activeBoardFilter)
+        if (selectedBoard?.slug) {
+          try {
+            const res = await fetch(`/api/boards/${selectedBoard.slug}`)
+            if (res.ok) {
+              const data = await res.json()
+              // Convert board items to submission format
+              let boardSubmissions = (data.items || []).map((item: { id: string; submissions?: Submission; created_at: string }) => ({
+                id: item.id,
+                url: item.submissions?.url || '',
+                title: item.submissions?.title || '',
+                thumbnail_url: item.submissions?.thumbnail_url || null,
+                dominant_color: item.submissions?.dominant_color || null,
+                category: item.submissions?.category || null,
+                total_craft: item.submissions?.total_craft || 0,
+                total_crap: item.submissions?.total_crap || 0,
+                created_at: item.created_at,
+                submitted_by: null,
+              }))
+
+              // Apply other filters
+              if (activeCategory !== 'all') {
+                boardSubmissions = boardSubmissions.filter((s: Submission) => s.category === activeCategory)
+              }
+              if (activeColor) {
+                boardSubmissions = boardSubmissions.filter((s: Submission) => {
+                  if (!s.dominant_color) return false
+                  return colorDistance(s.dominant_color, activeColor) < 100
+                })
+              }
+              if (searchQuery.trim()) {
+                const query = searchQuery.toLowerCase().trim()
+                boardSubmissions = boardSubmissions.filter((s: Submission) => {
+                  const title = (s.title || '').toLowerCase()
+                  return title.includes(query)
+                })
+              }
+
+              setSubmissions(boardSubmissions)
+              setIsDemo(false)
+              setLoading(false)
+              setTimeout(() => setIsTransitioning(false), 50)
+              return
+            }
+          } catch (e) {
+            console.error('Failed to fetch board items:', e)
+          }
+        }
+      }
+
       if (!supabase) {
         let filtered = [...MOCK_SUBMISSIONS]
 
@@ -356,7 +408,7 @@ export default function Home() {
     }
 
     fetchSubmissions()
-  }, [activeTab, activeCategory, sortMode, activeColor, searchQuery])
+  }, [activeTab, activeCategory, sortMode, activeColor, searchQuery, activeBoardFilter, communityBoards])
 
   const gridCols = {
     compact: 'columns-2 sm:columns-3 md:columns-4 lg:columns-5 xl:columns-6 2xl:columns-7',
