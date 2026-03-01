@@ -949,7 +949,7 @@ export default function Home() {
             </SignedIn>
           </div>
 
-          {/* All filter pills in one row: Categories, Colors, Community Boards */}
+          {/* Filter row: Categories + Color dropdown + Board dropdown */}
           <div className="flex flex-wrap items-center gap-2">
             {/* Category pills */}
             {['All', ...CATEGORIES].map((cat) => (
@@ -966,52 +966,121 @@ export default function Home() {
               </button>
             ))}
 
-            {/* Divider */}
-            <div className={`w-px h-5 ${darkMode ? 'bg-white/20' : 'bg-black/20'}`} />
-
-            {/* Color pills */}
-            {COLOR_FILTERS.map((color) => (
+            {/* Color dropdown */}
+            <div className="relative">
               <button
-                key={color.hex}
-                onClick={() => setActiveColor(activeColor === color.hex ? null : color.hex)}
-                className={`w-7 h-7 rounded-full border-2 transition-all ${
-                  activeColor === color.hex
-                    ? darkMode ? 'border-white scale-110' : 'border-black scale-110'
-                    : darkMode ? 'border-white/10 hover:border-white/30' : 'border-black/10 hover:border-black/30'
-                }`}
-                style={{ backgroundColor: color.hex }}
-                title={color.name}
-              />
-            ))}
-
-            {/* Divider */}
-            {communityBoards.length > 0 && (
-              <div className={`w-px h-5 ${darkMode ? 'bg-white/20' : 'bg-black/20'}`} />
-            )}
-
-            {/* Community Board pills */}
-            {communityBoards.slice(0, 5).map((board) => (
-              <button
-                key={board.id}
-                onClick={() => setActiveBoardFilter(activeBoardFilter === board.id ? null : board.id)}
-                className={`px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
-                  activeBoardFilter === board.id
+                onClick={() => { setShowColorPicker(!showColorPicker); setShowBoardFilterDropdown(false); }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
+                  activeColor || showColorPicker
                     ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
                     : darkMode ? 'bg-white/10 text-white/60 hover:text-white' : 'bg-black/10 text-black/60 hover:text-black'
                 }`}
               >
-                {board.title}
+                {activeColor ? (
+                  <span className="w-3 h-3 rounded-full" style={{ backgroundColor: activeColor }} />
+                ) : (
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                  </svg>
+                )}
+                Color
               </button>
-            ))}
-            {communityBoards.length > 5 && (
-              <Link
-                href="/explore"
-                className={`px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
-                  darkMode ? 'bg-white/10 text-white/40 hover:text-white' : 'bg-black/10 text-black/40 hover:text-black'
-                }`}
-              >
-                +{communityBoards.length - 5} more
-              </Link>
+
+              {showColorPicker && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setShowColorPicker(false)} />
+                  <div className={`absolute left-0 top-full mt-2 p-3 rounded-xl z-50 shadow-xl ${
+                    darkMode ? 'bg-neutral-900 border border-white/10' : 'bg-white border border-black/10'
+                  }`}>
+                    <div className="flex flex-wrap gap-2 w-48">
+                      <button
+                        onClick={() => { setActiveColor(null); setShowColorPicker(false); }}
+                        className={`w-8 h-8 rounded-full border-2 flex items-center justify-center ${
+                          activeColor === null
+                            ? darkMode ? 'border-white' : 'border-black'
+                            : darkMode ? 'border-white/20 hover:border-white/40' : 'border-black/20 hover:border-black/40'
+                        }`}
+                      >
+                        <span className={`text-[8px] font-medium ${darkMode ? 'text-white/60' : 'text-black/60'}`}>All</span>
+                      </button>
+                      {COLOR_FILTERS.map((color) => (
+                        <button
+                          key={color.hex}
+                          onClick={() => { setActiveColor(color.hex); setShowColorPicker(false); }}
+                          className={`w-8 h-8 rounded-full border-2 transition-transform ${
+                            activeColor === color.hex
+                              ? darkMode ? 'border-white scale-110' : 'border-black scale-110'
+                              : darkMode ? 'border-white/20 hover:border-white/40' : 'border-black/20 hover:border-black/40'
+                          }`}
+                          style={{ backgroundColor: color.hex }}
+                          title={color.name}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Community Board dropdown */}
+            {communityBoards.length > 0 && (
+              <div className="relative">
+                <button
+                  onClick={() => { setShowBoardFilterDropdown(!showBoardFilterDropdown); setShowColorPicker(false); }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
+                    activeBoardFilter || showBoardFilterDropdown
+                      ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
+                      : darkMode ? 'bg-white/10 text-white/60 hover:text-white' : 'bg-black/10 text-black/60 hover:text-black'
+                  }`}
+                >
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  {activeBoardFilter ? communityBoards.find(b => b.id === activeBoardFilter)?.title || 'Board' : 'Board'}
+                </button>
+
+                {showBoardFilterDropdown && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setShowBoardFilterDropdown(false)} />
+                    <div className={`absolute left-0 top-full mt-2 w-56 rounded-xl p-2 z-50 shadow-xl ${
+                      darkMode ? 'bg-neutral-900 border border-white/10' : 'bg-white border border-black/10'
+                    }`}>
+                      <button
+                        onClick={() => { setActiveBoardFilter(null); setShowBoardFilterDropdown(false); }}
+                        className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${
+                          !activeBoardFilter
+                            ? darkMode ? 'bg-white/10 text-white' : 'bg-black/10 text-black'
+                            : darkMode ? 'text-white/70 hover:bg-white/5' : 'text-black/70 hover:bg-black/5'
+                        }`}
+                      >
+                        All boards
+                      </button>
+                      {communityBoards.map((board) => (
+                        <button
+                          key={board.id}
+                          onClick={() => { setActiveBoardFilter(board.id); setShowBoardFilterDropdown(false); }}
+                          className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${
+                            activeBoardFilter === board.id
+                              ? darkMode ? 'bg-white/10 text-white' : 'bg-black/10 text-black'
+                              : darkMode ? 'text-white/70 hover:bg-white/5' : 'text-black/70 hover:bg-black/5'
+                          }`}
+                        >
+                          {board.title}
+                        </button>
+                      ))}
+                      <Link
+                        href="/explore"
+                        onClick={() => setShowBoardFilterDropdown(false)}
+                        className={`block text-center text-xs mt-2 py-2 rounded-lg ${
+                          darkMode ? 'text-white/50 hover:text-white/70 hover:bg-white/5' : 'text-black/50 hover:text-black/70 hover:bg-black/5'
+                        }`}
+                      >
+                        See all boards
+                      </Link>
+                    </div>
+                  </>
+                )}
+              </div>
             )}
           </div>
         </div>
