@@ -730,164 +730,6 @@ export default function Home() {
               ))}
             </div>
 
-            {/* Community Boards dropdown - in header */}
-            <div className="relative">
-              <button
-                onClick={() => { setShowBoardsDropdown(!showBoardsDropdown); setShowCreateBoard(false); }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full transition-all ${
-                  showBoardsDropdown
-                    ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
-                    : darkMode ? 'text-white/60 hover:text-white' : 'text-black/60 hover:text-black'
-                }`}
-              >
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                Community Boards
-                <svg className={`w-3 h-3 transition-transform ${showBoardsDropdown ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-
-              {showBoardsDropdown && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={() => { setShowBoardsDropdown(false); setShowCreateBoard(false); }} />
-                  <div className={`absolute right-0 top-full mt-2 w-72 rounded-xl p-3 z-50 shadow-xl ${
-                    darkMode ? 'bg-neutral-900 border border-white/10' : 'bg-white border border-black/10'
-                  }`}>
-                    {/* Create new board */}
-                    {showCreateBoard ? (
-                      <div className="space-y-3">
-                        <input
-                          type="text"
-                          value={newBoardName}
-                          onChange={(e) => setNewBoardName(e.target.value)}
-                          placeholder="Board name..."
-                          autoFocus
-                          className={`w-full px-3 py-2 text-sm rounded-lg outline-none ${
-                            darkMode ? 'bg-white/10 text-white placeholder:text-white/30' : 'bg-black/5 text-black placeholder:text-black/30'
-                          }`}
-                        />
-                        <div className="flex flex-wrap gap-1.5">
-                          {BOARD_TOPICS.map((t) => (
-                            <button
-                              key={t}
-                              onClick={() => setNewBoardTopic(newBoardTopic === t ? '' : t)}
-                              className={`px-2 py-1 text-[10px] font-medium rounded-full transition-all ${
-                                newBoardTopic === t
-                                  ? 'bg-emerald-500 text-white'
-                                  : darkMode
-                                  ? 'bg-white/10 text-white/50 hover:bg-white/15'
-                                  : 'bg-black/10 text-black/50 hover:bg-black/15'
-                              }`}
-                            >
-                              {t}
-                            </button>
-                          ))}
-                        </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={handleCreateBoard}
-                            disabled={!newBoardName.trim() || creatingBoard}
-                            className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all disabled:opacity-50 ${
-                              darkMode ? 'bg-white text-black' : 'bg-black text-white'
-                            }`}
-                          >
-                            {creatingBoard ? 'Creating...' : 'Create Board'}
-                          </button>
-                          <button
-                            onClick={() => { setShowCreateBoard(false); setNewBoardName(''); setNewBoardTopic(''); }}
-                            className={`px-4 py-2 text-xs font-medium rounded-lg ${
-                              darkMode ? 'bg-white/10 text-white/70' : 'bg-black/10 text-black/70'
-                            }`}
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <>
-                        <SignedIn>
-                          <button
-                            onClick={() => setShowCreateBoard(true)}
-                            className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium mb-2 transition-all ${
-                              darkMode ? 'bg-white/10 text-white hover:bg-white/15' : 'bg-black/5 text-black hover:bg-black/10'
-                            }`}
-                          >
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                            </svg>
-                            Create Board
-                          </button>
-                        </SignedIn>
-                        <SignedOut>
-                          <Link
-                            href="/sign-in"
-                            className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium mb-2 transition-all ${
-                              darkMode ? 'bg-white/10 text-white hover:bg-white/15' : 'bg-black/5 text-black hover:bg-black/10'
-                            }`}
-                          >
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                            </svg>
-                            Sign in to create
-                          </Link>
-                        </SignedOut>
-
-                        {communityBoards.length > 0 && (
-                          <>
-                            <div className={`text-[10px] font-medium uppercase tracking-wider mb-2 ${darkMode ? 'text-white/30' : 'text-black/30'}`}>
-                              Popular Boards
-                            </div>
-                            <div className="space-y-1 max-h-64 overflow-y-auto">
-                              {communityBoards.slice(0, 8).map((board) => (
-                                <Link
-                                  key={board.id}
-                                  href={`/b/${board.slug}`}
-                                  onClick={() => setShowBoardsDropdown(false)}
-                                  className={`flex items-center gap-3 px-2 py-2 rounded-lg transition-all ${
-                                    darkMode ? 'hover:bg-white/5' : 'hover:bg-black/5'
-                                  }`}
-                                >
-                                  {board.previews[0] ? (
-                                    <img src={board.previews[0]} alt="" className="w-8 h-8 rounded object-cover" />
-                                  ) : (
-                                    <div className={`w-8 h-8 rounded flex items-center justify-center ${darkMode ? 'bg-white/10' : 'bg-black/10'}`}>
-                                      <svg className={`w-4 h-4 ${darkMode ? 'text-white/30' : 'text-black/30'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                                      </svg>
-                                    </div>
-                                  )}
-                                  <div className="flex-1 min-w-0">
-                                    <div className={`text-sm font-medium truncate ${darkMode ? 'text-white/90' : 'text-black/90'}`}>
-                                      {board.title}
-                                    </div>
-                                    <div className={`text-[10px] ${darkMode ? 'text-white/40' : 'text-black/40'}`}>
-                                      {board.topic && <span>{board.topic} · </span>}
-                                      {board.itemCount} items
-                                    </div>
-                                  </div>
-                                </Link>
-                              ))}
-                            </div>
-                            <Link
-                              href="/explore"
-                              onClick={() => setShowBoardsDropdown(false)}
-                              className={`block text-center text-xs mt-2 py-2 rounded-lg ${
-                                darkMode ? 'text-white/50 hover:text-white/70 hover:bg-white/5' : 'text-black/50 hover:text-black/70 hover:bg-black/5'
-                              }`}
-                            >
-                              See all boards
-                            </Link>
-                          </>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
-
             {/* Auth buttons */}
             <SignedOut>
               <Link
@@ -1057,192 +899,178 @@ export default function Home() {
           )}
         </div>
 
-        {/* Category Filters + Sort */}
+        {/* Filters */}
         <div className="mb-6" ref={filtersRef}>
           {/* Filter buttons row */}
-          <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-4">
-            {/* Left side: Filter + Color buttons */}
-            <div className="flex items-center gap-2">
-              {/* Category Filter button */}
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Filter button (shows category when active) */}
+            <button
+              onClick={() => { setShowCategoryFilter(!showCategoryFilter); setShowColorPicker(false); setShowBoardFilterDropdown(false); }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
+                activeCategory !== 'all' || showCategoryFilter
+                  ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
+                  : darkMode ? 'bg-white/5 text-white/50 hover:text-white/70' : 'bg-black/5 text-black/50 hover:text-black/70'
+              }`}
+            >
+              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+              </svg>
+              {activeCategory !== 'all' ? activeCategory : 'Filter'}
+            </button>
+
+            {/* Color Filter button */}
+            <button
+              onClick={() => { setShowColorPicker(!showColorPicker); setShowCategoryFilter(false); setShowBoardFilterDropdown(false); }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
+                activeColor || showColorPicker
+                  ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
+                  : darkMode ? 'bg-white/5 text-white/50 hover:text-white/70' : 'bg-black/5 text-black/50 hover:text-black/70'
+              }`}
+            >
+              {activeColor ? (
+                <span className="w-3 h-3 rounded-full border border-current" style={{ backgroundColor: activeColor }} />
+              ) : (
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                </svg>
+              )}
+              Color
+            </button>
+
+            {/* Board Filter dropdown */}
+            <div className="relative">
               <button
-                onClick={() => { setShowCategoryFilter(!showCategoryFilter); setShowColorPicker(false); }}
+                onClick={() => { setShowBoardFilterDropdown(!showBoardFilterDropdown); setShowCategoryFilter(false); setShowColorPicker(false); }}
                 className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
-                  activeCategory !== 'all' || showCategoryFilter
+                  activeBoardFilter || showBoardFilterDropdown
                     ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
                     : darkMode ? 'bg-white/5 text-white/50 hover:text-white/70' : 'bg-black/5 text-black/50 hover:text-black/70'
                 }`}
               >
                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                 </svg>
-                {activeCategory !== 'all' ? activeCategory : 'Filter'}
+                {activeBoardFilter ? communityBoards.find(b => b.id === activeBoardFilter)?.title || 'Board' : 'Board'}
               </button>
 
-              {/* Color Filter button */}
-              <button
-                onClick={() => { setShowColorPicker(!showColorPicker); setShowCategoryFilter(false); }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
-                  activeColor || showColorPicker
-                    ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
-                    : darkMode ? 'bg-white/5 text-white/50 hover:text-white/70' : 'bg-black/5 text-black/50 hover:text-black/70'
-                }`}
-              >
-                {activeColor ? (
-                  <span className="w-3 h-3 rounded-full border border-current" style={{ backgroundColor: activeColor }} />
-                ) : (
-                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-                  </svg>
-                )}
-                Color
-              </button>
-
-              {/* Board Filter dropdown */}
-              {communityBoards.length > 0 && (
-                <div className="relative">
-                  <button
-                    onClick={() => { setShowBoardFilterDropdown(!showBoardFilterDropdown); setShowCategoryFilter(false); setShowColorPicker(false); }}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
-                      activeBoardFilter || showBoardFilterDropdown
-                        ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
-                        : darkMode ? 'bg-white/5 text-white/50 hover:text-white/70' : 'bg-black/5 text-black/50 hover:text-black/70'
-                    }`}
-                  >
-                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                    </svg>
-                    {activeBoardFilter ? communityBoards.find(b => b.id === activeBoardFilter)?.title || 'Board' : 'Board'}
-                  </button>
-
-                  {showBoardFilterDropdown && (
-                    <>
-                      <div className="fixed inset-0 z-40" onClick={() => setShowBoardFilterDropdown(false)} />
-                      <div className={`absolute left-0 top-full mt-2 w-56 rounded-xl p-2 z-50 shadow-xl ${
-                        darkMode ? 'bg-neutral-900 border border-white/10' : 'bg-white border border-black/10'
-                      }`}>
-                        <button
-                          onClick={() => { setActiveBoardFilter(null); setShowBoardFilterDropdown(false); }}
-                          className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${
-                            !activeBoardFilter
-                              ? darkMode ? 'bg-white/10 text-white' : 'bg-black/10 text-black'
-                              : darkMode ? 'text-white/70 hover:bg-white/5' : 'text-black/70 hover:bg-black/5'
-                          }`}
-                        >
-                          All boards
-                        </button>
-                        {communityBoards.slice(0, 10).map((board) => (
-                          <button
-                            key={board.id}
-                            onClick={() => { setActiveBoardFilter(board.id); setShowBoardFilterDropdown(false); }}
-                            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${
-                              activeBoardFilter === board.id
-                                ? darkMode ? 'bg-white/10 text-white' : 'bg-black/10 text-black'
-                                : darkMode ? 'text-white/70 hover:bg-white/5' : 'text-black/70 hover:bg-black/5'
-                            }`}
-                          >
-                            {board.title}
-                          </button>
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </div>
+              {showBoardFilterDropdown && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setShowBoardFilterDropdown(false)} />
+                  <div className={`absolute left-0 top-full mt-2 w-56 rounded-xl p-2 z-50 shadow-xl ${
+                    darkMode ? 'bg-neutral-900 border border-white/10' : 'bg-white border border-black/10'
+                  }`}>
+                    <button
+                      onClick={() => { setActiveBoardFilter(null); setShowBoardFilterDropdown(false); }}
+                      className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${
+                        !activeBoardFilter
+                          ? darkMode ? 'bg-white/10 text-white' : 'bg-black/10 text-black'
+                          : darkMode ? 'text-white/70 hover:bg-white/5' : 'text-black/70 hover:bg-black/5'
+                      }`}
+                    >
+                      All boards
+                    </button>
+                    {communityBoards.slice(0, 10).map((board) => (
+                      <button
+                        key={board.id}
+                        onClick={() => { setActiveBoardFilter(board.id); setShowBoardFilterDropdown(false); }}
+                        className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${
+                          activeBoardFilter === board.id
+                            ? darkMode ? 'bg-white/10 text-white' : 'bg-black/10 text-black'
+                            : darkMode ? 'text-white/70 hover:bg-white/5' : 'text-black/70 hover:bg-black/5'
+                        }`}
+                      >
+                        {board.title}
+                      </button>
+                    ))}
+                    <Link
+                      href="/explore"
+                      onClick={() => setShowBoardFilterDropdown(false)}
+                      className={`block text-center text-xs mt-2 py-2 rounded-lg ${
+                        darkMode ? 'text-white/50 hover:text-white/70 hover:bg-white/5' : 'text-black/50 hover:text-black/70 hover:bg-black/5'
+                      }`}
+                    >
+                      See all boards
+                    </Link>
+                  </div>
+                </>
               )}
-
-              {/* Active Board button - only for signed in users */}
-              <SignedIn>
-                <ActiveBoardButton darkMode={darkMode} />
-              </SignedIn>
-
-              {/* Search input */}
-              <div className="relative">
-                <svg className={`absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 ${darkMode ? 'text-white/40' : 'text-black/40'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search..."
-                  className={`w-24 sm:w-32 pl-7 pr-2 py-1.5 text-[11px] rounded-full outline-none transition-all focus:w-40 sm:focus:w-48 ${
-                    darkMode
-                      ? 'bg-white/5 text-white placeholder:text-white/30 focus:bg-white/10'
-                      : 'bg-black/5 text-black placeholder:text-black/30 focus:bg-black/10'
-                  }`}
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery('')}
-                    className={`absolute right-2 top-1/2 -translate-y-1/2 ${darkMode ? 'text-white/40 hover:text-white/70' : 'text-black/40 hover:text-black/70'}`}
-                  >
-                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                )}
-              </div>
             </div>
 
-            {/* Right side: Sort Toggle */}
-            <div className={`p-1 rounded-full ${darkMode ? 'bg-white/5' : 'bg-black/5'}`}>
-              <div className="relative flex">
-                <div
-                  className={`absolute top-0 bottom-0 rounded-full will-change-transform ${darkMode ? 'bg-white' : 'bg-black'}`}
-                  style={{
-                    width: '56px',
-                    transform: `translateX(${sortMode === 'newest' ? 0 : 56}px)`,
-                    transition: 'transform 500ms cubic-bezier(0.16, 1, 0.3, 1)',
-                  }}
-                />
+            {/* Unsorted toggle button */}
+            <button
+              onClick={() => setSortMode(sortMode === 'random' ? 'newest' : 'random')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
+                sortMode === 'random'
+                  ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
+                  : darkMode ? 'bg-white/5 text-white/50 hover:text-white/70' : 'bg-black/5 text-black/50 hover:text-black/70'
+              }`}
+            >
+              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+              </svg>
+              Unsorted
+            </button>
+
+            {/* Search input */}
+            <div className="relative ml-auto sm:ml-0">
+              <svg className={`absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 ${darkMode ? 'text-white/40' : 'text-black/40'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search..."
+                className={`w-28 sm:w-36 pl-7 pr-2 py-1.5 text-[11px] rounded-full outline-none transition-all focus:w-40 sm:focus:w-48 ${
+                  darkMode
+                    ? 'bg-white/5 text-white placeholder:text-white/30 focus:bg-white/10'
+                    : 'bg-black/5 text-black placeholder:text-black/30 focus:bg-black/10'
+                }`}
+              />
+              {searchQuery && (
                 <button
-                  onClick={() => setSortMode('newest')}
-                  className={`relative z-10 w-14 py-1.5 text-[11px] font-medium rounded-full transition-colors duration-300 text-center ${
-                    sortMode === 'newest'
-                      ? darkMode ? 'text-black' : 'text-white'
-                      : darkMode ? 'text-white/50 hover:text-white/70' : 'text-black/50 hover:text-black/70'
-                  }`}
+                  onClick={() => setSearchQuery('')}
+                  className={`absolute right-2 top-1/2 -translate-y-1/2 ${darkMode ? 'text-white/40 hover:text-white/70' : 'text-black/40 hover:text-black/70'}`}
                 >
-                  Newest
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                 </button>
-                <button
-                  onClick={() => setSortMode('random')}
-                  className={`relative z-10 w-14 py-1.5 text-[11px] font-medium rounded-full transition-colors duration-300 text-center ${
-                    sortMode === 'random'
-                      ? darkMode ? 'text-black' : 'text-white'
-                      : darkMode ? 'text-white/50 hover:text-white/70' : 'text-black/50 hover:text-black/70'
-                  }`}
-                >
-                  Random
-                </button>
-              </div>
+              )}
             </div>
+
+            {/* Active Board button - only for signed in users */}
+            <SignedIn>
+              <ActiveBoardButton darkMode={darkMode} />
+            </SignedIn>
           </div>
 
-          {/* Category dropdown - slides down */}
+          {/* Category pills - always visible */}
+          <div className="flex flex-wrap gap-2 mt-3">
+            {['All', ...CATEGORIES].map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat === 'All' ? 'all' : cat as Category)}
+                className={`px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
+                  (cat === 'All' ? 'all' : cat) === activeCategory
+                    ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
+                    : darkMode ? 'bg-white/10 text-white/60 hover:text-white' : 'bg-black/10 text-black/60 hover:text-black'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+
+          {/* Category dropdown - slides down (when Filter button is clicked) */}
           <div
             className="overflow-hidden"
             style={{
-              maxHeight: showCategoryFilter ? '200px' : '0',
-              opacity: showCategoryFilter ? 1 : 0,
+              maxHeight: showCategoryFilter ? '0px' : '0',
+              opacity: 0,
               transition: 'max-height 400ms cubic-bezier(0.16, 1, 0.3, 1), opacity 300ms ease',
             }}
-          >
-            <div className={`flex flex-wrap gap-2 mt-3 p-3 rounded-2xl ${darkMode ? 'bg-white/5' : 'bg-black/5'}`}>
-              {['All', ...CATEGORIES].map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => { setActiveCategory(cat === 'All' ? 'all' : cat as Category); setShowCategoryFilter(false); }}
-                  className={`px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
-                    (cat === 'All' ? 'all' : cat) === activeCategory
-                      ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
-                      : darkMode ? 'bg-white/10 text-white/60 hover:text-white' : 'bg-black/10 text-black/60 hover:text-black'
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-          </div>
+          />
 
           {/* Color dropdown - slides down */}
           <div
