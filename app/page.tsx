@@ -1100,14 +1100,20 @@ export default function Home() {
                       {communityBoards.map((board) => (
                         <button
                           key={board.id}
-                          onClick={() => { setActiveBoardFilter(board.id); setShowBoardFilterDropdown(false); }}
-                          className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${
+                          onClick={() => {
+                            setActiveBoardFilter(activeBoardFilter === board.id ? null : board.id);
+                            setShowBoardFilterDropdown(false);
+                          }}
+                          className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all flex items-center justify-between ${
                             activeBoardFilter === board.id
                               ? darkMode ? 'bg-white/10 text-white' : 'bg-black/10 text-black'
                               : darkMode ? 'text-white/70 hover:bg-white/5' : 'text-black/70 hover:bg-black/5'
                           }`}
                         >
                           {board.title}
+                          {activeBoardFilter === board.id && (
+                            <span className="text-xs opacity-50">✕</span>
+                          )}
                         </button>
                       ))}
                     </div>
