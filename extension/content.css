@@ -5,19 +5,19 @@
   position: fixed;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 10px;
+  gap: 4px;
+  padding: 6px;
   background: rgba(10, 10, 10, 0.95);
   backdrop-filter: blur(12px);
-  border-radius: 14px;
+  border-radius: 8px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   z-index: 2147483647;
   opacity: 0;
-  transform: translateY(8px);
+  transform: translateY(4px);
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
   pointer-events: none;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
-  min-width: 140px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+  min-width: 70px;
 }
 
 #craftorcrap-overlay.show {
@@ -29,14 +29,15 @@
 /* Vote Buttons */
 .craftorcrap-vote-buttons {
   display: flex;
-  gap: 6px;
+  gap: 3px;
 }
 
 .craftorcrap-vote-btn {
   flex: 1;
-  height: 36px;
+  height: 20px;
+  width: 20px;
   border: none;
-  border-radius: 8px;
+  border-radius: 4px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -82,31 +83,31 @@
 }
 
 .craftorcrap-vote-btn svg {
-  width: 18px;
-  height: 18px;
+  width: 10px;
+  height: 10px;
 }
 
 /* Category Selector */
 .craftorcrap-category-row {
-  margin-top: 2px;
+  margin-top: 1px;
 }
 
 .craftorcrap-category-select {
   width: 100%;
   background: rgba(255, 255, 255, 0.08);
   border: none;
-  border-radius: 6px;
+  border-radius: 3px;
   color: rgba(255, 255, 255, 0.6);
-  font-size: 10px;
+  font-size: 8px;
   font-weight: 500;
-  padding: 6px 24px 6px 8px;
+  padding: 3px 14px 3px 4px;
   cursor: pointer;
   outline: none;
   -webkit-appearance: none;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='white' opacity='0.5' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='6' fill='white' opacity='0.5' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 8px center;
+  background-position: right 4px center;
   transition: all 0.15s ease;
 }
 
@@ -135,10 +136,10 @@
   background: none;
   border: none;
   color: rgba(255, 255, 255, 0.5);
-  font-size: 10px;
+  font-size: 7px;
   cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 4px;
+  padding: 2px 4px;
+  border-radius: 2px;
   transition: all 0.15s ease;
 }
 
@@ -154,16 +155,16 @@
 
 /* Rating Bar */
 .craftorcrap-rating-bar {
-  height: 4px;
+  height: 2px;
   background: rgba(255, 255, 255, 0.1);
-  border-radius: 2px;
+  border-radius: 1px;
   overflow: hidden;
 }
 
 .craftorcrap-rating-fill {
   height: 100%;
   background: rgba(255, 255, 255, 0.5);
-  border-radius: 2px;
+  border-radius: 1px;
   transition: width 0.3s ease, background 0.3s ease;
 }
 
@@ -177,7 +178,7 @@
 
 /* Rating Text */
 .craftorcrap-rating-text {
-  font-size: 10px;
+  font-size: 7px;
   color: rgba(255, 255, 255, 0.5);
   text-align: center;
 }
@@ -185,17 +186,17 @@
 /* Login Prompt */
 .craftorcrap-login-prompt {
   text-align: center;
-  padding: 8px 0;
+  padding: 2px 0;
 }
 
 .craftorcrap-login-prompt a {
   color: #fff;
   text-decoration: none;
-  font-size: 12px;
+  font-size: 7px;
   font-weight: 500;
   background: rgba(255, 255, 255, 0.1);
-  padding: 8px 16px;
-  border-radius: 8px;
+  padding: 3px 6px;
+  border-radius: 3px;
   display: inline-block;
   transition: background 0.15s ease;
 }

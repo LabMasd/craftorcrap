@@ -353,7 +353,7 @@ function hideOverlay() {
     }
     currentElement = null;
     currentUrl = null;
-  }, 800);
+  }, 3000);
 }
 
 // Save craft to board
