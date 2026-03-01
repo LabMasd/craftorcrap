@@ -1097,16 +1097,6 @@ export default function Home() {
                     <div className={`absolute left-0 top-full mt-2 w-56 rounded-xl p-2 z-50 shadow-xl ${
                       darkMode ? 'bg-neutral-900 border border-white/10' : 'bg-white border border-black/10'
                     }`}>
-                      <button
-                        onClick={() => { setActiveBoardFilter(null); setShowBoardFilterDropdown(false); }}
-                        className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${
-                          !activeBoardFilter
-                            ? darkMode ? 'bg-white/10 text-white' : 'bg-black/10 text-black'
-                            : darkMode ? 'text-white/70 hover:bg-white/5' : 'text-black/70 hover:bg-black/5'
-                        }`}
-                      >
-                        All boards
-                      </button>
                       {communityBoards.map((board) => (
                         <button
                           key={board.id}
@@ -1120,15 +1110,6 @@ export default function Home() {
                           {board.title}
                         </button>
                       ))}
-                      <Link
-                        href="/explore"
-                        onClick={() => setShowBoardFilterDropdown(false)}
-                        className={`block text-center text-xs mt-2 py-2 rounded-lg ${
-                          darkMode ? 'text-white/50 hover:text-white/70 hover:bg-white/5' : 'text-black/50 hover:text-black/70 hover:bg-black/5'
-                        }`}
-                      >
-                        See all boards
-                      </Link>
                     </div>
                   </>
                 )}
