@@ -154,6 +154,17 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('')
   const filtersRef = useRef<HTMLDivElement>(null)
 
+  // Community boards carousel
+  const [communityBoards, setCommunityBoards] = useState<{
+    id: string
+    title: string
+    slug: string
+    topic: string | null
+    followerCount: number
+    itemCount: number
+    previews: string[]
+  }[]>([])
+
   // Inline submit state
   const [submitUrl, setSubmitUrl] = useState('')
   const [submitCategory, setSubmitCategory] = useState<Category>('Web')
@@ -177,6 +188,22 @@ export default function Home() {
   useEffect(() => {
     localStorage.setItem('craftorcrap-card-size', cardSize)
   }, [cardSize])
+
+  // Fetch community boards
+  useEffect(() => {
+    async function fetchCommunityBoards() {
+      try {
+        const res = await fetch('/api/explore?limit=10&sort=popular')
+        if (res.ok) {
+          const data = await res.json()
+          setCommunityBoards(data.boards || [])
+        }
+      } catch (e) {
+        console.error('Failed to fetch community boards:', e)
+      }
+    }
+    fetchCommunityBoards()
+  }, [])
 
   // Show floating toolbar when filters are scrolled out of view
   useEffect(() => {
@@ -844,6 +871,67 @@ export default function Home() {
             </div>
           )}
         </div>
+
+        {/* Community Boards Carousel */}
+        {communityBoards.length > 0 && (
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className={`text-sm font-medium ${darkMode ? 'text-white/70' : 'text-black/70'}`}>
+                Community Boards
+              </h2>
+              <Link
+                href="/explore"
+                className={`text-xs ${darkMode ? 'text-white/40 hover:text-white/60' : 'text-black/40 hover:text-black/60'}`}
+              >
+                See all
+              </Link>
+            </div>
+            <div className="flex gap-3 overflow-x-auto pb-2 -mx-3 px-3 scrollbar-hide">
+              {communityBoards.map((board) => (
+                <Link
+                  key={board.id}
+                  href={`/b/${board.slug}`}
+                  className={`flex-shrink-0 w-48 rounded-xl overflow-hidden transition-all ${
+                    darkMode ? 'bg-white/[0.03] hover:bg-white/[0.06]' : 'bg-black/[0.03] hover:bg-black/[0.06]'
+                  }`}
+                >
+                  {/* Preview images grid */}
+                  <div className="aspect-[2/1] relative overflow-hidden">
+                    {board.previews.length > 0 ? (
+                      <div className="grid grid-cols-2 h-full">
+                        {board.previews.slice(0, 4).map((preview, i) => (
+                          <div key={i} className="relative overflow-hidden">
+                            <img
+                              src={preview}
+                              alt=""
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className={`w-full h-full flex items-center justify-center ${darkMode ? 'bg-white/5' : 'bg-black/5'}`}>
+                        <svg className={`w-8 h-8 ${darkMode ? 'text-white/20' : 'text-black/20'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  {/* Info */}
+                  <div className="p-2.5">
+                    <h3 className={`text-xs font-medium truncate ${darkMode ? 'text-white/90' : 'text-black/90'}`}>
+                      {board.title}
+                    </h3>
+                    <div className={`flex items-center gap-2 mt-1 text-[10px] ${darkMode ? 'text-white/40' : 'text-black/40'}`}>
+                      {board.topic && <span>{board.topic}</span>}
+                      <span>{board.itemCount} items</span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Category Filters + Sort */}
         <div className="mb-6" ref={filtersRef}>
