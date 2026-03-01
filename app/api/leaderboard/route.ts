@@ -20,7 +20,7 @@ export async function GET() {
 
     for (const vote of topVoters || []) {
       const userId = vote.user_id
-      const user = vote.users as { name: string; image_url: string | null }
+      const user = vote.users as unknown as { name: string; image_url: string | null }
 
       if (!userVotes[userId]) {
         userVotes[userId] = {

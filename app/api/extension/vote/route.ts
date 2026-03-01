@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
           submitted_by: userId,
           category: category || null,
         })
-        .select('id, total_craft, total_crap')
+        .select('id, total_craft, total_crap, weighted_craft, weighted_crap')
         .single()
 
       if (createError) {

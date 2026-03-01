@@ -111,8 +111,8 @@ export async function GET(request: NextRequest) {
         previews: proPreviews[board.id] || [],
         createdAt: board.created_at,
         creator: board.users ? {
-          name: (board.users as { name: string }).name,
-          avatar: (board.users as { avatar_url: string }).avatar_url,
+          name: (board.users as unknown as { name: string }).name,
+          avatar: (board.users as unknown as { avatar_url: string }).avatar_url,
         } : null,
         source: 'pro',
       })
@@ -155,7 +155,8 @@ export async function GET(request: NextRequest) {
         .order('created_at', { ascending: false })
 
       if (items) {
-        items.forEach((item: { board_id: string | null; submissions: { thumbnail_url: string | null } | null }) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        items.forEach((item: any) => {
           if (!item.board_id) return
           if (!userPreviews[item.board_id]) userPreviews[item.board_id] = []
           const thumb = item.submissions?.thumbnail_url

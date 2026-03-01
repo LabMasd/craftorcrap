@@ -14,7 +14,7 @@ export async function GET(
   // Try user_boards first (legacy)
   let { data: board, error: boardError } = await supabase
     .from('user_boards')
-    .select('id, name, share_id, created_at, allow_voting, allow_submissions')
+    .select('id, name, share_id, created_at, allow_voting, allow_submissions, visibility, follower_count, topic')
     .eq('share_id', shareId)
     .single()
 
