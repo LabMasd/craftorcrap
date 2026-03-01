@@ -51,10 +51,15 @@ export async function POST(request: NextRequest) {
       throw error
     }
 
-    // If logged in, get user's votes
+    // If logged in, get user's votes and followed users' votes
     let userVotes: Record<string, string> = {}
+    let followedVotes: Record<string, { craft: number; crap: number }> = {}
+
     if (userId && submissions && submissions.length > 0) {
       const submissionIds = submissions.map(s => s.id)
+      const idToUrl = Object.fromEntries(submissions.map(s => [s.id, s.url]))
+
+      // Get user's own votes
       const { data: votes } = await supabase
         .from('votes')
         .select('submission_id, verdict')
@@ -62,10 +67,39 @@ export async function POST(request: NextRequest) {
         .in('submission_id', submissionIds)
 
       if (votes) {
-        const idToUrl = Object.fromEntries(submissions.map(s => [s.id, s.url]))
         votes.forEach(v => {
           userVotes[idToUrl[v.submission_id]] = v.verdict
         })
+      }
+
+      // Get followed users' votes
+      const { data: follows } = await supabase
+        .from('follows')
+        .select('following_id')
+        .eq('follower_id', userId)
+
+      if (follows && follows.length > 0) {
+        const followingIds = follows.map(f => f.following_id)
+
+        const { data: friendVotes } = await supabase
+          .from('votes')
+          .select('submission_id, verdict')
+          .in('user_id', followingIds)
+          .in('submission_id', submissionIds)
+
+        if (friendVotes) {
+          friendVotes.forEach(v => {
+            const url = idToUrl[v.submission_id]
+            if (!followedVotes[url]) {
+              followedVotes[url] = { craft: 0, crap: 0 }
+            }
+            if (v.verdict === 'craft') {
+              followedVotes[url].craft++
+            } else {
+              followedVotes[url].crap++
+            }
+          })
+        }
       }
     }
 
@@ -75,6 +109,7 @@ export async function POST(request: NextRequest) {
       total_crap: number
       percent: number
       user_vote: string | null
+      followed_votes?: { craft: number; crap: number }
     }> = {}
 
     submissions?.forEach(s => {
@@ -85,6 +120,7 @@ export async function POST(request: NextRequest) {
         total_crap: s.total_crap,
         percent,
         user_vote: userVotes[s.url] || null,
+        followed_votes: followedVotes[s.url] || undefined,
       }
     })
 

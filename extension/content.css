@@ -152,6 +152,18 @@
   cursor: not-allowed;
 }
 
+/* Followed Votes Row */
+.craftorcrap-followed-row {
+  text-align: center;
+  padding: 4px 0;
+}
+
+.craftorcrap-followed-text {
+  color: #60a5fa;
+  font-size: 10px;
+  font-weight: 500;
+}
+
 /* Rating Bar */
 .craftorcrap-rating-bar {
   height: 4px;

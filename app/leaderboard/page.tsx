@@ -22,13 +22,67 @@ export default function LeaderboardPage() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [following, setFollowing] = useState<Set<string>>(new Set())
+  const [extensionToken, setExtensionToken] = useState<string | null>(null)
 
   useEffect(() => {
     const saved = localStorage.getItem('craftorcrap-theme')
     if (saved) setDarkMode(saved === 'dark')
 
+    // Check for extension token in localStorage (set by extension)
+    const token = localStorage.getItem('craftorcrap-extension-token')
+    setExtensionToken(token)
+
     fetchLeaderboard()
+
+    if (token) {
+      fetchFollowing(token)
+    }
   }, [])
+
+  async function fetchFollowing(token: string) {
+    try {
+      const response = await fetch('/api/follows', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      const data = await response.json()
+      if (data.following) {
+        setFollowing(new Set(data.following.map((f: { id: string }) => f.id)))
+      }
+    } catch (err) {
+      console.error('Failed to fetch following:', err)
+    }
+  }
+
+  async function toggleFollow(userId: string) {
+    if (!extensionToken) return
+
+    const isFollowing = following.has(userId)
+    const method = isFollowing ? 'DELETE' : 'POST'
+
+    try {
+      const response = await fetch('/api/follows', {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${extensionToken}`,
+        },
+        body: JSON.stringify({ userId }),
+      })
+
+      if (response.ok) {
+        const newFollowing = new Set(following)
+        if (isFollowing) {
+          newFollowing.delete(userId)
+        } else {
+          newFollowing.add(userId)
+        }
+        setFollowing(newFollowing)
+      }
+    } catch (err) {
+      console.error('Failed to toggle follow:', err)
+    }
+  }
 
   async function fetchLeaderboard() {
     try {
@@ -139,6 +193,24 @@ export default function LeaderboardPage() {
                 <div className={`text-sm font-medium ${darkMode ? 'text-white/60' : 'text-black/60'}`}>
                   {entry.votes.toLocaleString()} votes
                 </div>
+
+                {/* Follow button */}
+                {extensionToken && (
+                  <button
+                    onClick={() => toggleFollow(entry.id)}
+                    className={`ml-2 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                      following.has(entry.id)
+                        ? darkMode
+                          ? 'bg-green-500/20 text-green-400 hover:bg-red-500/20 hover:text-red-400'
+                          : 'bg-green-500/20 text-green-600 hover:bg-red-500/20 hover:text-red-600'
+                        : darkMode
+                          ? 'bg-white/10 text-white/60 hover:bg-white/20 hover:text-white'
+                          : 'bg-black/10 text-black/60 hover:bg-black/20 hover:text-black'
+                    }`}
+                  >
+                    {following.has(entry.id) ? 'Following' : 'Follow'}
+                  </button>
+                )}
               </div>
             ))}
           </div>
