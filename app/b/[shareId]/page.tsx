@@ -18,6 +18,9 @@ interface Board {
   created_at: string
   allow_voting: boolean
   allow_submissions: boolean
+  visibility?: 'private' | 'link' | 'public'
+  follower_count?: number
+  topic?: string
 }
 
 export default function SharedBoardPage() {
@@ -36,6 +39,10 @@ export default function SharedBoardPage() {
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitSuccess, setSubmitSuccess] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
+
+  // Follow state
+  const [isFollowing, setIsFollowing] = useState(false)
+  const [followLoading, setFollowLoading] = useState(false)
 
   useEffect(() => {
     const saved = localStorage.getItem('craftorcrap-theme')
@@ -63,8 +70,44 @@ export default function SharedBoardPage() {
   useEffect(() => {
     if (shareId) {
       fetchBoard()
+      checkFollowStatus()
     }
   }, [shareId, fetchBoard])
+
+  async function checkFollowStatus() {
+    try {
+      const res = await fetch(`/api/boards/${shareId}/follow`)
+      const data = await res.json()
+      setIsFollowing(data.following)
+    } catch {
+      // Ignore - user might not be logged in
+    }
+  }
+
+  async function toggleFollow() {
+    if (followLoading) return
+    setFollowLoading(true)
+
+    try {
+      const method = isFollowing ? 'DELETE' : 'POST'
+      const res = await fetch(`/api/boards/${shareId}/follow`, { method })
+
+      if (res.ok) {
+        setIsFollowing(!isFollowing)
+        // Update local follower count
+        if (board) {
+          setBoard({
+            ...board,
+            follower_count: (board.follower_count || 0) + (isFollowing ? -1 : 1)
+          })
+        }
+      }
+    } catch (err) {
+      console.error('Follow error:', err)
+    } finally {
+      setFollowLoading(false)
+    }
+  }
 
   async function handleSubmit(url: string, imageUrl?: string) {
     if (!url.trim() || isSubmitting) return
@@ -243,10 +286,41 @@ export default function SharedBoardPage() {
               </svg>
               <h1 className="text-2xl font-bold">{board.name}</h1>
             </div>
-            <p className={`text-sm ${darkMode ? 'text-white/40' : 'text-black/40'}`}>
-              {items.length} item{items.length !== 1 ? 's' : ''} · Shared board
-            </p>
+            <div className={`flex items-center gap-3 text-sm ${darkMode ? 'text-white/40' : 'text-black/40'}`}>
+              <span>{items.length} item{items.length !== 1 ? 's' : ''}</span>
+              {board.visibility === 'public' && (
+                <>
+                  <span>·</span>
+                  <span>{board.follower_count || 0} followers</span>
+                </>
+              )}
+              {board.topic && (
+                <>
+                  <span>·</span>
+                  <span>{board.topic}</span>
+                </>
+              )}
+            </div>
           </div>
+
+          {/* Follow button for public boards */}
+          {board.visibility === 'public' && (
+            <button
+              onClick={toggleFollow}
+              disabled={followLoading}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                isFollowing
+                  ? darkMode
+                    ? 'bg-white/10 text-white hover:bg-red-500/20 hover:text-red-400'
+                    : 'bg-black/10 text-black hover:bg-red-500/20 hover:text-red-600'
+                  : darkMode
+                    ? 'bg-white text-black hover:bg-white/90'
+                    : 'bg-black text-white hover:bg-black/90'
+              } disabled:opacity-50`}
+            >
+              {followLoading ? '...' : isFollowing ? 'Following' : 'Follow'}
+            </button>
+          )}
 
           {/* Submit input - only show if submissions allowed */}
           {board.allow_submissions && (
