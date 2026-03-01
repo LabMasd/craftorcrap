@@ -547,10 +547,9 @@ export default function Home() {
       // Set the uploaded image URL and create a preview
       setSubmitUrl(data.url)
       setPreview({
-        image: data.url,
         title: file.name.replace(/\.[^/.]+$/, ''),
-        description: '',
-        siteName: 'Uploaded Image',
+        thumbnail_url: data.url,
+        dominant_color: null,
       })
       setIsDragging(false)
     } catch (err) {
