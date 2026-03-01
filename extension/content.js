@@ -197,6 +197,23 @@ function createVoteOverlay() {
   voteOverlay.addEventListener('mouseleave', () => {
     hideOverlay();
   });
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    // Only work when hovering over something (overlay visible)
+    if (!currentUrl || !currentElement) return;
+
+    // Don't trigger if typing in an input
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
+
+    if (e.key.toLowerCase() === 'c') {
+      e.preventDefault();
+      handleVote('craft');
+    } else if (e.key.toLowerCase() === 'x') {
+      e.preventDefault();
+      handleVote('crap');
+    }
+  });
 }
 
 // Show overlay on element
