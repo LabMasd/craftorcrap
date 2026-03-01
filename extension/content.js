@@ -450,6 +450,67 @@ async function handleVote(verdict) {
   }
 }
 
+// Show why hidden popup
+function showWhyHidden(targetEl, reason, contentEl, url) {
+  // Remove existing popup if any
+  const existing = document.getElementById('craftorcrap-why-popup');
+  if (existing) existing.remove();
+
+  const popup = document.createElement('div');
+  popup.id = 'craftorcrap-why-popup';
+  popup.innerHTML = `
+    <div class="craftorcrap-why-content">
+      <p class="craftorcrap-why-text">${reason}</p>
+      <div class="craftorcrap-why-actions">
+        <button class="craftorcrap-why-btn reveal">Show anyway</button>
+        <button class="craftorcrap-why-btn close">Dismiss</button>
+      </div>
+    </div>
+  `;
+
+  // Position near target
+  const rect = targetEl.getBoundingClientRect();
+  popup.style.position = 'fixed';
+  popup.style.left = `${Math.max(10, rect.left)}px`;
+  popup.style.top = `${Math.max(10, rect.top + rect.height / 2 - 50)}px`;
+  popup.style.zIndex = '2147483647';
+
+  document.body.appendChild(popup);
+
+  // Reveal button - temporarily show content
+  popup.querySelector('.craftorcrap-why-btn.reveal').addEventListener('click', () => {
+    // Remove filter temporarily
+    if (contentEl._craftorcrapCover) {
+      contentEl._craftorcrapCover.style.display = 'none';
+    }
+    contentEl.style.filter = '';
+    contentEl.style.opacity = '';
+    contentEl.style.cursor = '';
+    contentEl.title = '';
+    popup.remove();
+
+    // Re-apply filter after 10 seconds
+    setTimeout(() => {
+      applyFilterToElement(contentEl, url);
+    }, 10000);
+  });
+
+  // Close button
+  popup.querySelector('.craftorcrap-why-btn.close').addEventListener('click', () => {
+    popup.remove();
+  });
+
+  // Close on click outside
+  setTimeout(() => {
+    document.addEventListener('click', function closePopup(e) {
+      if (!popup.contains(e.target)) {
+        popup.remove();
+        document.removeEventListener('click', closePopup);
+      }
+    });
+  }, 100);
+}
+
 // Handle undo vote
 async function handleUndo() {
   if (!currentUrl || !extensionToken) return;
@@ -682,6 +743,18 @@ function applyFilterToElement(element, url) {
 
   if (!shouldFilter) return false;
 
+  // Determine reason text
+  let reasonText = '';
+  if (settings.filterMode === 'craft-only') {
+    if (!rating) {
+      reasonText = 'Hidden: No rating yet. Only showing content you voted Craft on.';
+    } else if (rating.user_vote !== 'craft') {
+      reasonText = `Hidden: You haven't voted Craft on this. (${rating.percent}% craft · ${rating.total_craft + rating.total_crap} votes)`;
+    }
+  } else if (settings.filterMode === 'hide-crap') {
+    reasonText = `Hidden: Low rating (${rating.percent}% craft · ${rating.total_craft + rating.total_crap} votes)`;
+  }
+
   if (settings.crapStyle === 'cover') {
     // Create black cover
     const cover = document.createElement('div');
@@ -693,6 +766,15 @@ function applyFilterToElement(element, url) {
       </svg>
       <span>${filterText}</span>
     `;
+    cover.style.cursor = 'pointer';
+    cover.title = 'Click to see why this is hidden';
+
+    // Click to show reason
+    cover.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      showWhyHidden(cover, reasonText, element, url);
+    });
 
     // Position cover
     const wrapper = element.parentElement;
@@ -702,9 +784,23 @@ function applyFilterToElement(element, url) {
     wrapper.appendChild(cover);
     element._craftorcrapCover = cover;
   } else {
-    // Blur style
+    // Blur style - wrap in clickable overlay
     element.style.filter = 'grayscale(1) blur(4px)';
     element.style.opacity = '0.3';
+    element.style.cursor = 'pointer';
+    element.title = 'Click to see why this is hidden';
+
+    // Add click handler for blurred elements
+    if (!element._craftorcrapBlurHandler) {
+      element._craftorcrapBlurHandler = (e) => {
+        if (element.style.filter) {
+          e.stopPropagation();
+          e.preventDefault();
+          showWhyHidden(element, reasonText, element, url);
+        }
+      };
+      element.addEventListener('click', element._craftorcrapBlurHandler);
+    }
   }
 
   return true;

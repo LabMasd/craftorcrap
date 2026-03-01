@@ -219,6 +219,76 @@
   opacity: 0.3;
 }
 
+/* Why Hidden Popup */
+#craftorcrap-why-popup {
+  background: rgba(10, 10, 10, 0.95);
+  backdrop-filter: blur(12px);
+  border-radius: 12px;
+  padding: 16px;
+  max-width: 280px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  animation: craftorcrap-fade-in 0.2s ease;
+}
+
+@keyframes craftorcrap-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.craftorcrap-why-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.craftorcrap-why-text {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 13px;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.craftorcrap-why-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.craftorcrap-why-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.craftorcrap-why-btn.reveal {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+.craftorcrap-why-btn.reveal:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.craftorcrap-why-btn.close {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.craftorcrap-why-btn.close:hover {
+  color: #fff;
+}
+
 /* Legacy Save Bar (keeping for backward compat) */
 #craftorcrap-savebar {
   position: absolute;
