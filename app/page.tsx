@@ -236,56 +236,13 @@ export default function Home() {
       // Small delay to let fade out complete
       await new Promise(resolve => setTimeout(resolve, 150))
 
-      // If a community board is selected, fetch its items
+      // If a board filter is active, we just show the board card - no submissions needed
       if (activeBoardFilter) {
-        const selectedBoard = communityBoards.find(b => b.id === activeBoardFilter)
-        if (selectedBoard?.slug) {
-          try {
-            const res = await fetch(`/api/boards/${selectedBoard.slug}`)
-            if (res.ok) {
-              const data = await res.json()
-              // Convert board items to submission format
-              let boardSubmissions = (data.items || []).map((item: { id: string; submissions?: Submission; created_at: string }) => ({
-                id: item.id,
-                url: item.submissions?.url || '',
-                title: item.submissions?.title || '',
-                thumbnail_url: item.submissions?.thumbnail_url || null,
-                dominant_color: item.submissions?.dominant_color || null,
-                category: item.submissions?.category || null,
-                total_craft: item.submissions?.total_craft || 0,
-                total_crap: item.submissions?.total_crap || 0,
-                created_at: item.created_at,
-                submitted_by: null,
-              }))
-
-              // Apply other filters
-              if (activeCategory !== 'all') {
-                boardSubmissions = boardSubmissions.filter((s: Submission) => s.category === activeCategory)
-              }
-              if (activeColor) {
-                boardSubmissions = boardSubmissions.filter((s: Submission) => {
-                  if (!s.dominant_color) return false
-                  return colorDistance(s.dominant_color, activeColor) < 100
-                })
-              }
-              if (searchQuery.trim()) {
-                const query = searchQuery.toLowerCase().trim()
-                boardSubmissions = boardSubmissions.filter((s: Submission) => {
-                  const title = (s.title || '').toLowerCase()
-                  return title.includes(query)
-                })
-              }
-
-              setSubmissions(boardSubmissions)
-              setIsDemo(false)
-              setLoading(false)
-              setTimeout(() => setIsTransitioning(false), 50)
-              return
-            }
-          } catch (e) {
-            console.error('Failed to fetch board items:', e)
-          }
-        }
+        setSubmissions([])
+        setIsDemo(false)
+        setLoading(false)
+        setTimeout(() => setIsTransitioning(false), 50)
+        return
       }
 
       if (!supabase) {
@@ -1117,8 +1074,8 @@ export default function Home() {
           <div
             className={`${gridCols[cardSize]} gap-3 transition-opacity duration-200 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}
           >
-            {/* Community Board cards - shown at top when no filters active */}
-            {!activeBoardFilter && activeCategory === 'all' && !activeColor && !searchQuery && communityBoards.slice(0, 3).map((board) => (
+            {/* Community Board cards - show filtered board or top 3 when no filters */}
+            {(activeBoardFilter ? communityBoards.filter(b => b.id === activeBoardFilter) : (!activeCategory || activeCategory === 'all') && !activeColor && !searchQuery ? communityBoards.slice(0, 3) : []).map((board) => (
               <Link
                 key={`board-${board.id}`}
                 href={`/b/${board.slug}`}
