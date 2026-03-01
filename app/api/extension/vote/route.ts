@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     let submission
     const { data: existing } = await supabase
       .from('submissions')
-      .select('id, total_craft, total_crap, category')
+      .select('id, total_craft, total_crap, category, weighted_craft, weighted_crap')
       .eq('url', url)
       .single()
 
@@ -115,7 +115,19 @@ export async function POST(request: NextRequest) {
       request.headers.get('x-real-ip') ||
       'unknown'
 
-    // Cast vote with user_id
+    // Get user's weight from reputation table
+    let userWeight = 1.0
+    const { data: reputation } = await supabase
+      .from('user_reputation')
+      .select('weight, total_votes')
+      .eq('user_id', userId)
+      .single()
+
+    if (reputation) {
+      userWeight = reputation.weight
+    }
+
+    // Cast vote with user_id and weight
     const { error: voteError } = await supabase
       .from('votes')
       .insert({
@@ -124,6 +136,7 @@ export async function POST(request: NextRequest) {
         user_id: userId,
         ip_address,
         fingerprint: `user-${userId}`,
+        weight: userWeight,
       })
 
     if (voteError) {
@@ -136,17 +149,34 @@ export async function POST(request: NextRequest) {
       throw voteError
     }
 
-    // Update totals
+    // Update totals (both regular and weighted)
     const newCraft = submission.total_craft + (verdict === 'craft' ? 1 : 0)
     const newCrap = submission.total_crap + (verdict === 'crap' ? 1 : 0)
+    const weightedCraft = (submission.weighted_craft || 0) + (verdict === 'craft' ? userWeight : 0)
+    const weightedCrap = (submission.weighted_crap || 0) + (verdict === 'crap' ? userWeight : 0)
 
     await supabase
       .from('submissions')
       .update({
         total_craft: newCraft,
         total_crap: newCrap,
+        weighted_craft: weightedCraft,
+        weighted_crap: weightedCrap,
       })
       .eq('id', submission.id)
+
+    // Update user reputation (increment vote count and recalculate weight)
+    const newVoteCount = (reputation?.total_votes || 0) + 1
+    const newWeight = Math.min(2.0, 1.0 + newVoteCount / 100)
+
+    await supabase
+      .from('user_reputation')
+      .upsert({
+        user_id: userId,
+        total_votes: newVoteCount,
+        weight: newWeight,
+        updated_at: new Date().toISOString(),
+      })
 
     return NextResponse.json({
       success: true,

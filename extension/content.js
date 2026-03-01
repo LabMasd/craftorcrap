@@ -315,7 +315,18 @@ function updateOverlayRating(rating) {
     else if (percent <= 30) fill.classList.add('low');
 
     const total = rating.total_craft + rating.total_crap;
-    text.textContent = total > 0 ? `${percent}% craft · ${total} votes` : 'No votes yet';
+    const weightedPercent = rating.weighted_percent || percent;
+    const showWeighted = weightedPercent !== percent;
+
+    if (total > 0) {
+      if (showWeighted) {
+        text.textContent = `${weightedPercent}% craft (weighted) · ${total} votes`;
+      } else {
+        text.textContent = `${percent}% craft · ${total} votes`;
+      }
+    } else {
+      text.textContent = 'No votes yet';
+    }
 
     // Show followed users' votes
     if (followedRow && rating.followed_votes) {
@@ -787,10 +798,11 @@ function applyFilterToElement(element, url) {
       filterText = rating ? `${rating.percent}% craft` : 'Not voted';
     }
   } else if (effectiveMode === 'hide-crap') {
-    // Hide Crap: hide images with low ratings
-    if (rating && rating.percent < 30) {
+    // Hide Crap: hide images with low ratings (use weighted percent if available)
+    const displayPercent = rating?.weighted_percent || rating?.percent;
+    if (rating && displayPercent < 30) {
       shouldFilter = true;
-      filterText = `${rating.percent}% craft`;
+      filterText = `${displayPercent}% craft`;
     }
   }
 

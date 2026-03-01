@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     // Fetch submissions for these URLs
     const { data: submissions, error } = await supabase
       .from('submissions')
-      .select('id, url, total_craft, total_crap')
+      .select('id, url, total_craft, total_crap, weighted_craft, weighted_crap')
       .in('url', limitedUrls)
 
     if (error) {
@@ -108,6 +108,7 @@ export async function POST(request: NextRequest) {
       total_craft: number
       total_crap: number
       percent: number
+      weighted_percent: number
       user_vote: string | null
       followed_votes?: { craft: number; crap: number }
     }> = {}
@@ -115,10 +116,18 @@ export async function POST(request: NextRequest) {
     submissions?.forEach(s => {
       const total = s.total_craft + s.total_crap
       const percent = total > 0 ? Math.round((s.total_craft / total) * 100) : 50
+
+      // Calculate weighted percentage
+      const weightedTotal = (s.weighted_craft || 0) + (s.weighted_crap || 0)
+      const weightedPercent = weightedTotal > 0
+        ? Math.round(((s.weighted_craft || 0) / weightedTotal) * 100)
+        : percent
+
       ratings[s.url] = {
         total_craft: s.total_craft,
         total_crap: s.total_crap,
         percent,
+        weighted_percent: weightedPercent,
         user_vote: userVotes[s.url] || null,
         followed_votes: followedVotes[s.url] || undefined,
       }
