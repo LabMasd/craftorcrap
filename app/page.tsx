@@ -1049,7 +1049,7 @@ export default function Home() {
 
         {loading ? (
           <div className={`text-center py-32 ${darkMode ? 'text-white/30' : 'text-black/30'}`}>Loading...</div>
-        ) : submissions.length === 0 ? (
+        ) : submissions.length === 0 && !activeBoardFilter ? (
           <div className="text-center py-32">
             <p className={`mb-4 ${darkMode ? 'text-white/40' : 'text-black/40'}`}>
               {activeCategory !== 'all' ? `No ${activeCategory} submissions yet` : 'No submissions yet'}
