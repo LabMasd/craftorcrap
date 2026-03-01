@@ -150,6 +150,7 @@ export default function Home() {
   const [isDemo, setIsDemo] = useState(false)
     const [isTransitioning, setIsTransitioning] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
   const [showFloatingToolbar, setShowFloatingToolbar] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const filtersRef = useRef<HTMLDivElement>(null)
@@ -513,6 +514,52 @@ export default function Home() {
     }
   }
 
+  async function handleFileUpload(file: File) {
+    if (!file.type.startsWith('image/')) {
+      setSubmitError('Please upload an image file')
+      return
+    }
+
+    if (file.size > 32 * 1024 * 1024) {
+      setSubmitError('File too large. Maximum size is 32MB.')
+      return
+    }
+
+    setIsUploading(true)
+    setSubmitError(null)
+
+    try {
+      const formData = new FormData()
+      formData.append('image', file)
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Upload failed')
+      }
+
+      const data = await res.json()
+
+      // Set the uploaded image URL and create a preview
+      setSubmitUrl(data.url)
+      setPreview({
+        image: data.url,
+        title: file.name.replace(/\.[^/.]+$/, ''),
+        description: '',
+        siteName: 'Uploaded Image',
+      })
+      setIsDragging(false)
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : 'Upload failed')
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
   async function handleDrop(e: React.DragEvent) {
     e.preventDefault()
     e.stopPropagation()
@@ -569,11 +616,11 @@ export default function Home() {
       }
     }
 
-    // Check for files (images)
+    // Check for files (images) - upload to ImgBB
     if (!url && e.dataTransfer.files.length > 0) {
       const file = e.dataTransfer.files[0]
       if (file.type.startsWith('image/')) {
-        setSubmitError('File upload not supported yet. Drag image URLs from websites instead.')
+        await handleFileUpload(file)
         return
       }
     }
@@ -636,31 +683,60 @@ export default function Home() {
       onDrop={handleDrop}
     >
       {/* Drop zone overlay */}
-      {isDragging && (
+      {(isDragging || isUploading) && (
         <div
           className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center"
-          onClick={() => setIsDragging(false)}
+          onClick={() => !isUploading && setIsDragging(false)}
         >
           <div
-            className="relative bg-neutral-900 rounded-2xl p-12 max-w-md mx-4 shadow-2xl border border-white/10"
+            className="relative bg-neutral-900 rounded-2xl p-10 max-w-sm mx-4 shadow-2xl border border-white/10"
             onClick={(e) => e.stopPropagation()}
           >
-            <button
-              onClick={() => setIsDragging(false)}
-              className="absolute top-4 right-4 text-white/40 hover:text-white transition-colors"
-            >
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <div className="text-center">
-              <div className="w-20 h-20 mx-auto mb-4 rounded-2xl border-2 border-dashed border-white/30 flex items-center justify-center">
-                <svg className="w-10 h-10 text-white/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            {!isUploading && (
+              <button
+                onClick={() => setIsDragging(false)}
+                className="absolute top-3 right-3 text-white/40 hover:text-white transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
-              </div>
-              <p className="text-xl font-semibold text-white mb-2">Drop image here</p>
-              <p className="text-white/40 text-sm">Drag images from any website to submit</p>
+              </button>
+            )}
+            <div className="text-center">
+              {isUploading ? (
+                <>
+                  <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                    <svg className="w-10 h-10 text-white/60 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                  </div>
+                  <p className="text-lg font-semibold text-white mb-1">Uploading...</p>
+                  <p className="text-white/40 text-sm">Please wait</p>
+                </>
+              ) : (
+                <>
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-xl border-2 border-dashed border-white/30 flex items-center justify-center">
+                    <svg className="w-8 h-8 text-white/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <p className="text-lg font-semibold text-white mb-1">Drop image here</p>
+                  <p className="text-white/40 text-sm mb-4">or</p>
+                  <label className="inline-block px-4 py-2 bg-white text-black text-sm font-medium rounded-lg cursor-pointer hover:bg-white/90 transition-colors">
+                    Choose file
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        if (file) handleFileUpload(file)
+                      }}
+                    />
+                  </label>
+                </>
+              )}
             </div>
           </div>
         </div>
