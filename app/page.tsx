@@ -913,28 +913,10 @@ export default function Home() {
 
         {/* Filters */}
         <div className="mb-6" ref={filtersRef}>
-          {/* Filter buttons row */}
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Filter button - opens panel with Category, Color, Board */}
-            <button
-              onClick={() => { setShowCategoryFilter(!showCategoryFilter); }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
-                activeCategory !== 'all' || activeColor || activeBoardFilter || showCategoryFilter
-                  ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
-                  : darkMode ? 'bg-white/5 text-white/50 hover:text-white/70' : 'bg-black/5 text-black/50 hover:text-black/70'
-              }`}
-            >
-              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-              </svg>
-              Filter
-              {(activeCategory !== 'all' || activeColor || activeBoardFilter) && (
-                <span className="w-1.5 h-1.5 rounded-full bg-current" />
-              )}
-            </button>
-
+          {/* Search row */}
+          <div className="flex flex-wrap items-center gap-2 mb-3">
             {/* Search input */}
-            <div className="relative ml-auto sm:ml-0">
+            <div className="relative">
               <svg className={`absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 ${darkMode ? 'text-white/40' : 'text-black/40'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
@@ -943,7 +925,7 @@ export default function Home() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search..."
-                className={`w-28 sm:w-36 pl-7 pr-2 py-1.5 text-[11px] rounded-full outline-none transition-all focus:w-40 sm:focus:w-48 ${
+                className={`w-32 sm:w-40 pl-7 pr-2 py-1.5 text-[11px] rounded-full outline-none transition-all focus:w-48 sm:focus:w-56 ${
                   darkMode
                     ? 'bg-white/5 text-white placeholder:text-white/30 focus:bg-white/10'
                     : 'bg-black/5 text-black placeholder:text-black/30 focus:bg-black/10'
@@ -967,123 +949,70 @@ export default function Home() {
             </SignedIn>
           </div>
 
-          {/* Filter panel - slides down with Category, Color, Board */}
-          <div
-            className="overflow-hidden"
-            style={{
-              maxHeight: showCategoryFilter ? '400px' : '0',
-              opacity: showCategoryFilter ? 1 : 0,
-              transition: 'max-height 400ms cubic-bezier(0.16, 1, 0.3, 1), opacity 300ms ease',
-            }}
-          >
-            <div className={`mt-3 p-4 rounded-2xl space-y-4 ${darkMode ? 'bg-white/5' : 'bg-black/5'}`}>
-              {/* Category section */}
-              <div>
-                <div className={`text-[10px] font-medium uppercase tracking-wider mb-2 ${darkMode ? 'text-white/40' : 'text-black/40'}`}>
-                  Category
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {['All', ...CATEGORIES].map((cat) => (
-                    <button
-                      key={cat}
-                      onClick={() => setActiveCategory(cat === 'All' ? 'all' : cat as Category)}
-                      className={`px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
-                        (cat === 'All' ? 'all' : cat) === activeCategory
-                          ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
-                          : darkMode ? 'bg-white/10 text-white/60 hover:text-white' : 'bg-black/10 text-black/60 hover:text-black'
-                      }`}
-                    >
-                      {cat}
-                    </button>
-                  ))}
-                </div>
-              </div>
+          {/* All filter pills in one row: Categories, Colors, Community Boards */}
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Category pills */}
+            {['All', ...CATEGORIES].map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat === 'All' ? 'all' : cat as Category)}
+                className={`px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
+                  (cat === 'All' ? 'all' : cat) === activeCategory
+                    ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
+                    : darkMode ? 'bg-white/10 text-white/60 hover:text-white' : 'bg-black/10 text-black/60 hover:text-black'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
 
-              {/* Color section */}
-              <div>
-                <div className={`text-[10px] font-medium uppercase tracking-wider mb-2 ${darkMode ? 'text-white/40' : 'text-black/40'}`}>
-                  Color
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    onClick={() => setActiveColor(null)}
-                    className={`w-8 h-8 rounded-full border-2 flex items-center justify-center ${
-                      activeColor === null
-                        ? darkMode ? 'border-white' : 'border-black'
-                        : darkMode ? 'border-white/20 hover:border-white/40' : 'border-black/20 hover:border-black/40'
-                    }`}
-                    title="All colors"
-                  >
-                    <span className={`text-[8px] font-medium ${darkMode ? 'text-white/60' : 'text-black/60'}`}>All</span>
-                  </button>
-                  {COLOR_FILTERS.map((color) => (
-                    <button
-                      key={color.hex}
-                      onClick={() => setActiveColor(color.hex)}
-                      className={`w-8 h-8 rounded-full border-2 transition-transform ${
-                        activeColor === color.hex
-                          ? darkMode ? 'border-white scale-110' : 'border-black scale-110'
-                          : darkMode ? 'border-white/20 hover:border-white/40' : 'border-black/20 hover:border-black/40'
-                      }`}
-                      style={{ backgroundColor: color.hex }}
-                      title={color.name}
-                    />
-                  ))}
-                </div>
-              </div>
+            {/* Divider */}
+            <div className={`w-px h-5 ${darkMode ? 'bg-white/20' : 'bg-black/20'}`} />
 
-              {/* Board section */}
-              {communityBoards.length > 0 && (
-                <div>
-                  <div className={`text-[10px] font-medium uppercase tracking-wider mb-2 ${darkMode ? 'text-white/40' : 'text-black/40'}`}>
-                    Community Board
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      onClick={() => setActiveBoardFilter(null)}
-                      className={`px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
-                        !activeBoardFilter
-                          ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
-                          : darkMode ? 'bg-white/10 text-white/60 hover:text-white' : 'bg-black/10 text-black/60 hover:text-black'
-                      }`}
-                    >
-                      All
-                    </button>
-                    {communityBoards.slice(0, 8).map((board) => (
-                      <button
-                        key={board.id}
-                        onClick={() => setActiveBoardFilter(board.id)}
-                        className={`px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
-                          activeBoardFilter === board.id
-                            ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
-                            : darkMode ? 'bg-white/10 text-white/60 hover:text-white' : 'bg-black/10 text-black/60 hover:text-black'
-                        }`}
-                      >
-                        {board.title}
-                      </button>
-                    ))}
-                    <Link
-                      href="/explore"
-                      className={`px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
-                        darkMode ? 'bg-white/10 text-white/40 hover:text-white' : 'bg-black/10 text-black/40 hover:text-black'
-                      }`}
-                    >
-                      See all...
-                    </Link>
-                  </div>
-                </div>
-              )}
+            {/* Color pills */}
+            {COLOR_FILTERS.map((color) => (
+              <button
+                key={color.hex}
+                onClick={() => setActiveColor(activeColor === color.hex ? null : color.hex)}
+                className={`w-7 h-7 rounded-full border-2 transition-all ${
+                  activeColor === color.hex
+                    ? darkMode ? 'border-white scale-110' : 'border-black scale-110'
+                    : darkMode ? 'border-white/10 hover:border-white/30' : 'border-black/10 hover:border-black/30'
+                }`}
+                style={{ backgroundColor: color.hex }}
+                title={color.name}
+              />
+            ))}
 
-              {/* Clear filters button */}
-              {(activeCategory !== 'all' || activeColor || activeBoardFilter) && (
-                <button
-                  onClick={() => { setActiveCategory('all'); setActiveColor(null); setActiveBoardFilter(null); }}
-                  className={`text-[11px] font-medium ${darkMode ? 'text-white/50 hover:text-white' : 'text-black/50 hover:text-black'}`}
-                >
-                  Clear all filters
-                </button>
-              )}
-            </div>
+            {/* Divider */}
+            {communityBoards.length > 0 && (
+              <div className={`w-px h-5 ${darkMode ? 'bg-white/20' : 'bg-black/20'}`} />
+            )}
+
+            {/* Community Board pills */}
+            {communityBoards.slice(0, 5).map((board) => (
+              <button
+                key={board.id}
+                onClick={() => setActiveBoardFilter(activeBoardFilter === board.id ? null : board.id)}
+                className={`px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
+                  activeBoardFilter === board.id
+                    ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
+                    : darkMode ? 'bg-white/10 text-white/60 hover:text-white' : 'bg-black/10 text-black/60 hover:text-black'
+                }`}
+              >
+                {board.title}
+              </button>
+            ))}
+            {communityBoards.length > 5 && (
+              <Link
+                href="/explore"
+                className={`px-3 py-1.5 text-[11px] font-medium rounded-full transition-all ${
+                  darkMode ? 'bg-white/10 text-white/40 hover:text-white' : 'bg-black/10 text-black/40 hover:text-black'
+                }`}
+              >
+                +{communityBoards.length - 5} more
+              </Link>
+            )}
           </div>
         </div>
 
