@@ -40,8 +40,11 @@ export async function GET(
           url,
           title,
           thumbnail_url,
+          dominant_color,
+          category,
           total_craft,
-          total_crap
+          total_crap,
+          created_at
         )
       `)
       .eq('user_id', userId)
@@ -75,15 +78,18 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { name, icon, allow_voting, allow_submissions } = await request.json()
+    const { name, icon, allow_voting, allow_submissions, visibility, topic, slug } = await request.json()
 
     const supabase = getServiceClient()
 
-    const updates: Record<string, string | boolean> = {}
+    const updates: Record<string, string | boolean | null> = {}
     if (name) updates.name = name.trim()
     if (icon) updates.icon = icon
     if (typeof allow_voting === 'boolean') updates.allow_voting = allow_voting
     if (typeof allow_submissions === 'boolean') updates.allow_submissions = allow_submissions
+    if (visibility) updates.visibility = visibility
+    if (topic !== undefined) updates.topic = topic
+    if (slug !== undefined) updates.slug = slug
 
     const { data, error } = await supabase
       .from('user_boards')

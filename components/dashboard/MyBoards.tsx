@@ -23,8 +23,12 @@ export default function MyBoards({ darkMode = true }: MyBoardsProps) {
   const [newBoardName, setNewBoardName] = useState('')
   const [creating, setCreating] = useState(false)
   const [isShareable, setIsShareable] = useState(false)
+  const [isPublic, setIsPublic] = useState(false)
+  const [topic, setTopic] = useState('')
   const [allowVoting, setAllowVoting] = useState(true)
   const [allowSubmissions, setAllowSubmissions] = useState(true)
+
+  const TOPICS = ['Design', 'Tech', 'Fashion', 'Architecture', 'Art', 'Photography', 'Gaming', 'Music', 'Film']
 
   useEffect(() => {
     fetchBoards()
@@ -56,6 +60,8 @@ export default function MyBoards({ darkMode = true }: MyBoardsProps) {
         body: JSON.stringify({
           name: newBoardName.trim(),
           is_public: isShareable,
+          visibility: isPublic ? 'public' : (isShareable ? 'link' : 'private'),
+          topic: isPublic ? topic : null,
           allow_voting: isShareable ? allowVoting : false,
           allow_submissions: isShareable ? allowSubmissions : false,
         }),
@@ -67,6 +73,8 @@ export default function MyBoards({ darkMode = true }: MyBoardsProps) {
         setNewBoardName('')
         setShowCreate(false)
         setIsShareable(false)
+        setIsPublic(false)
+        setTopic('')
         setAllowVoting(true)
         setAllowSubmissions(true)
       }
@@ -152,7 +160,7 @@ export default function MyBoards({ darkMode = true }: MyBoardsProps) {
 
           {/* Shareable options */}
           {isShareable && (
-            <div className={`mt-3 pl-4 border-l-2 space-y-2 ${darkMode ? 'border-white/10' : 'border-black/10'}`}>
+            <div className={`mt-3 pl-4 border-l-2 space-y-3 ${darkMode ? 'border-white/10' : 'border-black/10'}`}>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -175,6 +183,49 @@ export default function MyBoards({ darkMode = true }: MyBoardsProps) {
                   Allow submissions
                 </span>
               </label>
+
+              {/* Share with community */}
+              <div className={`pt-2 border-t ${darkMode ? 'border-white/10' : 'border-black/10'}`}>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isPublic}
+                    onChange={(e) => setIsPublic(e.target.checked)}
+                    className="w-4 h-4 rounded accent-emerald-500"
+                  />
+                  <span className={`text-sm ${darkMode ? 'text-white/60' : 'text-black/60'}`}>
+                    Share with community
+                  </span>
+                </label>
+                <p className={`text-xs mt-1 ml-6 ${darkMode ? 'text-white/30' : 'text-black/30'}`}>
+                  Board will appear on Explore page
+                </p>
+
+                {/* Topic selector */}
+                {isPublic && (
+                  <div className="mt-3 ml-6">
+                    <p className={`text-xs mb-2 ${darkMode ? 'text-white/40' : 'text-black/40'}`}>Topic</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {TOPICS.map((t) => (
+                        <button
+                          key={t}
+                          type="button"
+                          onClick={() => setTopic(t)}
+                          className={`px-2.5 py-1 text-xs font-medium rounded-full transition-all ${
+                            topic === t
+                              ? 'bg-emerald-500 text-white'
+                              : darkMode
+                              ? 'bg-white/10 text-white/60 hover:bg-white/15'
+                              : 'bg-black/10 text-black/60 hover:bg-black/15'
+                          }`}
+                        >
+                          {t}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -193,6 +244,8 @@ export default function MyBoards({ darkMode = true }: MyBoardsProps) {
                 setShowCreate(false)
                 setNewBoardName('')
                 setIsShareable(false)
+                setIsPublic(false)
+                setTopic('')
                 setAllowVoting(true)
                 setAllowSubmissions(true)
               }}

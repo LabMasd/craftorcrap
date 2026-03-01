@@ -2,45 +2,53 @@
 
 import { useState, useEffect, use } from 'react'
 import { useUser } from '@clerk/nextjs'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import SubmissionCard from '@/components/SubmissionCard'
+import type { Submission } from '@/types'
 
 interface Board {
   id: string
   name: string
   icon: string
   share_id: string
+  slug: string | null
   allow_voting: boolean
   allow_submissions: boolean
+  visibility: 'private' | 'link' | 'public'
+  topic: string | null
 }
+
+const TOPICS = ['Design', 'Tech', 'Fashion', 'Architecture', 'Art', 'Photography', 'Gaming', 'Music', 'Film']
 
 interface SavedItem {
   id: string
   created_at: string
-  submissions: {
-    id: string
-    url: string
-    title: string | null
-    thumbnail_url: string | null
-    total_craft: number
-    total_crap: number
-  }
+  submissions: Submission
 }
+
+type CardSize = 'compact' | 'normal' | 'large'
 
 export default function BoardDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
+  const router = useRouter()
   const { isSignedIn, isLoaded } = useUser()
   const [board, setBoard] = useState<Board | null>(null)
   const [items, setItems] = useState<SavedItem[]>([])
   const [loading, setLoading] = useState(true)
   const [darkMode, setDarkMode] = useState(true)
+  const [cardSize, setCardSize] = useState<CardSize>('normal')
   const [editing, setEditing] = useState(false)
   const [newName, setNewName] = useState('')
   const [copied, setCopied] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     const saved = localStorage.getItem('craftorcrap-theme')
     if (saved) setDarkMode(saved === 'dark')
+    const savedSize = localStorage.getItem('craftorcrap-card-size')
+    if (savedSize) setCardSize(savedSize as CardSize)
   }, [])
 
   useEffect(() => {
@@ -56,6 +64,8 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
             ...data.board,
             allow_voting: data.board?.allow_voting ?? true,
             allow_submissions: data.board?.allow_submissions ?? true,
+            visibility: data.board?.visibility || 'private',
+            topic: data.board?.topic || null,
           }
           setBoard(boardData)
           setItems(data.items || [])
@@ -125,6 +135,34 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
     }
   }
 
+  async function updateVisibility(visibility: 'private' | 'link' | 'public', topic?: string) {
+    if (!board) return
+    const oldVisibility = board.visibility
+    const oldTopic = board.topic
+
+    // Generate slug for public boards
+    const slug = visibility === 'public' && !board.slug
+      ? board.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + board.share_id.slice(0, 4)
+      : board.slug
+
+    // Optimistic update
+    setBoard(prev => prev ? { ...prev, visibility, topic: topic ?? prev.topic, slug } : null)
+
+    try {
+      const res = await fetch(`/api/user/boards/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ visibility, topic: topic ?? board.topic, slug }),
+      })
+
+      if (!res.ok) {
+        setBoard(prev => prev ? { ...prev, visibility: oldVisibility, topic: oldTopic } : null)
+      }
+    } catch {
+      setBoard(prev => prev ? { ...prev, visibility: oldVisibility, topic: oldTopic } : null)
+    }
+  }
+
   async function handleRemoveFromBoard(submissionId: string) {
     try {
       const res = await fetch('/api/user/saved', {
@@ -139,6 +177,27 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
     } catch (error) {
       console.error('Error removing from board:', error)
     }
+  }
+
+  async function handleDeleteBoard() {
+    if (!confirm('Delete this board? Items will be moved back to your saved collection.')) return
+
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/user/boards/${id}`, { method: 'DELETE' })
+      if (res.ok) {
+        router.push('/dashboard')
+      }
+    } catch (error) {
+      console.error('Error deleting board:', error)
+      setDeleting(false)
+    }
+  }
+
+  const gridCols = {
+    compact: 'columns-2 sm:columns-3 md:columns-4 lg:columns-5',
+    normal: 'columns-1 sm:columns-2 md:columns-3 lg:columns-4',
+    large: 'columns-1 sm:columns-2 lg:columns-3',
   }
 
   if (!isLoaded || loading) {
@@ -206,6 +265,42 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
             )}
           </div>
           <div className="flex items-center gap-2">
+            {/* Card size toggle */}
+            <div className={`hidden sm:flex rounded-full p-0.5 ${darkMode ? 'bg-white/5' : 'bg-black/5'}`}>
+              {(['compact', 'normal', 'large'] as CardSize[]).map((size) => (
+                <button
+                  key={size}
+                  onClick={() => setCardSize(size)}
+                  className={`p-1.5 rounded-full transition-all ${
+                    cardSize === size
+                      ? darkMode ? 'bg-white text-black' : 'bg-black text-white'
+                      : darkMode ? 'text-white/40' : 'text-black/40'
+                  }`}
+                  title={size.charAt(0).toUpperCase() + size.slice(1)}
+                >
+                  {size === 'compact' && (
+                    <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 16 16">
+                      <rect x="1" y="1" width="6" height="6" rx="1" />
+                      <rect x="9" y="1" width="6" height="6" rx="1" />
+                      <rect x="1" y="9" width="6" height="6" rx="1" />
+                      <rect x="9" y="9" width="6" height="6" rx="1" />
+                    </svg>
+                  )}
+                  {size === 'normal' && (
+                    <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 16 16">
+                      <rect x="1" y="1" width="6" height="14" rx="1" />
+                      <rect x="9" y="1" width="6" height="14" rx="1" />
+                    </svg>
+                  )}
+                  {size === 'large' && (
+                    <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 16 16">
+                      <rect x="1" y="1" width="14" height="14" rx="1" />
+                    </svg>
+                  )}
+                </button>
+              ))}
+            </div>
+
             {/* Settings dropdown */}
             <div className="relative">
               <button
@@ -228,8 +323,58 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
                   <div className={`absolute right-0 top-full mt-2 w-64 rounded-xl p-3 z-50 shadow-xl ${
                     darkMode ? 'bg-neutral-900 border border-white/10' : 'bg-white border border-black/10'
                   }`}>
-                    <p className={`text-xs font-medium mb-3 ${darkMode ? 'text-white/40' : 'text-black/40'}`}>
-                      Share Settings
+                    {/* Visibility selector */}
+                    <p className={`text-xs font-medium mb-2 ${darkMode ? 'text-white/40' : 'text-black/40'}`}>
+                      Visibility
+                    </p>
+                    <div className="flex gap-1 mb-3">
+                      {(['private', 'link', 'public'] as const).map((v) => (
+                        <button
+                          key={v}
+                          onClick={() => updateVisibility(v)}
+                          className={`flex-1 px-2 py-1.5 text-xs font-medium rounded-lg transition-all capitalize ${
+                            board.visibility === v
+                              ? 'bg-emerald-500 text-white'
+                              : darkMode
+                              ? 'bg-white/10 text-white/60 hover:bg-white/15'
+                              : 'bg-black/10 text-black/60 hover:bg-black/15'
+                          }`}
+                        >
+                          {v}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Topic selector for public boards */}
+                    {board.visibility === 'public' && (
+                      <div className="mb-3">
+                        <p className={`text-xs font-medium mb-2 ${darkMode ? 'text-white/40' : 'text-black/40'}`}>
+                          Topic
+                        </p>
+                        <div className="flex flex-wrap gap-1">
+                          {TOPICS.map((t) => (
+                            <button
+                              key={t}
+                              onClick={() => updateVisibility('public', t)}
+                              className={`px-2 py-1 text-xs font-medium rounded-full transition-all ${
+                                board.topic === t
+                                  ? 'bg-emerald-500 text-white'
+                                  : darkMode
+                                  ? 'bg-white/10 text-white/50 hover:bg-white/15'
+                                  : 'bg-black/10 text-black/50 hover:bg-black/15'
+                              }`}
+                            >
+                              {t}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className={`border-t my-2 ${darkMode ? 'border-white/10' : 'border-black/10'}`} />
+
+                    <p className={`text-xs font-medium mb-2 ${darkMode ? 'text-white/40' : 'text-black/40'}`}>
+                      Permissions
                     </p>
 
                     <label className="flex items-center justify-between py-2 cursor-pointer">
@@ -280,6 +425,21 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
                       </svg>
                       {copied ? 'Link copied!' : 'Copy share link'}
                     </button>
+
+                    <div className={`border-t my-2 ${darkMode ? 'border-white/10' : 'border-black/10'}`} />
+
+                    <button
+                      onClick={handleDeleteBoard}
+                      disabled={deleting}
+                      className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all text-red-500 ${
+                        darkMode ? 'hover:bg-red-500/10' : 'hover:bg-red-500/10'
+                      } disabled:opacity-50`}
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      {deleting ? 'Deleting...' : 'Delete board'}
+                    </button>
                   </div>
                 </>
               )}
@@ -304,9 +464,14 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
       </header>
 
       {/* Content */}
-      <main className="max-w-4xl mx-auto px-4 py-8">
+      <main className="px-3 sm:px-4 py-8">
+        {/* Item count */}
+        <div className={`mb-4 text-sm ${darkMode ? 'text-white/40' : 'text-black/40'}`}>
+          {items.length} item{items.length !== 1 ? 's' : ''}
+        </div>
+
         {items.length === 0 ? (
-          <div className={`text-center py-12 ${darkMode ? 'text-white/40' : 'text-black/40'}`}>
+          <div className={`text-center py-20 ${darkMode ? 'text-white/40' : 'text-black/40'}`}>
             <svg className={`w-12 h-12 mx-auto mb-4 ${darkMode ? 'text-white/20' : 'text-black/20'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
             </svg>
@@ -314,67 +479,28 @@ export default function BoardDetailPage({ params }: { params: Promise<{ id: stri
             <p className="text-sm">Add items from your saved collection</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {items.map((item) => {
-              const sub = item.submissions
-              const totalVotes = sub.total_craft + sub.total_crap
-              const craftPercent = totalVotes > 0 ? Math.round((sub.total_craft / totalVotes) * 100) : 50
-
-              return (
-                <div
-                  key={item.id}
-                  className={`group rounded-xl overflow-hidden transition-all relative ${
-                    darkMode ? 'bg-white/[0.03] hover:bg-white/[0.05]' : 'bg-black/[0.03] hover:bg-black/[0.05]'
+          <div className={`${gridCols[cardSize]} gap-3`}>
+            {items.map((item) => (
+              <div key={item.id} className="break-inside-avoid mb-3 relative group">
+                {/* Remove from board button */}
+                <button
+                  onClick={() => handleRemoveFromBoard(item.submissions.id)}
+                  className={`absolute top-2 right-2 z-10 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-all ${
+                    darkMode ? 'bg-black/60 text-white/70 hover:bg-black/80 hover:text-white' : 'bg-white/60 text-black/70 hover:bg-white/80 hover:text-black'
                   }`}
+                  title="Remove from board"
                 >
-                  {/* Remove from board button */}
-                  <button
-                    onClick={() => handleRemoveFromBoard(sub.id)}
-                    className={`absolute top-2 right-2 z-10 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-all ${
-                      darkMode ? 'bg-black/50 text-white/60 hover:bg-black/70 hover:text-white' : 'bg-white/50 text-black/60 hover:bg-white/70 hover:text-black'
-                    }`}
-                    title="Remove from board"
-                  >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-
-                  <a href={sub.url} target="_blank" rel="noopener noreferrer">
-                    <div className={`aspect-video overflow-hidden ${darkMode ? 'bg-white/[0.02]' : 'bg-black/[0.02]'}`}>
-                      {sub.thumbnail_url ? (
-                        <img
-                          src={sub.thumbnail_url}
-                          alt={sub.title || 'Thumbnail'}
-                          className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500"
-                        />
-                      ) : (
-                        <div className={`w-full h-full flex items-center justify-center text-xs ${darkMode ? 'text-white/20' : 'text-black/20'}`}>
-                          No preview
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="p-3">
-                      <h3 className={`text-sm font-medium truncate ${darkMode ? 'text-white/90 group-hover:text-white' : 'text-black/90 group-hover:text-black'}`}>
-                        {sub.title || new URL(sub.url).hostname}
-                      </h3>
-                      <div className="flex items-center gap-2 mt-1">
-                        <div className={`flex-1 h-1 rounded-full overflow-hidden ${darkMode ? 'bg-white/10' : 'bg-black/10'}`}>
-                          <div
-                            className={`h-full rounded-full ${
-                              craftPercent >= 70 ? 'bg-emerald-500' : craftPercent <= 30 ? 'bg-red-500' : darkMode ? 'bg-white/50' : 'bg-black/50'
-                            }`}
-                            style={{ width: `${craftPercent}%` }}
-                          />
-                        </div>
-                        <span className={`text-xs ${darkMode ? 'text-white/40' : 'text-black/40'}`}>{craftPercent}%</span>
-                      </div>
-                    </div>
-                  </a>
-                </div>
-              )
-            })}
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+                <SubmissionCard
+                  submission={item.submissions}
+                  size={cardSize}
+                  darkMode={darkMode}
+                />
+              </div>
+            ))}
           </div>
         )}
       </main>

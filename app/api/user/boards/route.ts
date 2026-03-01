@@ -76,7 +76,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { name, icon, allow_voting, allow_submissions } = await request.json()
+    const { name, icon, allow_voting, allow_submissions, visibility, topic } = await request.json()
 
     if (!name || name.trim().length === 0) {
       return NextResponse.json({ error: 'Name is required' }, { status: 400 })
@@ -87,6 +87,11 @@ export async function POST(request: Request) {
     // Generate a unique share_id
     const shareId = Math.random().toString(36).substring(2, 12)
 
+    // Generate slug for public boards
+    const slug = visibility === 'public'
+      ? name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + shareId.slice(0, 4)
+      : null
+
     const { data, error } = await supabase
       .from('user_boards')
       .insert({
@@ -96,6 +101,9 @@ export async function POST(request: Request) {
         share_id: shareId,
         allow_voting: allow_voting ?? true,
         allow_submissions: allow_submissions ?? true,
+        visibility: visibility || 'private',
+        topic: topic || null,
+        slug: slug,
       })
       .select()
       .single()
