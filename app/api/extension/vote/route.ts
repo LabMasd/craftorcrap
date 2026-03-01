@@ -4,7 +4,7 @@ import { verifyExtensionToken, getTokenFromHeader } from '@/lib/extension-auth'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Methods': 'POST, DELETE, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 }
 
@@ -151,6 +151,107 @@ export async function POST(request: NextRequest) {
     console.error('Extension vote error:', error)
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Failed to vote' },
+      { status: 500, headers: corsHeaders }
+    )
+  }
+}
+
+// DELETE /api/extension/vote - Remove a vote (undo)
+export async function DELETE(request: NextRequest) {
+  try {
+    const authHeader = request.headers.get('Authorization')
+    const token = getTokenFromHeader(authHeader)
+
+    if (!token) {
+      return NextResponse.json(
+        { error: 'Authentication required', code: 'AUTH_REQUIRED' },
+        { status: 401, headers: corsHeaders }
+      )
+    }
+
+    const authResult = await verifyExtensionToken(token)
+
+    if (!authResult) {
+      return NextResponse.json(
+        { error: 'Invalid or expired token', code: 'INVALID_TOKEN' },
+        { status: 401, headers: corsHeaders }
+      )
+    }
+
+    const userId = authResult.userId
+    const { url } = await request.json()
+
+    if (!url) {
+      return NextResponse.json(
+        { error: 'url is required' },
+        { status: 400, headers: corsHeaders }
+      )
+    }
+
+    const supabase = getServiceClient()
+
+    // Find submission
+    const { data: submission } = await supabase
+      .from('submissions')
+      .select('id, total_craft, total_crap')
+      .eq('url', url)
+      .single()
+
+    if (!submission) {
+      return NextResponse.json(
+        { error: 'Submission not found' },
+        { status: 404, headers: corsHeaders }
+      )
+    }
+
+    // Find user's vote
+    const { data: existingVote } = await supabase
+      .from('votes')
+      .select('id, verdict')
+      .eq('submission_id', submission.id)
+      .eq('user_id', userId)
+      .single()
+
+    if (!existingVote) {
+      return NextResponse.json(
+        { error: 'No vote to remove' },
+        { status: 404, headers: corsHeaders }
+      )
+    }
+
+    // Delete the vote
+    const { error: deleteError } = await supabase
+      .from('votes')
+      .delete()
+      .eq('id', existingVote.id)
+
+    if (deleteError) {
+      throw deleteError
+    }
+
+    // Update totals
+    const newCraft = submission.total_craft - (existingVote.verdict === 'craft' ? 1 : 0)
+    const newCrap = submission.total_crap - (existingVote.verdict === 'crap' ? 1 : 0)
+
+    await supabase
+      .from('submissions')
+      .update({
+        total_craft: Math.max(0, newCraft),
+        total_crap: Math.max(0, newCrap),
+      })
+      .eq('id', submission.id)
+
+    return NextResponse.json({
+      success: true,
+      removed_vote: existingVote.verdict,
+      total_craft: Math.max(0, newCraft),
+      total_crap: Math.max(0, newCrap),
+    }, { headers: corsHeaders })
+
+  } catch (error) {
+    console.error('Extension vote delete error:', error)
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Failed to remove vote' },
       { status: 500, headers: corsHeaders }
     )
   }

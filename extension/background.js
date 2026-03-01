@@ -114,6 +114,20 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // Quick save without category selection (defaults to 'Other')
     quickSaveToSite(message.data);
   }
+
+  if (message.action === 'updateBadge') {
+    const count = message.count || 0;
+    const tabId = sender.tab?.id;
+
+    if (tabId) {
+      if (count > 0) {
+        chrome.action.setBadgeText({ text: count.toString(), tabId });
+        chrome.action.setBadgeBackgroundColor({ color: '#ef4444', tabId });
+      } else {
+        chrome.action.setBadgeText({ text: '', tabId });
+      }
+    }
+  }
 });
 
 // Quick save function

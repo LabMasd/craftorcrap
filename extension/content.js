@@ -170,6 +170,9 @@ function createVoteOverlay() {
     <div class="craftorcrap-login-prompt" style="display: none;">
       <a href="${CRAFTORCRAP_URL}/extension/connect" target="_blank">Connect account to vote</a>
     </div>
+    <div class="craftorcrap-undo-row" style="display: none;">
+      <button class="craftorcrap-undo-btn">Undo vote</button>
+    </div>
     <div class="craftorcrap-rating-bar">
       <div class="craftorcrap-rating-fill"></div>
     </div>
@@ -185,6 +188,13 @@ function createVoteOverlay() {
       e.preventDefault();
       handleVote(btn.dataset.vote);
     });
+  });
+
+  // Undo button
+  voteOverlay.querySelector('.craftorcrap-undo-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    handleUndo();
   });
 
   voteOverlay.addEventListener('mouseenter', () => {
@@ -259,12 +269,14 @@ function updateOverlayRating(rating) {
   const text = voteOverlay.querySelector('.craftorcrap-rating-text');
   const craftBtn = voteOverlay.querySelector('.craftorcrap-vote-btn.craft');
   const crapBtn = voteOverlay.querySelector('.craftorcrap-vote-btn.crap');
+  const undoRow = voteOverlay.querySelector('.craftorcrap-undo-row');
 
   // Reset button states
   craftBtn.classList.remove('voted', 'disabled');
   crapBtn.classList.remove('voted', 'disabled');
   craftBtn.disabled = false;
   crapBtn.disabled = false;
+  undoRow.style.display = 'none';
 
   if (rating) {
     const percent = rating.percent;
@@ -276,7 +288,7 @@ function updateOverlayRating(rating) {
     const total = rating.total_craft + rating.total_crap;
     text.textContent = total > 0 ? `${percent}% craft · ${total} votes` : 'No votes yet';
 
-    // Show user's vote
+    // Show user's vote and undo option
     if (rating.user_vote) {
       if (rating.user_vote === 'craft') {
         craftBtn.classList.add('voted');
@@ -287,6 +299,7 @@ function updateOverlayRating(rating) {
       }
       craftBtn.disabled = true;
       crapBtn.disabled = true;
+      undoRow.style.display = 'block';
     }
   } else {
     fill.style.width = '50%';
@@ -435,6 +448,51 @@ async function handleVote(verdict) {
     crapBtn.disabled = false;
     clickedBtn.classList.remove('loading');
   }
+}
+
+// Handle undo vote
+async function handleUndo() {
+  if (!currentUrl || !extensionToken) return;
+
+  const undoBtn = voteOverlay.querySelector('.craftorcrap-undo-btn');
+  undoBtn.disabled = true;
+  undoBtn.textContent = 'Undoing...';
+
+  try {
+    const response = await fetch(`${CRAFTORCRAP_URL}/api/extension/vote`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${extensionToken}`,
+      },
+      body: JSON.stringify({ url: currentUrl }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      // Update cache
+      const newTotal = data.total_craft + data.total_crap;
+      const percent = newTotal > 0 ? Math.round((data.total_craft / newTotal) * 100) : 50;
+
+      ratingsCache.set(currentUrl, {
+        total_craft: data.total_craft,
+        total_crap: data.total_crap,
+        percent,
+        user_vote: null,
+      });
+
+      // Update UI
+      updateOverlayRating(ratingsCache.get(currentUrl));
+      updateBadge(currentElement, currentUrl);
+      applyFilter();
+    }
+  } catch (err) {
+    console.error('Undo failed:', err);
+  }
+
+  undoBtn.disabled = false;
+  undoBtn.textContent = 'Undo vote';
 }
 
 // Scan page for images and videos
@@ -586,7 +644,7 @@ function updateAllBadges() {
   });
 }
 
-// Apply filter to single element
+// Apply filter to single element (returns true if filtered)
 function applyFilterToElement(element, url) {
   // Remove existing cover if any
   const existingCover = element._craftorcrapCover;
@@ -600,7 +658,7 @@ function applyFilterToElement(element, url) {
   element.style.opacity = '';
 
   if (settings.filterMode === 'all') {
-    return;
+    return false;
   }
 
   const rating = ratingsCache.get(url);
@@ -622,7 +680,7 @@ function applyFilterToElement(element, url) {
     }
   }
 
-  if (!shouldFilter) return;
+  if (!shouldFilter) return false;
 
   if (settings.crapStyle === 'cover') {
     // Create black cover
@@ -648,15 +706,28 @@ function applyFilterToElement(element, url) {
     element.style.filter = 'grayscale(1) blur(4px)';
     element.style.opacity = '0.3';
   }
+
+  return true;
 }
 
 // Apply filter to all elements
 function applyFilter() {
+  let filteredCount = 0;
+
   document.querySelectorAll('img, video, [data-video-id], [class*="video"], [class*="Video"]').forEach(el => {
     if (el._craftorcrapUrl) {
-      applyFilterToElement(el, el._craftorcrapUrl);
+      const wasFiltered = applyFilterToElement(el, el._craftorcrapUrl);
+      if (wasFiltered) filteredCount++;
     }
   });
+
+  // Update extension icon badge with filtered count
+  updateExtensionBadge(filteredCount);
+}
+
+// Update extension badge with filtered count
+function updateExtensionBadge(count) {
+  chrome.runtime.sendMessage({ action: 'updateBadge', count });
 }
 
 // Initialize when DOM is ready
