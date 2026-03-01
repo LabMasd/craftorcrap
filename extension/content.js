@@ -33,7 +33,17 @@ let settings = {
   crapStyle: 'blur', // 'blur' or 'cover'
   defaultBoardId: '', // board to save crafts to
   sharePublicly: false, // submit crafts to public page
+  siteSettings: {}, // domain -> filterMode
 };
+
+// Get current domain
+const currentDomain = window.location.hostname.replace('www.', '');
+
+// Get effective filter mode (site-specific or default)
+function getEffectiveFilterMode() {
+  const siteMode = settings.siteSettings[currentDomain];
+  return siteMode || settings.filterMode;
+}
 
 // Auth state
 let isAuthenticated = false;
@@ -55,7 +65,8 @@ let hideTimeout = null;
 // Initialize
 async function init() {
   // Load settings and auth
-  chrome.storage.local.get(['hoverEnabled', 'filterMode', 'showBadges', 'crapStyle', 'extensionToken', 'isAuthenticated', 'currentUser', 'defaultBoardId', 'sharePublicly'], (result) => {
+  chrome.storage.local.get(['hoverEnabled', 'filterMode', 'showBadges', 'crapStyle', 'extensionToken', 'isAuthenticated', 'currentUser', 'defaultBoardId', 'sharePublicly', 'siteSettings'], (result) => {
+    settings.siteSettings = result.siteSettings || {};
     settings.hoverEnabled = result.hoverEnabled !== false;
     settings.filterMode = result.filterMode || 'all';
     settings.showBadges = result.showBadges !== false;
@@ -101,6 +112,10 @@ async function init() {
       }
       if (changes.sharePublicly) {
         settings.sharePublicly = changes.sharePublicly.newValue || false;
+      }
+      if (changes.siteSettings) {
+        settings.siteSettings = changes.siteSettings.newValue || {};
+        applyFilter();
       }
     }
   });
@@ -718,7 +733,9 @@ function applyFilterToElement(element, url) {
   element.style.filter = '';
   element.style.opacity = '';
 
-  if (settings.filterMode === 'all') {
+  const effectiveMode = getEffectiveFilterMode();
+
+  if (effectiveMode === 'all') {
     return false;
   }
 
@@ -727,13 +744,13 @@ function applyFilterToElement(element, url) {
   let shouldFilter = false;
   let filterText = '';
 
-  if (settings.filterMode === 'craft-only') {
+  if (effectiveMode === 'craft-only') {
     // Craft Only: show only images YOU voted craft on, hide everything else
     if (!rating || rating.user_vote !== 'craft') {
       shouldFilter = true;
       filterText = rating ? `${rating.percent}% craft` : 'Not voted';
     }
-  } else if (settings.filterMode === 'hide-crap') {
+  } else if (effectiveMode === 'hide-crap') {
     // Hide Crap: hide images with low ratings
     if (rating && rating.percent < 30) {
       shouldFilter = true;
@@ -745,13 +762,13 @@ function applyFilterToElement(element, url) {
 
   // Determine reason text
   let reasonText = '';
-  if (settings.filterMode === 'craft-only') {
+  if (effectiveMode === 'craft-only') {
     if (!rating) {
       reasonText = 'Hidden: No rating yet. Only showing content you voted Craft on.';
     } else if (rating.user_vote !== 'craft') {
       reasonText = `Hidden: You haven't voted Craft on this. (${rating.percent}% craft · ${rating.total_craft + rating.total_crap} votes)`;
     }
-  } else if (settings.filterMode === 'hide-crap') {
+  } else if (effectiveMode === 'hide-crap') {
     reasonText = `Hidden: Low rating (${rating.percent}% craft · ${rating.total_craft + rating.total_crap} votes)`;
   }
 

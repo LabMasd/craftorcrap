@@ -12,6 +12,8 @@ let extensionToken = null;
 let userBoards = [];
 let defaultBoardId = ''; // empty = unsorted
 let sharePublicly = false;
+let siteSettings = {}; // domain -> filterMode
+let currentDomain = '';
 
 // Auth elements
 const authSection = document.getElementById('authSection');
@@ -91,6 +93,62 @@ const hoverToggle = document.getElementById('hoverToggle');
 const badgesToggle = document.getElementById('badgesToggle');
 const filterButtons = document.querySelectorAll('.filter-btn');
 const crapStyleButtons = document.querySelectorAll('.style-btn');
+const siteFilterButtons = document.querySelectorAll('.site-filter-btn');
+const siteDomainEl = document.getElementById('siteDomain');
+
+// Get current tab domain
+async function getCurrentDomain() {
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab?.url) {
+      const url = new URL(tab.url);
+      currentDomain = url.hostname.replace('www.', '');
+      siteDomainEl.textContent = currentDomain;
+      updateSiteFilterUI();
+    }
+  } catch (err) {
+    console.error('Failed to get current tab:', err);
+  }
+}
+
+// Load site settings
+chrome.storage.local.get(['siteSettings'], (result) => {
+  siteSettings = result.siteSettings || {};
+  getCurrentDomain();
+});
+
+// Listen for tab changes
+chrome.tabs.onActivated.addListener(() => {
+  getCurrentDomain();
+});
+
+// Update site filter UI
+function updateSiteFilterUI() {
+  const siteMode = siteSettings[currentDomain] || 'default';
+  siteFilterButtons.forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.siteMode === siteMode);
+  });
+}
+
+// Site filter buttons
+siteFilterButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const mode = btn.dataset.siteMode;
+
+    if (mode === 'default') {
+      delete siteSettings[currentDomain];
+    } else {
+      siteSettings[currentDomain] = mode;
+    }
+
+    // Update UI
+    siteFilterButtons.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    // Save to storage
+    chrome.storage.local.set({ siteSettings });
+  });
+});
 
 // Load settings
 chrome.storage.local.get(['hoverEnabled', 'showBadges', 'filterMode', 'crapStyle'], (result) => {
