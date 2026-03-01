@@ -11,11 +11,11 @@ export async function GET(
   const supabase = createClient(supabaseUrl, supabaseServiceKey)
   const { shareId } = await params
 
-  // Try user_boards first (legacy)
+  // Try user_boards first (legacy) - check both share_id and slug
   let { data: board, error: boardError } = await supabase
     .from('user_boards')
     .select('id, name, share_id, created_at, allow_voting, allow_submissions, visibility, follower_count, topic')
-    .eq('share_id', shareId)
+    .or(`share_id.eq.${shareId},slug.eq.${shareId}`)
     .single()
 
   let isProBoard = false
