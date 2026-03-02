@@ -909,36 +909,17 @@ export default function Home() {
       </header>
 
       {/* Tagline */}
-      <div className={`fixed top-[52px] sm:top-[52px] left-0 right-0 z-40 ${darkMode ? 'bg-gradient-to-r from-neutral-900 via-neutral-800 to-neutral-900' : 'bg-gradient-to-r from-neutral-100 via-neutral-50 to-neutral-100'}`}>
-        <div className={`py-4 border-b ${darkMode ? 'border-white/[0.06]' : 'border-black/[0.06]'}`}>
-          <div className="flex items-center justify-center gap-3 sm:gap-6 px-4">
-            <div className={`hidden sm:block h-[1px] w-12 ${darkMode ? 'bg-gradient-to-r from-transparent to-white/20' : 'bg-gradient-to-r from-transparent to-black/20'}`} />
-
-            <p className={`text-[13px] sm:text-[15px] tracking-wide text-center ${darkMode ? 'text-white/50' : 'text-black/50'}`}>
-              <span className={darkMode ? 'text-white/30' : 'text-black/30'}>No algorithms</span>
-              <span className={`mx-2 ${darkMode ? 'text-white/20' : 'text-black/20'}`}>·</span>
-              <span className={darkMode ? 'text-white/30' : 'text-black/30'}>No influencers</span>
-              <span className={`mx-2 ${darkMode ? 'text-white/20' : 'text-black/20'}`}>·</span>
-              Just <span className={`font-medium ${darkMode ? 'text-white' : 'text-black'}`}>honest votes</span> from the creative community
-            </p>
-
-            <div className={`hidden sm:block h-[1px] w-12 ${darkMode ? 'bg-gradient-to-l from-transparent to-white/20' : 'bg-gradient-to-l from-transparent to-black/20'}`} />
-          </div>
-
-          <Link
-            href="/about"
-            className={`mt-2 flex items-center justify-center gap-1.5 text-[11px] tracking-wide uppercase font-medium transition-all ${darkMode ? 'text-white/25 hover:text-white/50' : 'text-black/25 hover:text-black/50'}`}
-          >
-            <span>Read the manifesto</span>
-            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-            </svg>
-          </Link>
-        </div>
-      </div>
+      <Link
+        href="/about"
+        className={`fixed top-[52px] sm:top-[52px] left-0 right-0 z-40 py-3 text-center ${darkMode ? 'bg-neutral-900' : 'bg-neutral-100'}`}
+      >
+        <p className={`text-[13px] ${darkMode ? 'text-white/40' : 'text-black/40'}`}>
+          Where creatives <span className={darkMode ? 'text-white' : 'text-black'}>vote</span> and <span className={darkMode ? 'text-white' : 'text-black'}>discover</span> what's actually good
+        </p>
+      </Link>
 
       {/* Main Content */}
-      <main className="pt-44 sm:pt-36 px-3 sm:px-4 pb-20">
+      <main className="pt-32 sm:pt-24 px-3 sm:px-4 pb-20">
         {isDemo && (
           <div className={`mb-4 py-2 px-3 rounded-lg text-[11px] text-center ${darkMode ? 'bg-white/5 text-white/40' : 'bg-black/5 text-black/40'}`}>
             Demo mode — Connect Supabase to enable real submissions
