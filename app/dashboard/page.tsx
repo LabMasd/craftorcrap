@@ -8,6 +8,7 @@ import VoteHistory from '@/components/dashboard/VoteHistory'
 import SavedItems from '@/components/dashboard/SavedItems'
 import MySubmissions from '@/components/dashboard/MySubmissions'
 import MyBoards from '@/components/dashboard/MyBoards'
+import AppToken from '@/components/dashboard/AppToken'
 
 type TabType = 'votes' | 'saved' | 'boards' | 'submissions'
 
@@ -172,14 +173,19 @@ export default function DashboardPage() {
 
       {/* Main content */}
       <main className="max-w-4xl mx-auto px-4 py-8">
-        {/* Welcome */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold">
-            Welcome back{user?.firstName ? `, ${user.firstName}` : ''}
-          </h1>
-          <p className={`mt-1 ${darkMode ? 'text-white/50' : 'text-black/50'}`}>
-            Track your activity and see how your work is performing
-          </p>
+        {/* Welcome + App Token */}
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 mb-8">
+          <div>
+            <h1 className="text-2xl font-bold">
+              Welcome back{user?.firstName ? `, ${user.firstName}` : ''}
+            </h1>
+            <p className={`mt-1 ${darkMode ? 'text-white/50' : 'text-black/50'}`}>
+              Track your activity and see how your work is performing
+            </p>
+          </div>
+          <div className="md:w-80">
+            <AppToken darkMode={darkMode} />
+          </div>
         </div>
 
         {/* Tabs */}
