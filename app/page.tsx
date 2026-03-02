@@ -908,8 +908,16 @@ export default function Home() {
         </div>
       </header>
 
+      {/* Tagline */}
+      <div className={`fixed top-[52px] sm:top-[52px] left-0 right-0 z-40 py-2 text-center text-[12px] ${darkMode ? 'bg-neutral-900/95 text-white/50' : 'bg-neutral-100/95 text-black/50'}`}>
+        Where the creative community <span className={darkMode ? 'text-white font-medium' : 'text-black font-medium'}>votes</span> on what's craft and what's crap. No algorithms, just <span className={darkMode ? 'text-white font-medium' : 'text-black font-medium'}>honest opinions</span>.{' '}
+        <Link href="/about" className={`underline underline-offset-2 ${darkMode ? 'text-white/60 hover:text-white/80' : 'text-black/60 hover:text-black/80'}`}>
+          Read our manifesto
+        </Link>
+      </div>
+
       {/* Main Content */}
-      <main className="pt-28 sm:pt-20 px-3 sm:px-4 pb-20">
+      <main className="pt-36 sm:pt-28 px-3 sm:px-4 pb-20">
         {isDemo && (
           <div className={`mb-4 py-2 px-3 rounded-lg text-[11px] text-center ${darkMode ? 'bg-white/5 text-white/40' : 'bg-black/5 text-black/40'}`}>
             Demo mode — Connect Supabase to enable real submissions
