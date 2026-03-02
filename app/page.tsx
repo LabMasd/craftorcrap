@@ -909,12 +909,22 @@ export default function Home() {
       </header>
 
       {/* Tagline */}
-      <div className={`fixed top-[52px] sm:top-[52px] left-0 right-0 z-40 py-2 text-center text-[12px] ${darkMode ? 'bg-neutral-900/95 text-white/50' : 'bg-neutral-100/95 text-black/50'}`}>
-        Where the creative community <span className={darkMode ? 'text-white font-medium' : 'text-black font-medium'}>votes</span> on what's craft and what's crap. No algorithms, just <span className={darkMode ? 'text-white font-medium' : 'text-black font-medium'}>honest opinions</span>.{' '}
-        <Link href="/about" className={`underline underline-offset-2 ${darkMode ? 'text-white/60 hover:text-white/80' : 'text-black/60 hover:text-black/80'}`}>
-          Read our manifesto
-        </Link>
-      </div>
+      <Link
+        href="/about"
+        className={`fixed top-[52px] sm:top-[52px] left-0 right-0 z-40 py-3 text-center group transition-colors ${darkMode ? 'bg-neutral-900 hover:bg-neutral-800' : 'bg-neutral-100 hover:bg-neutral-200'}`}
+      >
+        <span className={`text-[13px] sm:text-[14px] tracking-wide ${darkMode ? 'text-white/40' : 'text-black/40'}`}>
+          No algorithms. No influencers. Just{' '}
+          <span className={darkMode ? 'text-white font-medium' : 'text-black font-medium'}>honest votes</span>
+          {' '}from the creative community.
+        </span>
+        <span className={`ml-2 inline-flex items-center gap-1 text-[11px] font-medium ${darkMode ? 'text-white/30 group-hover:text-white/60' : 'text-black/30 group-hover:text-black/60'} transition-colors`}>
+          Read manifesto
+          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </span>
+      </Link>
 
       {/* Main Content */}
       <main className="pt-36 sm:pt-28 px-3 sm:px-4 pb-20">
