@@ -1047,8 +1047,8 @@ export default function Home() {
               {/* Sliding filter content */}
               <div
                 className={`flex items-center gap-2 transition-all duration-300 ease-out ${
-                  showCategoryFilter ? 'max-w-[600px] opacity-100' : 'max-w-0 opacity-0'
-                } overflow-hidden`}
+                  showCategoryFilter ? 'flex-1 opacity-100' : 'max-w-0 opacity-0'
+                } overflow-x-auto overflow-y-hidden scrollbar-hide`}
               >
                 {/* Category pills */}
                 {['All', ...CATEGORIES].map((cat) => (
