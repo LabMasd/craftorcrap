@@ -1022,40 +1022,10 @@ export default function Home() {
 
         {/* Filters */}
         <div className="mb-6" ref={filtersRef}>
-          {/* All filters on one row */}
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Search input */}
-            <div className="relative">
-              <svg className={`absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 ${darkMode ? 'text-white/40' : 'text-black/40'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search..."
-                className={`w-32 sm:w-40 pl-7 pr-2 py-1.5 text-[11px] rounded-full outline-none transition-all focus:w-48 sm:focus:w-56 ${
-                  darkMode
-                    ? 'bg-white/5 text-white placeholder:text-white/30 focus:bg-white/10'
-                    : 'bg-black/5 text-black placeholder:text-black/30 focus:bg-black/10'
-                }`}
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className={`absolute right-2 top-1/2 -translate-y-1/2 ${darkMode ? 'text-white/40 hover:text-white/70' : 'text-black/40 hover:text-black/70'}`}
-                >
-                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              )}
-            </div>
-
-            {/* Active Board button - only for signed in users */}
-            <SignedIn>
-              <ActiveBoardButton darkMode={darkMode} />
-            </SignedIn>
+          {/* Filters row with categories left, search right */}
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            {/* Left: Category pills */}
+            <div className="flex flex-wrap items-center gap-2">
             {/* Category pills */}
             {['All', ...CATEGORIES].map((cat) => (
               <button
@@ -1141,6 +1111,43 @@ export default function Home() {
                 {board.title}
               </button>
             ))}
+            </div>
+
+            {/* Right: Search + Active Board */}
+            <div className="flex items-center gap-2">
+              {/* Active Board button - only for signed in users */}
+              <SignedIn>
+                <ActiveBoardButton darkMode={darkMode} />
+              </SignedIn>
+
+              {/* Search input */}
+              <div className="relative">
+                <svg className={`absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 ${darkMode ? 'text-white/40' : 'text-black/40'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search..."
+                  className={`w-32 sm:w-40 pl-7 pr-2 py-1.5 text-[11px] rounded-full outline-none transition-all focus:w-48 sm:focus:w-56 ${
+                    darkMode
+                      ? 'bg-white/5 text-white placeholder:text-white/30 focus:bg-white/10'
+                      : 'bg-black/5 text-black placeholder:text-black/30 focus:bg-black/10'
+                  }`}
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className={`absolute right-2 top-1/2 -translate-y-1/2 ${darkMode ? 'text-white/40 hover:text-white/70' : 'text-black/40 hover:text-black/70'}`}
+                  >
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
