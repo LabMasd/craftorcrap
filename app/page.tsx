@@ -911,15 +911,15 @@ export default function Home() {
       {/* Tagline */}
       <Link
         href="/about"
-        className={`fixed top-[52px] sm:top-[52px] left-0 right-0 z-40 py-3 text-center ${darkMode ? 'bg-neutral-900' : 'bg-neutral-100'}`}
+        className={`fixed top-[52px] sm:top-[52px] left-0 right-0 z-40 py-5 sm:py-6 text-center ${darkMode ? 'bg-neutral-900' : 'bg-neutral-100'}`}
       >
-        <p className={`text-[13px] ${darkMode ? 'text-white/40' : 'text-black/40'}`}>
-          Where creatives <span className={darkMode ? 'text-white' : 'text-black'}>vote</span> and <span className={darkMode ? 'text-white' : 'text-black'}>discover</span> what's actually good
+        <p className={`text-[15px] sm:text-[17px] ${darkMode ? 'text-white/40' : 'text-black/40'}`}>
+          Where creatives <span className={darkMode ? 'text-white font-medium' : 'text-black font-medium'}>vote</span> and <span className={darkMode ? 'text-white font-medium' : 'text-black font-medium'}>discover</span> what's actually good
         </p>
       </Link>
 
       {/* Main Content */}
-      <main className="pt-32 sm:pt-24 px-3 sm:px-4 pb-20">
+      <main className="pt-36 sm:pt-32 px-3 sm:px-4 pb-20">
         {isDemo && (
           <div className={`mb-4 py-2 px-3 rounded-lg text-[11px] text-center ${darkMode ? 'bg-white/5 text-white/40' : 'bg-black/5 text-black/40'}`}>
             Demo mode — Connect Supabase to enable real submissions
