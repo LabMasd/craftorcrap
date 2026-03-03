@@ -908,18 +908,17 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Tagline */}
-      <Link
-        href="/about"
-        className={`fixed top-[76px] sm:top-[68px] left-0 right-0 z-40 py-5 sm:py-6 text-center ${darkMode ? 'bg-black' : 'bg-neutral-50'}`}
-      >
-        <p className={`text-[15px] sm:text-[17px] ${darkMode ? 'text-white/40' : 'text-black/40'}`}>
-          Where creatives <span className={darkMode ? 'text-white font-medium' : 'text-black font-medium'}>vote</span> and <span className={darkMode ? 'text-white font-medium' : 'text-black font-medium'}>discover</span> what's actually good <span className={darkMode ? 'text-white/25' : 'text-black/25'}>(read the manifesto)</span>
-        </p>
-      </Link>
-
       {/* Main Content */}
-      <main className="pt-36 sm:pt-32 px-3 sm:px-4 pb-20">
+      <main className="pt-28 sm:pt-20 px-3 sm:px-4 pb-20">
+        {/* Tagline */}
+        <Link
+          href="/about"
+          className="block py-4 sm:py-5 text-center mb-4"
+        >
+          <p className={`text-[15px] sm:text-[17px] ${darkMode ? 'text-white/40' : 'text-black/40'}`}>
+            Where creatives <span className={darkMode ? 'text-white font-medium' : 'text-black font-medium'}>vote</span> and <span className={darkMode ? 'text-white font-medium' : 'text-black font-medium'}>discover</span> what's actually good <span className={darkMode ? 'text-white/25' : 'text-black/25'}>(read the manifesto)</span>
+          </p>
+        </Link>
         {isDemo && (
           <div className={`mb-4 py-2 px-3 rounded-lg text-[11px] text-center ${darkMode ? 'bg-white/5 text-white/40' : 'bg-black/5 text-black/40'}`}>
             Demo mode — Connect Supabase to enable real submissions
