@@ -1022,8 +1022,8 @@ export default function Home() {
 
         {/* Filters */}
         <div className="mb-6" ref={filtersRef}>
-          {/* Search row */}
-          <div className="flex flex-wrap items-center gap-2 mb-3">
+          {/* All filters on one row */}
+          <div className="flex flex-wrap items-center gap-2">
             {/* Search input */}
             <div className="relative">
               <svg className={`absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 ${darkMode ? 'text-white/40' : 'text-black/40'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1056,10 +1056,6 @@ export default function Home() {
             <SignedIn>
               <ActiveBoardButton darkMode={darkMode} />
             </SignedIn>
-          </div>
-
-          {/* Filter row: Categories + Color dropdown + Board dropdown */}
-          <div className="flex flex-wrap items-center gap-2">
             {/* Category pills */}
             {['All', ...CATEGORIES].map((cat) => (
               <button
