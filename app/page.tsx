@@ -913,7 +913,7 @@ export default function Home() {
         {/* Tagline */}
         <Link
           href="/about"
-          className="block py-4 sm:py-5 -mx-3 sm:-mx-4"
+          className="block pt-1 pb-4 sm:pt-2 sm:pb-5 -mx-3 sm:-mx-4"
         >
           <p className={`text-[15px] sm:text-[17px] text-center ${darkMode ? 'text-white/40' : 'text-black/40'}`}>
             Where creatives <span className={darkMode ? 'text-white font-medium' : 'text-black font-medium'}>vote</span> and <span className={darkMode ? 'text-white font-medium' : 'text-black font-medium'}>discover</span> what's actually good <span className={`text-[11px] sm:text-[12px] ${darkMode ? 'text-white/20' : 'text-black/20'}`}>(read the manifesto)</span>
