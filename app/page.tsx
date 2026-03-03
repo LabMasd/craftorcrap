@@ -911,7 +911,7 @@ export default function Home() {
       {/* Tagline */}
       <Link
         href="/about"
-        className={`fixed top-[52px] sm:top-[52px] left-0 right-0 z-40 py-5 sm:py-6 text-center ${darkMode ? 'bg-black' : 'bg-neutral-50'}`}
+        className={`fixed top-[64px] sm:top-[60px] left-0 right-0 z-40 py-5 sm:py-6 text-center ${darkMode ? 'bg-black' : 'bg-neutral-50'}`}
       >
         <p className={`text-[15px] sm:text-[17px] ${darkMode ? 'text-white/40' : 'text-black/40'}`}>
           Where creatives <span className={darkMode ? 'text-white font-medium' : 'text-black font-medium'}>vote</span> and <span className={darkMode ? 'text-white font-medium' : 'text-black font-medium'}>discover</span> what's actually good
