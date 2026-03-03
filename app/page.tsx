@@ -877,6 +877,16 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Tagline */}
+        <Link
+          href="/about"
+          className="block py-4 sm:py-5 text-center"
+        >
+          <p className={`text-[15px] sm:text-[17px] ${darkMode ? 'text-white/40' : 'text-black/40'}`}>
+            Where creatives <span className={darkMode ? 'text-white font-medium' : 'text-black font-medium'}>vote</span> and <span className={darkMode ? 'text-white font-medium' : 'text-black font-medium'}>discover</span> what's actually good <span className={`text-[11px] sm:text-[12px] ${darkMode ? 'text-white/20' : 'text-black/20'}`}>(read the manifesto)</span>
+          </p>
+        </Link>
+
         {/* Mobile: Tabs below header */}
         <div className={`sm:hidden flex justify-start px-4 pb-3 ${darkMode ? 'border-white/0' : 'border-black/0'}`}>
           <div className={`p-1 rounded-full ${darkMode ? 'bg-white/5' : 'bg-black/5'}`}>
@@ -906,16 +916,6 @@ export default function Home() {
             </div>
           </div>
         </div>
-
-        {/* Tagline */}
-        <Link
-          href="/about"
-          className="block py-4 sm:py-5 text-center"
-        >
-          <p className={`text-[15px] sm:text-[17px] ${darkMode ? 'text-white/40' : 'text-black/40'}`}>
-            Where creatives <span className={darkMode ? 'text-white font-medium' : 'text-black font-medium'}>vote</span> and <span className={darkMode ? 'text-white font-medium' : 'text-black font-medium'}>discover</span> what's actually good <span className={`text-[11px] sm:text-[12px] ${darkMode ? 'text-white/20' : 'text-black/20'}`}>(read the manifesto)</span>
-          </p>
-        </Link>
       </header>
 
       {/* Main Content */}
